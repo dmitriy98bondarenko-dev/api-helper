@@ -188,6 +188,15 @@
   .json-boolean { color:#b45309; font-weight:600; }
   .json-null { color:#6b7280; font-style:italic; }
   .json-url { color:#7a3cff; text-decoration:underline; cursor:pointer; }
+
+  /* Method picker */
+.methodGroup{display:flex; gap:6px; align-items:center}
+.methodBtn{
+  padding:8px 10px; border:1px solid var(--divider); border-radius:8px;
+  cursor:pointer; background:var(--chip-bg); font-weight:700; min-width:70px; text-align:center;
+}
+.methodBtn.active{ outline:2px solid #2b8cff33; background:var(--pill) }
+
 </style>
 </head>
 
@@ -529,14 +538,36 @@ function openRequest(item){
   const pane = $('#reqPane'); pane.innerHTML='';
   const card = el('div', {class:'card'});
 
-  // Header: Method + URL + API badge
-  const header = el('div', {class:'reqHeader'},
-    el('select', {id:'methodSel'},
-      ...['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'].map(m=>el('option', {value:m, selected:m===method}, m))
-    ),
-    el('input', {id:'urlInp', value: url, placeholder:'https://api.example.com/path?x=1'}),
-    el('div', {id:'apiBadge', class:'apiBadge'}, `API: ${methodOrig}`)
-  );
+// Header: Method + URL + API badge
+const header = el('div', { class: 'reqHeader' },
+
+  // --- Method buttons ---
+  (() => {
+    const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+    const grp = el('div', { id: 'methodGroup', class: 'methodGroup' },
+      ...methods.map(m =>
+        el('button', {
+          type: 'button',
+          class: 'methodBtn' + (m === methodOrig ? ' active' : ''),
+          'data-m': m,
+          onclick: (e) => {
+            document.querySelectorAll('#methodGroup .methodBtn')
+              .forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+          }
+        }, m)
+      )
+    );
+    return grp;
+  })(),
+
+  // --- URL input ---
+  el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
+
+  // --- API badge ---
+  el('div', { id: 'apiBadge', class: 'apiBadge' }, `API: ${methodOrig}`)
+);
+
 
   // Tabs
   const tabs = el('div', {class:'tabs'},
