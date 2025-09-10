@@ -795,7 +795,7 @@ const header = el('div', { class: 'reqHeader' },
   //const sendBtn = el('button', {class:'send', id:'sendBtn'}, 'Send');
   const curlBtn = el('button', {id:'curlBtn'}, 'Copy cURL');
   const resetBtn= el('button', {id:'resetBtn', class:'reset', title:'Reset local changes for this request'}, 'Reset to defaults');
-  actions.append(sendBtn, curlBtn, resetBtn);
+  actions.append(curlBtn, resetBtn); // ←  sendBtn
 
   // mount card
   card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
