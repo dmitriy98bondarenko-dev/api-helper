@@ -197,6 +197,40 @@
 }
 .methodBtn.active{ outline:2px solid #2b8cff33; background:var(--pill) }
 
+  .reqHeader {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fff7e8;
+  border-bottom: 1px solid var(--divider);
+  align-items: center;
+}
+[data-theme="dark"] .reqHeader { background: #2a1f0f }
+
+.methodGroup {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;       /* чтобы кнопки переносились, если не влазят */
+  max-width: 280px;      /* ограничиваем ширину, чтобы не залезали на URL */
+}
+
+.methodBtn {
+  padding: 6px 10px;
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--chip-bg);
+  font-weight: 600;
+  font-size: 12px;
+  min-width: 60px;
+  text-align: center;
+}
+.methodBtn.active {
+  outline: 2px solid #2b8cff33;
+  background: var(--pill);
+}
+
 </style>
 </head>
 
@@ -528,46 +562,57 @@ function getInitialStateForItem(item){
   return { method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response: saved?.response || null };
 }
 
-function openRequest(item){
+function openRequest(item, forceDefaults = false){
   CURRENT_REQ_ID = item.id;
 
   const {
     method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response
-  } = getInitialStateForItem(item);
+  } = getInitialStateForItem(item, forceDefaults);
 
-  const pane = $('#reqPane'); pane.innerHTML='';
-  const card = el('div', {class:'card'});
+  const pane = $('#reqPane'); 
+  pane.innerHTML = '';
+  const card = el('div', { class:'card' });
 
-// Header: Method + URL + API badge
-const header = el('div', { class: 'reqHeader' },
+  // Header: Method + URL + API badge
+  const header = el('div', { class: 'reqHeader' },
 
-  // --- Method buttons ---
-  (() => {
-    const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
-    const grp = el('div', { id: 'methodGroup', class: 'methodGroup' },
-      ...methods.map(m =>
-        el('button', {
-          type: 'button',
-          class: 'methodBtn' + (m === methodOrig ? ' active' : ''),
-          'data-m': m,
-          onclick: (e) => {
-            document.querySelectorAll('#methodGroup .methodBtn')
-              .forEach(b => b.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-          }
-        }, m)
-      )
-    );
-    return grp;
-  })(),
+    // --- Method buttons ---
+    (() => {
+      const methods = ['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
+      const grp = el('div', { id: 'methodGroup', class: 'methodGroup' },
+        ...methods.map(m =>
+          el('button', {
+            type: 'button',
+            class: 'methodBtn' + (m === methodOrig ? ' active' : ''),
+            'data-m': m,
+            onclick: (e) => {
+              document.querySelectorAll('#methodGroup .methodBtn')
+                .forEach(b => b.classList.remove('active'));
+              e.currentTarget.classList.add('active');
+              // обновляем бейдж
+              $('#apiBadge').textContent = `API: ${m}`;
+            }
+          }, m)
+        )
+      );
+      return grp;
+    })(),
 
-  // --- URL input ---
-  el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
+    // --- URL input ---
+    el('input', { 
+      id: 'urlInp', 
+      value: url, 
+      placeholder: 'https://api.example.com/path?x=1' 
+    }),
 
-  // --- API badge ---
-  el('div', { id: 'apiBadge', class: 'apiBadge' }, `API: ${methodOrig}`)
-);
-
+    // --- API badge ---
+    el('div', { id: 'apiBadge', class: 'apiBadge' }, `API: ${methodOrig}`)
+  );
+  card.append(header);
+}
+function getSelectedMethod(){
+  return document.querySelector('#methodGroup .methodBtn.active')?.dataset.m || 'GET';
+}
 
   // Tabs
   const tabs = el('div', {class:'tabs'},
@@ -694,33 +739,35 @@ const header = el('div', { class: 'reqHeader' },
     // keep tree highlight
   };
 
-  // ==== SEND ====
-  $('#sendBtn').onclick = async ()=>{
-    debSave();
-    const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
-    let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
-    let method = $('#methodSel').value;
-    let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
-    let body = resolveVars($('#bodyRawArea').value || '');
-    const authType = $('#authType').value;
-    const authToken = $('#authTokenInp').value.trim();
+ // ==== SEND ====
+$('#sendBtn').onclick = async ()=>{
+  debSave();
+  const params = tableToSimpleArray(paramsTable.tBodies[0]);
+  const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+  let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
 
-    // Inject Authorization if missing (tab > global), key strictly 'Authorization'
-    const hasAuth = Object.keys(headers).some(h=>h.toLowerCase()==='authorization');
-    if (!hasAuth){
-      if (authType==='bearer' && authToken){
-        headers['Authorization'] = 'Bearer ' + authToken;
-      } else if (GLOBAL_BEARER){
-        headers['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
-      }
-    }
+  // ⚡ метод теперь берём из кнопок
+  let method = getSelectedMethod();
+  let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+  let body = resolveVars($('#bodyRawArea').value || '');
+  const authType = $('#authType').value;
+  const authToken = $('#authTokenInp').value.trim();
 
-    // Auto Content-Type (if missing)
-    if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
-      const ct = detectContentType(body);
-      if (ct) headers['Content-Type'] = ct;
+  // Inject Authorization if missing
+  const hasAuth = Object.keys(headers).some(h=>h.toLowerCase()==='authorization');
+  if (!hasAuth){
+    if (authType==='bearer' && authToken){
+      headers['Authorization'] = 'Bearer ' + authToken;
+    } else if (GLOBAL_BEARER){
+      headers['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
     }
+  }
+
+  // Auto Content-Type
+  if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
+    const ct = detectContentType(body);
+    if (ct) headers['Content-Type'] = ct;
+  }
 
     // PRE
     const preCode = preTA.value.trim();
@@ -782,29 +829,35 @@ const header = el('div', { class: 'reqHeader' },
     showLoader(false); $('#sendBtn').disabled = false;
   };
 
-  // cURL
-  $('#curlBtn').onclick = ()=>{
-    const m = $('#methodSel').value;
-    const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
-    const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
-    const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
-    const authType = $('#authType').value;
-    const authToken = $('#authTokenInp').value.trim();
-    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
-      if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
-      else if (GLOBAL_BEARER) hdrs['Authorization']='Bearer '+GLOBAL_BEARER;
-    }
-    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
-      const ct = detectContentType($('#bodyRawArea').value || '');
-      if (ct) hdrs['Content-Type'] = ct;
-    }
-    const body     = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
-    const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
-    const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
-    const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
-    navigator.clipboard.writeText(cmd); alert('cURL copied');
-  };
+// cURL
+$('#curlBtn').onclick = ()=>{
+  // ⚡ метод из кнопок
+  const m = getSelectedMethod();
+
+  const params = tableToSimpleArray(paramsTable.tBodies[0]);
+  const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+  const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+  const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
+  const authType = $('#authType').value;
+  const authToken = $('#authTokenInp').value.trim();
+
+  if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
+    if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
+    else if (GLOBAL_BEARER) hdrs['Authorization']='Bearer '+GLOBAL_BEARER;
+  }
+
+  if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
+    const ct = detectContentType($('#bodyRawArea').value || '');
+    if (ct) hdrs['Content-Type'] = ct;
+  }
+
+  const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
+  const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
+  const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
+  const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
+  navigator.clipboard.writeText(cmd); 
+  alert('cURL copied');
+};
 
   // Show saved response if any
   if (response){
