@@ -148,13 +148,22 @@
   /* Modals */
   .modal{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; z-index:10000 }
   .modal[hidden]{ display:none }
-  .modalCard{ width:720px; max-height:80vh; overflow:auto; background:var(--panel); border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:16px }
-  .modalCard h3{ margin:0 0 10px 0; font-size:16px; color:var(--ink) }
-  .modalActions{ display:flex; gap:8px; justify-content:space-between; margin-top:8px; align-items:center }
+  .modalCard{ width:520px; max-width:90%; max-height:80vh; overflow:auto; background:var(--panel); border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:20px }
+  .modalCard h3{ margin:0 0 14px 0; font-size:16px; color:var(--ink) }
+  .modalCard .row input{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); font-size:14px; background:#0000; color:var(--fg) }
+  .modalActions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px }
+  .modalActions button{ min-width:80px; padding:8px 14px; border-radius:8px; font-size:14px }
   .auth-ok{ background:#10b981; color:#fff; border:none }
   .auth-bad{ background:var(--chip-bg); color:var(--fg) }
   .authState{ font-size:12px; color:#065f46; }
   [data-theme="dark"] .authState{ color:#34d399 }
+
+  /* Authorization tab (fix key/value layout) */
+  .authRow{ display:grid; grid-template-columns:140px 1fr; gap:12px; padding:8px 0; align-items:center }
+  .authRow .muted{ font-size:14px; color:var(--muted) }
+  .authRow select, .authRow input{ width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg); font-size:14px }
+
+  /* Vars */
   .varsTable{ width:100%; border-collapse:collapse; font-size:14px; background:#0000 }
   .varsTable th,.varsTable td{ border-bottom:1px solid var(--divider); padding:8px }
   .varsTable th{ position:sticky; top:0; z-index:2; background:var(--soft); color:var(--muted); font-weight:600; text-align:left; box-shadow:0 2px 0 var(--divider); }
@@ -168,9 +177,11 @@
   .spinner{ width:40px; height:40px; border-radius:50%; border:4px solid #dbe3ed; border-top-color: var(--accent); animation: spin 0.9s linear infinite }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* Tabs fix */
   .tabPane { display:none; }
   .tabPane.active { display:block; }
-  
+
+  /* JSON highlight */
   .json-key { color:#0b6cff; font-weight:600; }
   .json-string { color:#16a34a; }
   .json-number { color:#dc2626; }
