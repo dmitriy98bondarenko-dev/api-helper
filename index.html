@@ -148,7 +148,7 @@
   .respTools{ display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--divider); background:var(--panel); align-items:center; flex-wrap:wrap }
   .respTools input{ padding:8px 10px; border:1px solid var(--divider); border-radius:8px; min-width:220px; background:#0000; color:var(--fg) }
 
-  /* Modals */
+  /* Modals (base) */
   .modal{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; z-index:10000 }
   .modal[hidden]{ display:none }
   .modalCard{ width:520px; max-width:90%; max-height:80vh; overflow:auto; background:var(--panel); border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:20px }
@@ -339,12 +339,6 @@ html:has(#authModal:not([hidden])){ overflow:hidden; }
   border-color:#25314a;
 }
 
-  /* Request header */
-  .reqHeader{
-    display:grid; grid-template-columns:auto 1fr auto; gap:12px; padding:12px 14px;
-    background:#fff7e8; border-bottom:1px solid var(--divider); align-items:center;
-  }
-  [data-theme="dark"] .reqHeader{ background:#2a1f0f; }
 </style>
 </head>
 
@@ -547,12 +541,106 @@ function normalizeUrl(u){
   }
   return raw;
 }
-function flattenItems(node, path=[]){
-  if(!node) return;
-  if(Array.isArray(node)){ node.forEach(n=>flattenItems(n, path)); return; }
-  if(node.item){ const newPath = node.name ? path.concat(stripPrefixFolder(node.name)) : path; node.item.forEach(child=>flattenItems(child, newPath)); return; }
-  if(node.request){ ITEMS_FLAT.push({ id: uuid(), path: path.join(' / '), name: node.name || '(untitled)', request: node.request }); }
+
+/* ===== Helpers for events/auth inheritance from Postman ===== */
+function eventsToScripts(events = []){
+  const srcOf = (ev) => {
+    const scr = ev && ev.script ? ev.script : null;
+    if (!scr) return '';
+    if (Array.isArray(scr.exec)) return scr.exec.join('\n');
+    if (typeof scr.exec === 'string') return scr.exec;
+    if (typeof scr.source === 'string') return scr.source;
+    return '';
+  };
+  const listen = (ev) => String(ev?.listen || '').toLowerCase();
+  const pre  = events.filter(ev => listen(ev) === 'prerequest').map(srcOf).filter(Boolean).join('\n\n');
+  const post = events.filter(ev => listen(ev) === 'test').map(srcOf).filter(Boolean).join('\n\n');
+  return { pre, post };
 }
+function _authGet(arr, key){
+  if (!Array.isArray(arr)) return undefined;
+  return arr.find(x => String(x?.key) === key)?.value;
+}
+function hasHeader(list, key){
+  const k = String(key||'').toLowerCase();
+  return (list||[]).some(h => String(h?.key||'').toLowerCase() === k);
+}
+function hasParam(list, key){
+  const k = String(key||'');
+  return (list||[]).some(p => p?.key === k);
+}
+/* Compute defaults from Postman auth schema:
+   returns { uiAuth, injectHeaders:[{key,value}], extraParams:[{key,value,enabled:true}] } */
+function deriveAuthDefaults(effectiveAuth){
+  let uiAuth = { type: 'bearer', token: '' };
+  const injectHeaders = [];
+  const extraParams = [];
+
+  if (!effectiveAuth || !effectiveAuth.type) return { uiAuth, injectHeaders, extraParams };
+  const type = String(effectiveAuth.type).toLowerCase();
+
+  if (type === 'bearer'){
+    const token = _authGet(effectiveAuth.bearer, 'token') || VARS.token || VARS.access_token || '';
+    uiAuth = { type: 'bearer', token: resolveVars(token || '') };
+    if (uiAuth.token) injectHeaders.push({ key: 'Authorization', value: 'Bearer ' + uiAuth.token });
+  } else if (type === 'basic'){
+    const username = resolveVars(_authGet(effectiveAuth.basic, 'username') || '');
+    const password = resolveVars(_authGet(effectiveAuth.basic, 'password') || '');
+    const b64 = btoa(`${username}:${password}`);
+    injectHeaders.push({ key: 'Authorization', value: 'Basic ' + b64 });
+  } else if (type === 'apikey'){
+    const name  = resolveVars(_authGet(effectiveAuth.apikey, 'key') || _authGet(effectiveAuth.apikey, 'name') || '');
+    const value = resolveVars(_authGet(effectiveAuth.apikey, 'value') || '');
+    const place = String(_authGet(effectiveAuth.apikey, 'in') || 'header').toLowerCase();
+    if (name && value){
+      if (place === 'query') extraParams.push({ key: name, value, enabled: true });
+      else injectHeaders.push({ key: name, value, enabled: true });
+    }
+  }
+  return { uiAuth, injectHeaders, extraParams };
+}
+
+/* ========= Flatten items with events/auth inheritance ========= */
+function flattenItems(node, path = [], inheritedEvents = [], inheritedAuth = null){
+  if (!node) return;
+
+  // если пришёл массив узлов — обойдём каждый
+  if (Array.isArray(node)){
+    node.forEach(n => flattenItems(n, path, inheritedEvents, inheritedAuth));
+    return;
+  }
+
+  // события и авторизация на уровне текущего узла (коллекция/папка)
+  const nodeEvents = Array.isArray(node.event) ? node.event : [];
+  const nodeAuth   = node.auth || null;
+
+  const nextEvents = inheritedEvents.concat(nodeEvents);
+  const nextAuth   = nodeAuth || inheritedAuth;
+
+  // коллекция или папка
+  if (node.item){
+    const newPath = node.name ? path.concat(stripPrefixFolder(node.name)) : path;
+    node.item.forEach(child => flattenItems(child, newPath, nextEvents, nextAuth));
+    return;
+  }
+
+  // конечный элемент — запрос
+  if (node.request){
+    const reqEvents   = Array.isArray(node.request.event) ? node.request.event : [];
+    const finalEvents = nextEvents.concat(reqEvents);
+    const finalAuth   = node.request.auth || nextAuth;
+
+    ITEMS_FLAT.push({
+      id: uuid(),
+      path: path.join(' / '),
+      name: node.name || '(untitled)',
+      request: node.request,
+      events: finalEvents,
+      resolvedAuth: finalAuth
+    });
+  }
+}
+
 function safeBuildUrl(url, queryArr){
   let u = resolveVars(url || '');
   const extra = new URLSearchParams();
@@ -663,7 +751,8 @@ function getInitialStateForItem(item, forceDefaults=false){
   const method = methodOrig; // по замовчуванню з колекції
   const url    = saved?.url || urlRaw;
 
-  const paramsInit = saved?.params ?? (
+  // Params из запроса
+  let paramsInit = saved?.params ?? (
     (typeof item.request.url === 'object' && Array.isArray(item.request.url.query))
       ? item.request.url.query.map(q => ({
           key: q.key,
@@ -673,6 +762,7 @@ function getInitialStateForItem(item, forceDefaults=false){
       : []
   );
 
+  // Headers из запроса
   let headersInit = saved?.headers ?? (
     Array.isArray(item.request.header)
       ? item.request.header.map(h => ({
@@ -683,18 +773,39 @@ function getInitialStateForItem(item, forceDefaults=false){
       : []
   );
 
+  // Наследованный/локальный auth из коллекции/папок/запроса
+  const effectiveAuth = item.resolvedAuth;
+
+  // Если нет локально сохранённых хедеров — подмешиваем auth из коллекции
   if (!saved?.headers){
-    if (GLOBAL_BEARER && !headersInit.some(h => String(h.key || '').toLowerCase() === 'authorization')){
-      headersInit.unshift({ key: 'Authorization', value: 'Bearer ' + GLOBAL_BEARER, enabled: true });
-    } else if (item.request.auth && item.request.auth.type === 'bearer'){
-      const token = (item.request.auth.bearer || []).find(x => x.key === 'token')?.value 
-                    || VARS.token || VARS.access_token || '';
-      if (token && !headersInit.some(h => String(h.key || '').toLowerCase() === 'authorization')){
-        headersInit.unshift({ key: 'Authorization', value: 'Bearer ' + resolveVars(token), enabled: true });
+    const { uiAuth, injectHeaders, extraParams } = deriveAuthDefaults(effectiveAuth);
+
+    // query параметры для apiKey
+    (extraParams||[]).forEach(p=>{
+      if (!hasParam(paramsInit, p.key)){
+        paramsInit.unshift({ key:p.key, value:p.value, enabled:true });
       }
+    });
+
+    // заголовки Authorization / apiKey
+    (injectHeaders||[]).forEach(h=>{
+      if (!hasHeader(headersInit, h.key)){
+        headersInit.unshift({ key:h.key, value:h.value, enabled:true });
+      }
+    });
+
+    // если ничего не пришло, но есть глобальный токен — добавим его
+    if (!hasHeader(headersInit, 'Authorization') && GLOBAL_BEARER){
+      headersInit.unshift({ key:'Authorization', value:'Bearer '+GLOBAL_BEARER, enabled:true });
+    }
+
+    // UI-Auth таб по умолчанию (только Bearer отображаем как значение)
+    if (!saved?.auth && uiAuth.type === 'bearer' && uiAuth.token){
+      // заполнится ниже
     }
   }
 
+  // Body
   let bodyText = saved?.body;
   if (bodyText == null){
     bodyText = item.request.body?.raw != null
@@ -704,8 +815,23 @@ function getInitialStateForItem(item, forceDefaults=false){
       : '';
   }
 
-  const scripts = saved?.scripts ?? loadScriptsLegacy(id) ?? { pre: '', post: '' };
-  const auth = saved?.auth ?? { type: 'bearer', token: '' };
+  // Скрипты: сначала локальные, иначе — из Postman events
+  let scripts = saved?.scripts ?? loadScriptsLegacy(id);
+  if (!scripts){
+    const fromEvents = eventsToScripts(item.events || []);
+    scripts = { pre: fromEvents.pre || '', post: fromEvents.post || '' };
+  }
+
+  // UI Auth (только bearer в интерфейсе)
+  let auth = saved?.auth;
+  if (!auth){
+    if (effectiveAuth && String(effectiveAuth.type).toLowerCase() === 'bearer'){
+      const token = _authGet(effectiveAuth.bearer, 'token') || VARS.token || VARS.access_token || '';
+      auth = { type: 'bearer', token: resolveVars(token || '') };
+    }else{
+      auth = { type: 'bearer', token: '' };
+    }
+  }
 
   return {
     method,
@@ -906,13 +1032,11 @@ function openRequest(item, forceDefaults = false){
     if (!hasAuth) {
       if (authType === 'bearer' && authToken) headers['Authorization'] = 'Bearer ' + authToken;
       else if (GLOBAL_BEARER) headers['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
-    }
-
-    // Content-Type
-    if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
-      const ct = detectContentType(body);
-      if (ct) headers['Content-Type'] = ct;
-    }
+// Content-Type
+if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
+  const ct = detectContentType(body);
+  if (ct) headers['Content-Type'] = ct;
+}
 
     // PRE
     const preCode = preTA.value.trim();
