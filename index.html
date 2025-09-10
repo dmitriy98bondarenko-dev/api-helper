@@ -379,6 +379,64 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scaleIn { from { transform: scale(.95); } to { transform: scale(1); } }
 
+  /* === Method buttons: colors & active state like API tree === */
+.methodGroup { gap: 10px; flex-wrap: wrap; }
+
+.methodBtn{
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 800;
+  letter-spacing:.3px;
+  transition: background .18s ease, border-color .18s ease, color .18s ease, transform .08s ease, box-shadow .18s ease;
+}
+.methodBtn:hover{ transform: translateY(-1px); box-shadow: 0 2px 8px rgba(15,23,42,.08); }
+.methodBtn:active{ transform: translateY(0); }
+
+/* unified active ring; color is taken from specific method below via `color` */
+.methodBtn.active{
+  background: var(--pill);
+  box-shadow: 0 0 0 2px currentColor inset;
+  outline: 2px solid currentColor;
+  outline-offset: 0;
+}
+
+/* GET */
+.methodBtn.GET{ background: var(--op-get); border-color: var(--op-get-b); }
+.methodBtn.GET.active{ background: var(--op-get-b); color: var(--op-get-f); border-color: var(--op-get-b); }
+
+/* POST */
+.methodBtn.POST{ background: var(--op-post); border-color: var(--op-post-b); }
+.methodBtn.POST.active{ background: var(--op-post-b); color: var(--op-post-f); border-color: var(--op-post-b); }
+
+/* PUT */
+.methodBtn.PUT{ background: var(--op-put); border-color: var(--op-put-b); }
+.methodBtn.PUT.active{ background: var(--op-put-b); color: var(--op-put-f); border-color: var(--op-put-b); }
+
+/* PATCH */
+.methodBtn.PATCH{ background: var(--op-patch); border-color: var(--op-patch-b); }
+.methodBtn.PATCH.active{ background: var(--op-patch-b); color: var(--op-patch-f); border-color: var(--op-patch-b); }
+
+/* DELETE */
+.methodBtn.DELETE{ background: var(--op-del); border-color: var(--op-del-b); }
+.methodBtn.DELETE.active{ background: var(--op-del-b); color: var(--op-del-f); border-color: var(--op-del-b); }
+
+/* HEAD / OPTIONS (other) */
+.methodBtn.HEAD,
+.methodBtn.OPTIONS{ background: var(--op-other); border-color: var(--op-other-b); }
+.methodBtn.HEAD.active,
+.methodBtn.OPTIONS.active{ background: var(--op-other-b); color: var(--op-other-f); border-color: var(--op-other-b); }
+
+/* keyboard focus */
+.methodBtn:focus-visible{
+  outline: 2px solid currentColor;
+  outline-offset: 0;
+}
+
+/* compact on small widths */
+@media (max-width: 720px){
+  .methodBtn{ padding:8px 10px; font-size:12px; }
+}
+
 </style>
 </head>
 
@@ -727,7 +785,7 @@ function openRequest(item, forceDefaults = false){
         ...methods.map(m =>
           el('button', {
             type: 'button',
-            class: 'methodBtn' + (m === method ? ' active' : ''),
+            class: 'methodBtn ' + m + (m === method ? ' active' : ''),
             'data-m': m,
             onclick: (e) => {
               document.querySelectorAll('#methodGroup .methodBtn')
