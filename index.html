@@ -379,6 +379,35 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
   padding: 0 18px;
   cursor: pointer;
 }
+  .methodDropdown {
+  position: relative;
+  min-width: 90px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+}
+.methodCurrent {
+  padding: 10px 12px;
+  border-right: 1px solid var(--divider);
+  border-radius: 6px 0 0 6px;
+  text-align: center;
+}
+.methodList {
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  overflow: hidden;
+  z-index: 10;
+}
+.methodOption {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.methodOption:hover {
+  filter: brightness(1.1);
+}
+
 </style>
 </head>
 
@@ -716,31 +745,73 @@ function openRequest(item, forceDefaults = false) {
   const pane = $('#reqPane'); 
   pane.innerHTML = '';
   const card = el('div', { class:'card' });
+// === AUTOSAVE ===
+const debSave = debounce(()=> {
+  const params = tableToSimpleArray(paramsTable.tBodies[0]);
+  const headers= tableToSimpleArray(headersTable.tBodies[0]);
+  const scriptsNew = { pre: preTA.value, post: postTA.value };
+  const authNew = { type: $('#authType').value, token: $('#authTokenInp').value };
+  const patch = {
+    method: getSelectedMethod(),
+    url: $('#urlInp').value,
+    params, headers,
+    body: $('#bodyRawArea').value,
+    scripts: scriptsNew,
+    auth: authNew
+  };
+  saveReqState(CURRENT_REQ_ID, patch);
+}, 180);
 
   // Header: Method + URL + Send
 
 const header = el('div', { class: 'reqHeader' },
 
-  // --- Method select ---
-  (() => {
+// --- Method dropdown ---
+(() => {
   const methods = ['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
   const colors = {
-    GET:    'color: var(--op-get-f); background: var(--op-get-b); font-weight:700;',
-    POST:   'color: var(--op-post-f); background: var(--op-post-b); font-weight:700;',
-    PUT:    'color: var(--op-put-f); background: var(--op-put-b); font-weight:700;',
-    PATCH:  'color: var(--op-patch-f); background: var(--op-patch-b); font-weight:700;',
-    DELETE: 'color: var(--op-del-f); background: var(--op-del-b); font-weight:700;',
-    HEAD:   'color: var(--op-other-f); background: var(--op-other-b); font-weight:700;',
-    OPTIONS:'color: var(--op-other-f); background: var(--op-other-b); font-weight:700;'
+    GET:    'background: var(--op-get-b); color: var(--op-get-f);',
+    POST:   'background: var(--op-post-b); color: var(--op-post-f);',
+    PUT:    'background: var(--op-put-b); color: var(--op-put-f);',
+    PATCH:  'background: var(--op-patch-b); color: var(--op-patch-f);',
+    DELETE: 'background: var(--op-del-b); color: var(--op-del-f);',
+    HEAD:   'background: var(--op-other-b); color: var(--op-other-f);',
+    OPTIONS:'background: var(--op-other-b); color: var(--op-other-f);'
   };
-  return el('select', { id: 'methodSel' },
-    ...methods.map(m => el('option', { 
-      value: m, 
-      selected: m === method, 
-      style: colors[m] 
-    }, m))
-  );
+
+  // контейнер
+  const wrap = el('div', { class: 'methodDropdown' });
+
+  // выбранный метод
+  const current = el('div', { class: 'methodCurrent', style: colors[method] }, method);
+  wrap.append(current);
+
+  // список
+  const list = el('div', { class: 'methodList', style: 'display:none;' });
+  methods.forEach(m => {
+    const opt = el('div', { 
+      class: 'methodOption', 
+      style: colors[m], 
+      onclick: () => {
+        current.textContent = m;
+        current.setAttribute('style', colors[m]);
+        wrap.dataset.value = m;
+        list.style.display = 'none';
+        debSave(); // при смене сразу сохраняем
+      }
+    }, m);
+    if (m === method) wrap.dataset.value = m;
+    list.append(opt);
+  });
+  wrap.append(list);
+
+  current.onclick = () => {
+    list.style.display = (list.style.display==='none' ? 'block' : 'none');
+  };
+
+  return wrap;
 })(),
+
 
   // --- URL input ---
   el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
@@ -813,10 +884,19 @@ const header = el('div', { class: 'reqHeader' },
   // mount card
   card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
   pane.append(card);
+  //  подписки на изменения
+['input','change','keyup'].forEach(ev=>{
+  header.addEventListener(ev, debSave);
+  paramsPane.addEventListener(ev, debSave);
+  headersPane.addEventListener(ev, debSave);
+  scriptsPane.addEventListener(ev, debSave);
+  authPane.addEventListener(ev, debSave);
+  bodyWrap.addEventListener(ev, debSave);
+});
 
   // --- helpers & handlers (внутри openRequest) ---
-  function getSelectedMethod(){
-  return $('#methodSel')?.value || 'GET';
+ function getSelectedMethod(){
+  return document.querySelector('.methodDropdown')?.dataset.value || 'GET';
 }
 
   function activateTab(name){
@@ -847,31 +927,6 @@ const header = el('div', { class: 'reqHeader' },
     }catch{ alert('Body is not valid JSON'); }
   };
 
-  // Autosave
-  const debSave = debounce(()=> {
-    const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    const headers= tableToSimpleArray(headersTable.tBodies[0]);
-    const scriptsNew = { pre: preTA.value, post: postTA.value };
-    const authNew = { type: $('#authType').value, token: $('#authTokenInp').value };
-    const patch = {
-      method: getSelectedMethod(),
-      url: $('#urlInp').value,
-      params, headers,
-      body: $('#bodyRawArea').value,
-      scripts: scriptsNew,
-      auth: authNew
-    };
-    saveReqState(CURRENT_REQ_ID, patch);
-  }, 180);
-
-  ['input','change','keyup'].forEach(ev=>{
-    header.addEventListener(ev, debSave);
-    paramsPane.addEventListener(ev, debSave);
-    headersPane.addEventListener(ev, debSave);
-    scriptsPane.addEventListener(ev, debSave);
-    authPane.addEventListener(ev, debSave);
-    bodyWrap.addEventListener(ev, debSave);
-  });
 
   // Reset only current request
   $('#resetBtn').onclick = ()=>{
@@ -1317,6 +1372,17 @@ function autoOpenFirst(){
     renderTree('');
   }
 })();
+  // === Глобальный listener для закрытия dropdown ===
+document.addEventListener('click', (e) => {
+  const dropdowns = document.querySelectorAll('.methodList');
+  dropdowns.forEach(list => {
+    const wrap = list.parentElement;
+    if (wrap && !wrap.contains(e.target)) {
+      list.style.display = 'none';
+    }
+  });
+});
+
 </script>
 </body>
 </html>
