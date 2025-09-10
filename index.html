@@ -167,6 +167,16 @@
   .loaderOverlay[hidden]{ display:none }
   .spinner{ width:40px; height:40px; border-radius:50%; border:4px solid #dbe3ed; border-top-color: var(--accent); animation: spin 0.9s linear infinite }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  .tabPane { display:none; }
+  .tabPane.active { display:block; }
+  
+  .json-key { color:#0b6cff; font-weight:600; }
+  .json-string { color:#16a34a; }
+  .json-number { color:#dc2626; }
+  .json-boolean { color:#b45309; font-weight:600; }
+  .json-null { color:#6b7280; font-style:italic; }
+  .json-url { color:#7a3cff; text-decoration:underline; cursor:pointer; }
 </style>
 </head>
 
@@ -1052,6 +1062,91 @@ function autoOpenFirst(){
     renderTree('');
   }
 })();
+
+  /* ==== Response highlight ==== */
+function syntaxHighlight(json) {
+  if (typeof json != 'string') {
+    json = JSON.stringify(json, undefined, 2);
+  }
+  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+    if (/^"/.test(match)) {
+      if (/:$/.test(match)) return '<span class="json-key">' + match + '</span>';
+      if (/^"(http|https):/.test(match)) return '<span class="json-url">' + match + '</span>';
+      return '<span class="json-string">' + match + '</span>';
+    }
+    if (/true|false/.test(match)) return '<span class="json-boolean">' + match + '</span>';
+    if (/null/.test(match)) return '<span class="json-null">' + match + '</span>';
+    return '<span class="json-number">' + match + '</span>';
+  });
+}
+
+/* перезаписываем вывод ответа */
+function renderResponse(res, text, ms, url){
+  const pane = $('#resPane'); pane.innerHTML = '';
+  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response'));
+  const head = el('div', {class:'respHeader'});
+  const status = res ? `${res.status} ${res.statusText}` : 'Network error';
+  head.append(el('span', {class:'pill', style:`color:${res ? (res.ok?'var(--ok)':'var(--err)'):'var(--err)'}`}, status));
+  head.append(el('span', {class:'pill'}, `Time: ${ms.toFixed(0)} ms`));
+  head.append(el('span', {class:'pill'}, `URL: ${url}`));
+  card.append(head);
+
+  const tools = buildRespTools(text);
+  card.append(tools);
+
+  const bodyWrap = el('div', {class:'respBody'});
+  let formatted = text; 
+  try { 
+    formatted = JSON.stringify(JSON.parse(text),null,2); 
+    formatted = syntaxHighlight(formatted);
+  } catch {}
+  bodyWrap.innerHTML = '<pre id="respPre">'+(formatted || (text || '—'))+'</pre>';
+  card.append(bodyWrap);
+
+  if (res){
+    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
+    const tb = el('tbody'); res.headers.forEach((v,k)=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, v))));
+    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
+    pane.append(card, hdrsCard);
+  } else {
+    pane.append(card);
+  }
+}
+
+/* тоже самое для сохранённого ответа */
+function renderResponseSaved(resp){
+  const pane = $('#resPane'); pane.innerHTML = '';
+  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response (last)'));
+  const head = el('div', {class:'respHeader'});
+  head.append(el('span', {class:'pill', style:`color:${resp.status && resp.status>=200 && resp.status<400 ? 'var(--ok)' : 'var(--err)'}`}, `${resp.status||0} ${resp.statusText||''}`));
+  if (resp.timeMs!=null) head.append(el('span', {class:'pill'}, `Time: ${Math.round(resp.timeMs)} ms`));
+  if (resp.url) head.append(el('span', {class:'pill'}, `URL: ${resp.url}`));
+  card.append(head);
+
+  const tools = buildRespTools(resp.bodyText||'');
+  card.append(tools);
+
+  const bodyWrap = el('div', {class:'respBody'});
+  let formatted = resp.bodyText; 
+  try { 
+    formatted = JSON.stringify(JSON.parse(resp.bodyText||''),null,2); 
+    formatted = syntaxHighlight(formatted);
+  } catch {}
+  bodyWrap.innerHTML = '<pre id="respPre">'+(formatted || (resp.bodyText || '—'))+'</pre>';
+  card.append(bodyWrap);
+
+  if (resp.headers && Object.keys(resp.headers).length){
+    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
+    const tb = el('tbody'); Object.entries(resp.headers).forEach(([k,v])=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, String(v)))));
+    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
+    pane.append(card, hdrsCard);
+  } else {
+    pane.append(card);
+  }
+}
 </script>
 </body>
 </html>
