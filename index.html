@@ -723,11 +723,24 @@ const header = el('div', { class: 'reqHeader' },
 
   // --- Method select ---
   (() => {
-    const methods = ['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
-    return el('select', { id: 'methodSel' },
-      ...methods.map(m => el('option', { value: m, selected: m === method }, m))
-    );
-  })(),
+  const methods = ['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
+  const colors = {
+    GET:    'color: var(--op-get-f); background: var(--op-get-b); font-weight:700;',
+    POST:   'color: var(--op-post-f); background: var(--op-post-b); font-weight:700;',
+    PUT:    'color: var(--op-put-f); background: var(--op-put-b); font-weight:700;',
+    PATCH:  'color: var(--op-patch-f); background: var(--op-patch-b); font-weight:700;',
+    DELETE: 'color: var(--op-del-f); background: var(--op-del-b); font-weight:700;',
+    HEAD:   'color: var(--op-other-f); background: var(--op-other-b); font-weight:700;',
+    OPTIONS:'color: var(--op-other-f); background: var(--op-other-b); font-weight:700;'
+  };
+  return el('select', { id: 'methodSel' },
+    ...methods.map(m => el('option', { 
+      value: m, 
+      selected: m === method, 
+      style: colors[m] 
+    }, m))
+  );
+})(),
 
   // --- URL input ---
   el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
