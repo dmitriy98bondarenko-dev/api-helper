@@ -436,7 +436,8 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
 @media (max-width: 720px){
   .methodBtn{ padding:8px 10px; font-size:12px; }
 }
-.urlEditable {
+/* URL input (better readability) */
+#urlInp {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 15px;
   font-weight: 600;
@@ -446,23 +447,24 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
   background: #fff;
   color: var(--fg);
   letter-spacing: .2px;
-  white-space: nowrap;
-  overflow-x: auto;
 }
-[data-theme="dark"] .urlEditable {
+[data-theme="dark"] #urlInp {
   background: #0d1525;
   border-color: #2c3a52;
   color: var(--fg);
 }
-.urlEditable:focus {
+#urlInp:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent + "33");
 }
-.url-var {
-  color: #0b6cff;
+
+/* внутри строки — подсветка переменных (readonly через ::placeholder-shown-like эффект) */
+.urlHint {
   font-weight: 700;
-  cursor: pointer;
+  color: #0b6cff;
 }
+
 </style>
 </head>
 
@@ -747,23 +749,6 @@ function tableToSimpleArray(tbody){
   });
   return out;
 }
-  function highlightUrlVars(str){
-  if (!str) return '';
-  return str.replace(/({{[^}]+}})/g, '<span class="url-var">$1</span>');
-}
-function placeCaretAtEnd(el) {
-  el.focus();
-  if (typeof window.getSelection != "undefined"
-      && typeof document.createRange != "undefined") {
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    range.collapse(false);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-}
-
 
 /* ========= Request UI ========= */
 function getInitialStateForItem(item){
@@ -843,21 +828,8 @@ function openRequest(item, forceDefaults = false){
       return grp;
     })(),
 
-  
-// --- URL input (с подсветкой {{vars}}) ---
-el('div', {
-  id: 'urlInp',
-  class: 'urlEditable',
-  contentEditable: true,
-  spellcheck: false,
-  oninput: (e) => {
-    const text = e.currentTarget.textContent.replace(/\n+/g, '');
-    e.currentTarget.innerHTML = highlightUrlVars(text);
-    placeCaretAtEnd(e.currentTarget);
-    debSave();
-  }
-}, highlightUrlVars(url)),
-
+    // --- URL input ---
+    el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
 
     // --- API badge ---
     el('div', { id: 'apiBadge', class: 'apiBadge' }, `API: ${method}`)
