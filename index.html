@@ -436,7 +436,45 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
 @media (max-width: 720px){
   .methodBtn{ padding:8px 10px; font-size:12px; }
 }
+.reqHeader {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-bottom: 1px solid var(--divider);
+  background: #fff7e8;
+}
+[data-theme="dark"] .reqHeader { background: #2a1f0f }
 
+.reqHeader select,
+.reqHeader input {
+  border: none;
+  outline: none;
+  padding: 10px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+}
+
+.reqHeader select {
+  background: var(--chip-bg);
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 90px;
+  border-right: 1px solid var(--divider);
+}
+
+.reqHeader input {
+  flex: 1;
+  min-width: 0;
+}
+
+.reqHeader .send {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  padding: 0 18px;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -765,47 +803,24 @@ function getInitialStateForItem(item){
   return { method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response: saved?.response || null };
 }
 
-function openRequest(item, forceDefaults = false){
-  CURRENT_REQ_ID = item.id;
+// Header: Method + URL + Send
+const header = el('div', { class: 'reqHeader' },
 
-  const { method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response } =
-    getInitialStateForItem(item, forceDefaults);
+  // --- Method select ---
+  (() => {
+    const methods = ['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
+    return el('select', { id: 'methodSel' },
+      ...methods.map(m => el('option', { value: m, selected: m === method }, m))
+    );
+  })(),
 
-  const pane = $('#reqPane'); 
-  pane.innerHTML = '';
-  const card = el('div', { class:'card' });
+  // --- URL input ---
+  el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
 
-  // Header: Method + URL + API badge
-  const header = el('div', { class: 'reqHeader' },
+  // --- Send button ---
+  el('button', { id: 'sendBtn', class: 'send' }, 'Send')
+);
 
-    // --- Method buttons ---
-    (() => {
-      const methods = ['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
-      const grp = el('div', { id: 'methodGroup', class: 'methodGroup' },
-        ...methods.map(m =>
-          el('button', {
-            type: 'button',
-            class: 'methodBtn ' + m + (m === method ? ' active' : ''),
-            'data-m': m,
-            onclick: (e) => {
-              document.querySelectorAll('#methodGroup .methodBtn')
-                .forEach(b => b.classList.remove('active'));
-              e.currentTarget.classList.add('active');
-              $('#apiBadge').textContent = `API: ${m}`;
-              debSave(); // сразу сохраним смену метода
-            }
-          }, m)
-        )
-      );
-      return grp;
-    })(),
-
-    // --- URL input ---
-    el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
-
-    // --- API badge ---
-    el('div', { id: 'apiBadge', class: 'apiBadge' }, `API: ${method}`)
-  );
 
   // Tabs
   const tabs = el('div', {class:'tabs'},
@@ -873,8 +888,9 @@ function openRequest(item, forceDefaults = false){
 
   // --- helpers & handlers (внутри openRequest) ---
   function getSelectedMethod(){
-    return document.querySelector('#methodGroup .methodBtn.active')?.dataset.m || 'GET';
-  }
+  return $('#methodSel')?.value || 'GET';
+}
+
   function activateTab(name){
     ['Params','Headers','Auth','Scripts'].forEach(t=>{
       $('#tab'+t).classList.toggle('active', t===name);
