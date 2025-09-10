@@ -86,7 +86,10 @@
 
   /* ---------- API tree ---------- */
   .tree{margin-top:12px}
-  .folder{color:var(--ink); font-weight:800; text-transform:none; letter-spacing:.2px; font-size:18px; margin:18px 10px 6px;}
+  .folder{color:var(--ink); font-weight:800; text-transform:none; letter-spacing:.2px; font-size:18px; margin:18px 10px 6px; cursor:pointer; user-select:none; display:flex; align-items:center; gap:6px;}
+  .folder::before{content:'▾'; font-size:12px; transition:transform .2s;}
+  .node.collapsed > .folder::before{transform:rotate(-90deg);}
+  .node.collapsed .op{display:none;}
   .op{display:flex; align-items:center; gap:12px; border-radius:8px; padding:10px 12px; margin:8px 6px; border:1px solid var(--divider); cursor:pointer; background:#0000; transition: transform .05s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease; box-shadow: 0 1px 0 rgba(15,23,42,.03);}
   .op:hover{ background:var(--soft); border-color:#dbe3ed; transform: translateY(-1px); }
   .op.active{ outline:2px solid #2b8cff33; }
@@ -496,6 +499,7 @@ let ITEMS_FLAT = [];
 let CURRENT_REQ_ID = null;
 let GLOBAL_BEARER = localStorage.getItem('global_bearer') || '';
 let CURRENT_OP_EL = null;
+let FOLDER_STATE = {};
 
 /* ========= LocalStorage per-request ========= */
 const reqKey = id => `pm_req_${id}`;
@@ -586,7 +590,15 @@ function renderTree(filter = '') {
 
   Object.entries(groups).forEach(([folder, items]) => {
     const sec = el('div', { class: 'node' });
-    sec.append(el('div', { class: 'folder' }, folder === 'ROOT' ? 'No folder' : stripPrefixFolder(folder)));
+    const folderName = folder === 'ROOT' ? 'No folder' : stripPrefixFolder(folder);
+    const folderEl = el('div', {
+      class: 'folder',
+      onclick: () => {
+        sec.classList.toggle('collapsed');
+        FOLDER_STATE[folder] = sec.classList.contains('collapsed');
+      }
+    }, folderName);
+    sec.append(folderEl);
 
     items.forEach(it => {
       const urlRaw = normalizeUrl(it.request.url);
@@ -604,6 +616,7 @@ function renderTree(filter = '') {
       sec.append(row);
     });
 
+    if (FOLDER_STATE[folder]) sec.classList.add('collapsed');
     tree.append(sec);
   });
 
