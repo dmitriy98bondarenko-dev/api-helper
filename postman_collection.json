@@ -1,0 +1,2940 @@
+{
+	"info": {
+		"_postman_id": "a831fa39-bdbc-44dc-b540-3a5d240c85fd",
+		"name": "Uklon.Driver",
+		"description": "### Інструкція з налаштування Environment у спільному Workspace\n\n#### 1\\. **Копіювання основного Environment**\n\n- Увійдіть до спільного Workspace та перейдіть до _Environments_.\n    \n- Створіть дублікат основного Environment (_main_):\n    \n    - Натисніть три крапки поруч із ним → _Duplicate_.\n        \n    - Назвіть дублікат відповідно до своєї ролі (наприклад, _Bondarenko_dev_).\n        \n\n#### 2\\. **Додавання облікових даних**\n\nУ своєму Environment вкажіть:\n\n``` json\n\"adminUsername\": \"<ваш_логін_адміністратора>\",\n\"adminPassword\": \"<ваш_пароль_адміністратора>\",\n\"driverPhone\": \"<ваш_телефон_водія>\",\n\"driverPassword\": \"<ваш_пароль_водія>\",\n\"riderUserName\": \"<ваш_логін_пасажира>\",\n\"riderPassword\": \"<ваш_пароль_пасажира>\"\n\n ```\n\n- Використовуйте _Protect Variables_ (іконка замка) для шифрування чутливих даних.\n    \n- Інші користувачі Workspace не бачитимуть зашифровані дані.\n    \n\n#### 3\\. **Поля, що залишаються пустими**\n\nДеякі змінні автоматично генеруються запитами. Їх залишайте порожніми:\n\n``` json\n\"driverAuthToken\": \"\",\n\"activeOrderId\": \"\",\n\"walletId\": \"\"\n\n ```\n\n- Наприклад:\n    \n    - `driverAuthToken`: генерується при логіні.\n        \n    - `activeOrderId`: визначається під час створення замовлення.\n        \n    - `walletId`: генерується запитом до гаманця.\n        \n\n#### 4\\. **Перевірка та збереження**\n\n- Збережіть Environment після внесення змін.\n    \n- Переконайтеся, що змінні коректно застосовуються в запитах.\n    \n\n#### 5\\. **Рекомендації**\n\n- **Не змінюйте** значення в основному Environment (_main_), працюйте лише у своєму.\n    \n- Переконайтеся, що чутливі дані захищені.\n    \n- Динамічні змінні (наприклад, `driverAuthToken`, `activeOrderId`) автоматично оновлюються завдяки _pre-request_ або _test_ скриптам у запитах.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "11930149",
+		"_collection_link": "https://driver-api-testing.postman.co/workspace/Uklon.DriverWorkspace.Team2~d4a3ef1c-d46a-4494-9732-e2002ffa66df/collection/11930149-a831fa39-bdbc-44dc-b540-3a5d240c85fd?action=share&source=collection_link&creator=11930149"
+	},
+	"item": [
+		{
+			"name": "DriverGateway",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "auth",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var access_token = jsonData.access_token; ",
+											"pm.environment.set(\"driverAuthToken\", access_token);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "User-Agent",
+										"value": "{{user-agent}}",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"client_id\": \"f42222a32583453089a77af021bca83cn\",\n\t\"client_secret\": \"78-8E-33-4F-C7-31-10-A1-9F-33-10-8D-1C-E4-B2-62\",\n\t\"grant_type\": \"PASSWORD\",\n\t\"password\": \"{{driverPassword}}\",\n\t\"username\": \"{{driverPhone}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/auth-tokens",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth-tokens"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "drivers-me",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var uid = jsonData.uid; ",
+											"pm.environment.set(\"driverId\", uid);",
+											"console.log(\"driver id:\", uid);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/drivers-me",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"drivers-me"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "configuration",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverAuthToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/driver/configuration",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"driver",
+										"configuration"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Active order",
+					"item": [
+						{
+							"name": "all-system-active-orders",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();",
+											"let activeOrderId = response.items[0].ride_hailing_order.id;",
+											"pm.environment.set(\"activeOrderId\", activeOrderId);",
+											"console.log(\"Active Order ID:\", activeOrderId);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/all-system-active-orders",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"all-system-active-orders"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "complete",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/orders/{{activeOrderId}}/complete?force_complete=true",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orders",
+										"{{activeOrderId}}",
+										"complete"
+									],
+									"query": [
+										{
+											"key": "force_complete",
+											"value": "false",
+											"disabled": true
+										},
+										{
+											"key": "force_complete",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "arrived",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"let currentTimeUnix = Math.floor(Date.now() / 1000);",
+											"pm.environment.set(\"currentUnixTime\", currentTimeUnix);",
+											"console.log(\"Current Unix Time:\", currentTimeUnix);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"speed\": 0,\n  \"lat\": {{lat}},\n  \"lng\": {{lng}},\n  \"positioned_at\": {{currentUnixTime}}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/orders/{{activeOrderId}}/arrived",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orders",
+										"{{activeOrderId}}",
+										"arrived"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "running",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/orders/{{activeOrderId}}/running",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orders",
+										"{{activeOrderId}}",
+										"running"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "cancel",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v2/orders/{{activeOrderId}}/cancel",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"orders",
+										"{{activeOrderId}}",
+										"cancel"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "start idle",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"let currentTimeUnix = Math.floor(Date.now() / 1000);",
+											"pm.environment.set(\"currentUnixTime\", currentTimeUnix);",
+											"console.log(\"Current Unix Time:\", currentTimeUnix);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"speed\": 0,\n  \"lat\": {{lat}},\n  \"lng\": {{lng}},\n  \"positioned_at\": {{currentUnixTime}}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/orders/{{activeOrderId}}/idles",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orders",
+										"{{activeOrderId}}",
+										"idles"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "stod idle",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"let currentTimeUnix = Math.floor(Date.now() / 1000);",
+											"pm.environment.set(\"currentUnixTime\", currentTimeUnix);",
+											"console.log(\"Current Unix Time:\", currentTimeUnix);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"speed\": 0,\n  \"lat\": {{lat}},\n  \"lng\": {{lng}},\n  \"positioned_at\": {{currentUnixTime}}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/orders/{{activeOrderId}}/idles",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orders",
+										"{{activeOrderId}}",
+										"idles"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get order status",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/orders/{{activeOrderId}}/status",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orders",
+										"{{activeOrderId}}",
+										"status"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "active order rider",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/orders/{{driverActiveOrderId}}/rider",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orders",
+										"{{driverActiveOrderId}}",
+										"rider"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "History orders",
+					"item": [
+						{
+							"name": "history-orders",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();",
+											"let historyOrderId = response.items.find(item => item.status == \"completed\");",
+											"if (historyOrderId) {",
+											"    pm.environment.set(\"historyOrderId\", historyOrderId.id);",
+											"    console.log(\"history order id found:\", historyOrderId.id);",
+											"} else {",
+											"    console.log(\"Not found history order id.\");",
+											"}",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/history-orders",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"history-orders"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "history-order",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/history-orders/{{historyOrderId}}",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"history-orders",
+										"{{historyOrderId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Wallet",
+					"item": [
+						{
+							"name": "pending-payments",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/wallets/{{walletId}}/pending-payments",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"wallets",
+										"{{walletId}}",
+										"pending-payments"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get first wallet",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();",
+											"let driverWalletId = response.items[0].id;",
+											"pm.environment.set(\"walletId\", driverWalletId);",
+											"console.log(\"Found first driver wallet id:\", driverWalletId);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/wallets",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"wallets"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get wallet 0 amount",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();",
+											"let driverWallet = response.items.find(item => item.balance.amount == 0);",
+											"if (driverWallet) {",
+											"    pm.environment.set(\"driverWalletIdAmonut0\", driverWallet.id);",
+											"    console.log(\"Driver Wallet ID:\", driverWallet.id);",
+											"} else {",
+											"    console.log(\"Not found wallet with balance 0 .\");",
+											"}",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/wallets",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"wallets"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "withdraw-payment-methods",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{DriverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v2/wallets/{{walletId}}/withdraw-payment-methods?region-id=1",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"wallets",
+										"{{walletId}}",
+										"withdraw-payment-methods"
+									],
+									"query": [
+										{
+											"key": "wallet-id",
+											"value": "{{walletId}}",
+											"disabled": true
+										},
+										{
+											"key": "region-id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "replenishment-payment-methods",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									},
+									{
+										"key": "User-Agent",
+										"value": "UklonDriverIOS/3.108.3841079",
+										"type": "text"
+									},
+									{
+										"key": "User-Agent",
+										"value": "UklonDriverAndroid/311000, samsung SM-A325F, OS Version: 11",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/wallets/{{walletId}}/replenishment-payment-methods?region_id=501",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"wallets",
+										"{{walletId}}",
+										"replenishment-payment-methods"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										},
+										{
+											"key": "region_id",
+											"value": "501"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "balances",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/wallets/{{walletId}}/balances",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"wallets",
+										"{{walletId}}",
+										"balances"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create payoneer",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"bank_code\": \"ALTBANK\",\n\t\"bank_name\": \"ALTBANK\",\n\t\"date_of_birth_sec\": 885081600,\n\t\"first_name\": \"Test\",\n\t\"iban\": \"UA123456789012345678901234567\",\n\t\"last_name\": \"Test\",\n\t\"phone\": \"380989089898\",\n\t\"region_id\": 1\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/wallets/{{walletId}}/payoneers",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"wallets",
+										"{{walletId}}",
+										"payoneers"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete payee-id",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/wallets/{{walletId}}/payoneers/{{payee-id}}",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"wallets",
+										"{{walletId}}",
+										"payoneers",
+										"{{payee-id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "pending-payments",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v2/wallets/{{walletId}}/pending-payments",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"wallets",
+										"{{walletId}}",
+										"pending-payments"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "checking-status",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"card_number\": \"6666444455551111\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/wallets/{{walletId}}/payment-card/checking-status",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"wallets",
+										"{{walletId}}",
+										"payment-card",
+										"checking-status"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add payment-cards",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/fleets/{fleet-id}/payment-cards",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"fleets",
+										"{fleet-id}",
+										"payment-cards"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Demo mode",
+					"item": [
+						{
+							"name": "demo-order",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									},
+									{
+										"key": "locale",
+										"value": "ru",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/onboarding-demo-order?region_id=1",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"onboarding-demo-order"
+									],
+									"query": [
+										{
+											"key": "region_id",
+											"value": "1"
+										},
+										{
+											"key": "region_id",
+											"value": "501",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Onboardings",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Items do not have unexpected properties\", () => {",
+											"    const jsonData = pm.response.json();",
+											"    jsonData.items.forEach((item) => {",
+											"        const allowedProperties = [\"key\", \"status\", \"index\", \"requirements\"];",
+											"        const itemProperties = Object.keys(item);",
+											"        itemProperties.forEach((property) => {",
+											"            pm.expect(allowedProperties).to.include(property);",
+											"        });",
+											"    });",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/driver-onboardings",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"driver-onboardings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "put-onboarding",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"status\": \"canceled\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/driver-onboardings/demo_onboarding",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"driver-onboardings",
+										"demo_onboarding"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Driver status",
+					"item": [
+						{
+							"name": "advanced",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/driver/status/advanced",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"driver",
+										"status",
+										"advanced"
+									],
+									"query": [
+										{
+											"key": null,
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "idle",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/driver/status/idle",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"driver",
+										"status",
+										"idle"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "BonusesAndCommissions",
+					"item": [
+						{
+							"name": "commissions-active-programs",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response has correct status code and message\", () => {",
+											"    pm.response.to.have.status(200); ",
+											"    pm.expect(pm.response.status).to.eql(\"OK\"); ",
+											"});",
+											"pm.test(\"Пустий масив\", () => {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.items.length).to.be.at.least(0);",
+											"});",
+											"pm.test(\"Non-empty items array contains valid objects\", () => {",
+											"    const jsonData = pm.response.json();",
+											"    if (jsonData.items.length > 0) {",
+											"        jsonData.items.forEach((item) => {",
+											"            pm.expect(item).to.be.an(\"object\");",
+											"         ",
+											"           ",
+											"        });",
+											"    }",
+											"});",
+											"",
+											"pm.test(\"Check response for items\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    if (jsonData.items.length > 0) {",
+											"        const activeProgram = jsonData.items[0].active_program;",
+											"        pm.expect(activeProgram.min_rating).to.be.a(\"number\");",
+											"        pm.expect(activeProgram.order_acceptance_methods).to.be.an(\"array\");",
+											"        pm.expect(activeProgram.order_products).to.be.an(\"array\");",
+											"        pm.expect(activeProgram.products).to.be.an(\"array\");",
+											"    } else {",
+											"            pm.expect(jsonData.items.length).to.be.at.least(0);",
+											"",
+											"       // pm.expect(jsonData.items).to.be.an('array');",
+											"    }",
+											"});",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v2/wallets/{{walletId}}/commissions-active-programs?region_id=1",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"wallets",
+										"{{walletId}}",
+										"commissions-active-programs"
+									],
+									"query": [
+										{
+											"key": "region_id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Filters",
+					"item": [
+						{
+							"name": "filters",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}}/api/v1/filters",
+									"host": [
+										"{{driverGatewayHost}}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"filters"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "New Request",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/filters/{{filter_id}}",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"filters",
+										"{{filter_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "put filter",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"filter_id\": \"c81953be-2c1a-4fef-a8ac-8f5ed8e7be7d\",\n            \"name\": \"New too 2\",\n            \"offer_enabled_at\": 1732631378,\n            \"for_offer\": false,\n            \"broadcast_enabled_at\": 0,\n            \"for_broadcast\": false,\n            \"loop_enabled_at\": 0,\n            \"for_loop\": true,\n            \"filters\": {\n                \"distance\": {\n                    \"max_distance_km\": 1,\n                    \"is_enabled\": false\n                },\n                \"payment\": {\n                    \"payment_types\": [\n                        \"cash\",\n                        \"cashless\"\n                    ],\n                    \"is_enabled\": true\n                },\n                \"tariff\": {\n                    \"minimal_tariff_distance\": {\n                        \"distance_km\": 0,\n                        \"is_enabled\": false\n                    },\n                    \"minimal_tariff_cost\": {\n                        \"cost\": 0,\n                        \"currency_code\": \"UAH\",\n                        \"is_enabled\": false\n                    },\n                    \"min_cost_per_km\": {\n                        \"cost\": 0,\n                        \"currency_code\": \"UAH\",\n                        \"is_enabled\": false\n                    },\n                    \"min_cost_per_suburban_km\": {\n                        \"cost\": 0,\n                        \"currency_code\": \"UAH\",\n                        \"is_enabled\": false\n                    },\n                    \"is_enabled\": false\n                },\n                \"include_source_sectors\": {\n                    \"sector_ids\": [\n                        \"7dea3506-a045-40c3-b69c-91e3c668df59\",\n                        \"f961537c-74c6-4836-9c73-b324a33d4f58\"\n                    ],\n                    \"is_enabled\": true\n                },\n                \"include_destination_sectors\": {\n                    \"sector_ids\": [],\n                    \"is_enabled\": false\n                },\n                \"pickup_time\": {\n                    \"order_pickup_time_type\": \"any\",\n                    \"is_enabled\": true\n                }\n            }\n        }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/filters/{{filter_id}}",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"filters",
+										"{{filter_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "fast-search",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"is_enabled\": true,\n  \"filter_parts\": {\n    \"distance\": {\n      \"max_distance_km\": 2\n    },\n    \"home\": {\n      \"is_enabled\": false,\n      \"destination_sectors_ids\": [\n      ]\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/filters/fast-search",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"filters",
+										"fast-search"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "v2 put filter",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Генерація GUID",
+											"function generateGUID() {",
+											"    const template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';",
+											"    return template.replace(/[xy]/g, function (c) {",
+											"        const r = Math.random() * 16 | 0;",
+											"        const v = c === 'x' ? r : (r & 0x3 | 0x8);",
+											"        return v.toString(16);",
+											"    });",
+											"}",
+											"",
+											"// Зберігаємо в змінну",
+											"pm.environment.set(\"generated_guid_filter\", generateGUID());",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"filter_id\": {{generated_guid_filter}},\n  \"name\": \"Test filter v2\",\n  \"for_offer\": false,\n  \"for_broadcast\": false,\n  \"for_loop\": false,\n  \"items\": {\n    \"source_details\": {\n      \"type\": \"distance\",\n      \"distance\": {\n        \"max_distance_km\": 5.0\n      },\n      \"include_source_sectors\": {\n        \"sector_ids\": [\n         \"7dea3506a04540c3b69c91e3c668df59\", \"f961537c74c648369c73b324a33d4f58\"\n        ]\n      }\n    },\n    \"cost_details\": {\n      \"type\": \"tariff\",\n      \"tariff\": {\n        \"minimal_tariff_distance\": {\n          \"distance_km\": 3.0\n        },\n        \"minimal_tariff_cost\": {\n          \"cost\": 40.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"min_cost_per_km\": {\n          \"cost\": 8.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"min_cost_per_suburban_km\": {\n          \"cost\": 10.0,\n          \"currency_code\": \"UAH\"\n        }\n      },\n      \"cost\": {\n        \"minimal\": {\n          \"cost\": 40.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"minimal_per_km\": {\n          \"cost\": 8.0,\n          \"currency_code\": \"UAH\"\n        }\n      }\n    },\n    \"payment\": {\n      \"payment_types\": [\n        \"cash\",\n        \"cashless\"\n      ]\n    },\n    \"include_destination_sectors\": {\n      \"sector_ids\": [\n       \"f961537c74c648369c73b324a33d4f58\"\n      ]\n    }\n  },\n  \"locality_types\": [\n    \"city\",\n    \"suburban\"\n  ]\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v2/filters/{{generated_guid_filter}}",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"filters",
+										"{{generated_guid_filter}}"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "v2 put filter",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{driverAuthToken}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"filter_id\": {{generated_guid_filter}},\n  \"name\": \"Test filter v2\",\n  \"for_offer\": false,\n  \"for_broadcast\": false,\n  \"for_loop\": false,\n  \"items\": {\n    \"source_details\": {\n      \"type\": \"distance\",\n      \"distance\": {\n        \"max_distance_km\": 5.0\n      },\n      \"include_source_sectors\": {\n        \"sector_ids\": [\n         \"7dea3506a04540c3b69c91e3c668df59\", \"f961537c74c648369c73b324a33d4f58\"\n        ]\n      }\n    },\n    \"cost_details\": {\n      \"type\": \"tariff\",\n      \"tariff\": {\n        \"minimal_tariff_distance\": {\n          \"distance_km\": 3.0\n        },\n        \"minimal_tariff_cost\": {\n          \"cost\": 40.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"min_cost_per_km\": {\n          \"cost\": 8.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"min_cost_per_suburban_km\": {\n          \"cost\": 10.0,\n          \"currency_code\": \"UAH\"\n        }\n      },\n      \"cost\": {\n        \"minimal\": {\n          \"cost\": 40.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"minimal_per_km\": {\n          \"cost\": 8.0,\n          \"currency_code\": \"UAH\"\n        }\n      }\n    },\n    \"payment\": {\n      \"payment_types\": [\n        \"cash\",\n        \"cashless\"\n      ]\n    },\n    \"include_destination_sectors\": {\n      \"sector_ids\": [\n       \"f961537c74c648369c73b324a33d4f58\"\n      ]\n    }\n  },\n  \"locality_types\": [\n    \"city\",\n    \"suburban\"\n  ]\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{driverGatewayHost}}/api/v2/filters/{{generated_guid_filter}}",
+											"host": [
+												"{{driverGatewayHost}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"filters",
+												"{{generated_guid_filter}}"
+											]
+										}
+									},
+									"_postman_previewlanguage": null,
+									"header": null,
+									"cookie": [],
+									"body": null
+								},
+								{
+									"name": "422 cost",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{driverAuthToken}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"filter_id\": {{generated_guid_filter}},\n  \"name\": \"00 Test filter v2\",\n  \"for_offer\": false,\n  \"for_broadcast\": false,\n  \"for_loop\": false,\n  \"items\": {\n    \"source_details\": {\n      \"type\": \"distance\",\n      \"distance\": {\n        \"max_distance_km\": 5.0\n      },\n      \"include_source_sectors\": {\n        \"sector_ids\": [\n         \"7dea3506a04540c3b69c91e3c668df59\", \"f961537c74c648369c73b324a33d4f58\"\n        ]\n      }\n    },\n    \"cost_details\": {\n      \"type\": \"tariff\",\n      \"tariff\": {\n        \"minimal_tariff_distance\": {\n          \"distance_km\": 3.0\n        },\n        \"minimal_tariff_cost\": {\n          \"cost\": 40.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"min_cost_per_km\": {\n          \"cost\": 8.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"min_cost_per_suburban_km\": {\n          \"cost\": 10.0,\n          \"currency_code\": \"UAH\"\n        }\n      },\n      \"cost\": {\n        \"minimal\": {\n          \"cost\": 99999999.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"minimal_per_km\": {\n          \"cost\": 8.0,\n          \"currency_code\": \"UAH\"\n        }\n      }\n    },\n    \"payment\": {\n      \"payment_types\": [\n        \"cash\",\n        \"cashless\"\n      ]\n    },\n    \"include_destination_sectors\": {\n      \"sector_ids\": [\n       \"f961537c74c648369c73b324a33d4f58\"\n      ]\n    }\n  },\n  \"locality_types\": [\n    \"city\",\n    \"suburban\"\n  ]\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{driverGatewayHost}}/api/v2/filters/{{generated_guid_filter}}",
+											"host": [
+												"{{driverGatewayHost}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"filters",
+												"{{generated_guid_filter}}"
+											]
+										}
+									},
+									"status": "Unprocessable Entity",
+									"code": 422,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Date",
+											"value": "Thu, 19 Jun 2025 08:23:28 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Transfer-Encoding",
+											"value": "chunked"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "content-encoding",
+											"value": "br"
+										},
+										{
+											"key": "vary",
+											"value": "Accept-Encoding"
+										},
+										{
+											"key": "api-supported-versions",
+											"value": "1.0"
+										},
+										{
+											"key": "x-envoy-upstream-service-time",
+											"value": "20"
+										},
+										{
+											"key": "server",
+											"value": "istio-envoy"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"error\": {\n        \"code\": 422,\n        \"sub_code\": 4220,\n        \"sub_code_description\": \"unprocessable_entity\",\n        \"message\": \"Filter parameters are not valid\"\n    }\n}"
+								},
+								{
+									"name": "401",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{driverAuthToken}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"filter_id\": {{generated_guid_filter}},\n  \"name\": \"00 Test filter v2\",\n  \"for_offer\": false,\n  \"for_broadcast\": false,\n  \"for_loop\": false,\n  \"items\": {\n    \"source_details\": {\n      \"type\": \"distance\",\n      \"distance\": {\n        \"max_distance_km\": 5.0\n      },\n      \"include_source_sectors\": {\n        \"sector_ids\": [\n         \"7dea3506a04540c3b69c91e3c668df59\", \"f961537c74c648369c73b324a33d4f58\"\n        ]\n      }\n    },\n    \"cost_details\": {\n      \"type\": \"tariff\",\n      \"tariff\": {\n        \"minimal_tariff_distance\": {\n          \"distance_km\": 3.0\n        },\n        \"minimal_tariff_cost\": {\n          \"cost\": 40.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"min_cost_per_km\": {\n          \"cost\": 8.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"min_cost_per_suburban_km\": {\n          \"cost\": 10.0,\n          \"currency_code\": \"UAH\"\n        }\n      },\n      \"cost\": {\n        \"minimal\": {\n          \"cost\": 99999999.0,\n          \"currency_code\": \"UAH\"\n        },\n        \"minimal_per_km\": {\n          \"cost\": 8.0,\n          \"currency_code\": \"UAH\"\n        }\n      }\n    },\n    \"payment\": {\n      \"payment_types\": [\n        \"cash\",\n        \"cashless\"\n      ]\n    },\n    \"include_destination_sectors\": {\n      \"sector_ids\": [\n       \"f961537c74c648369c73b324a33d4f58\"\n      ]\n    }\n  },\n  \"locality_types\": [\n    \"city\",\n    \"suburban\"\n  ]\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{driverGatewayHost}}/api/v2/filters/{{generated_guid_filter}}",
+											"host": [
+												"{{driverGatewayHost}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"filters",
+												"{{generated_guid_filter}}"
+											]
+										}
+									},
+									"status": "Unauthorized",
+									"code": 401,
+									"_postman_previewlanguage": "plain",
+									"header": [
+										{
+											"key": "Date",
+											"value": "Thu, 19 Jun 2025 14:46:54 GMT"
+										},
+										{
+											"key": "Content-Length",
+											"value": "0"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "www-authenticate",
+											"value": "Bearer error=\"invalid_token\", error_description=\"The token expired at '06/19/2025 08:32:37'\""
+										},
+										{
+											"key": "x-envoy-upstream-service-time",
+											"value": "9"
+										},
+										{
+											"key": "server",
+											"value": "istio-envoy"
+										}
+									],
+									"cookie": [],
+									"body": null
+								}
+							]
+						},
+						{
+							"name": "v2 get filters",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v2/filters",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"filters"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Deferred Filters",
+					"item": [
+						{
+							"name": "filters",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/deferred-order-filters",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"deferred-order-filters"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get deferred guid",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/deferred-order-filters/{filter-id}",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"deferred-order-filters",
+										"{filter-id}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete deferred filter",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/deferred-order-filters/{{deferred_filter_id}}",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"deferred-order-filters",
+										"{{deferred_filter_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "put filter",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"filter_id\": \"c81953be-2c1a-4fef-a8ac-8f5ed8e7be7d\",\n            \"name\": \"New too 2\",\n            \"offer_enabled_at\": 1732631378,\n            \"for_offer\": false,\n            \"broadcast_enabled_at\": 0,\n            \"for_broadcast\": false,\n            \"loop_enabled_at\": 0,\n            \"for_loop\": true,\n            \"filters\": {\n                \"distance\": {\n                    \"max_distance_km\": 1,\n                    \"is_enabled\": false\n                },\n                \"payment\": {\n                    \"payment_types\": [\n                        \"cash\",\n                        \"cashless\"\n                    ],\n                    \"is_enabled\": true\n                },\n                \"tariff\": {\n                    \"minimal_tariff_distance\": {\n                        \"distance_km\": 0,\n                        \"is_enabled\": false\n                    },\n                    \"minimal_tariff_cost\": {\n                        \"cost\": 0,\n                        \"currency_code\": \"UAH\",\n                        \"is_enabled\": false\n                    },\n                    \"min_cost_per_km\": {\n                        \"cost\": 0,\n                        \"currency_code\": \"UAH\",\n                        \"is_enabled\": false\n                    },\n                    \"min_cost_per_suburban_km\": {\n                        \"cost\": 0,\n                        \"currency_code\": \"UAH\",\n                        \"is_enabled\": false\n                    },\n                    \"is_enabled\": false\n                },\n                \"include_source_sectors\": {\n                    \"sector_ids\": [\n                        \"7dea3506-a045-40c3-b69c-91e3c668df59\",\n                        \"f961537c-74c6-4836-9c73-b324a33d4f58\"\n                    ],\n                    \"is_enabled\": true\n                },\n                \"include_destination_sectors\": {\n                    \"sector_ids\": [],\n                    \"is_enabled\": false\n                },\n                \"pickup_time\": {\n                    \"order_pickup_time_type\": \"any\",\n                    \"is_enabled\": true\n                }\n            }\n        }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/filters/{{filter_id}}",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"filters",
+										"{{filter_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create filter",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"filter_id\": \"c81953be-2c1a-4fef-a8ac-8f5ed8e7be7d\",\n            \"name\": \"New too 2\",\n            \"offer_enabled_at\": 1732631378,\n            \"for_offer\": false,\n            \"broadcast_enabled_at\": 0,\n            \"for_broadcast\": false,\n            \"loop_enabled_at\": 0,\n            \"for_loop\": true,\n            \"filters\": {\n                \"distance\": {\n                    \"max_distance_km\": 1,\n                    \"is_enabled\": false\n                },\n                \"payment\": {\n                    \"payment_types\": [\n                        \"cash\",\n                        \"cashless\"\n                    ],\n                    \"is_enabled\": true\n                },\n                \"tariff\": {\n                    \"minimal_tariff_distance\": {\n                        \"distance_km\": 0,\n                        \"is_enabled\": false\n                    },\n                    \"minimal_tariff_cost\": {\n                        \"cost\": 0,\n                        \"currency_code\": \"UAH\",\n                        \"is_enabled\": false\n                    },\n                    \"min_cost_per_km\": {\n                        \"cost\": 0,\n                        \"currency_code\": \"UAH\",\n                        \"is_enabled\": false\n                    },\n                    \"min_cost_per_suburban_km\": {\n                        \"cost\": 0,\n                        \"currency_code\": \"UAH\",\n                        \"is_enabled\": false\n                    },\n                    \"is_enabled\": false\n                },\n                \"include_source_sectors\": {\n                    \"sector_ids\": [\n                        \"7dea3506-a045-40c3-b69c-91e3c668df59\",\n                        \"f961537c-74c6-4836-9c73-b324a33d4f58\"\n                    ],\n                    \"is_enabled\": true\n                },\n                \"include_destination_sectors\": {\n                    \"sector_ids\": [],\n                    \"is_enabled\": false\n                },\n                \"pickup_time\": {\n                    \"order_pickup_time_type\": \"any\",\n                    \"is_enabled\": true\n                }\n            }\n        }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/filters/{{filter_id}}",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"filters",
+										"{{filter_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "deferred ether",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/deferred-orders?limit=10&from=1739833200&to=1739833200",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"deferred-orders"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "from",
+											"value": "1739833200"
+										},
+										{
+											"key": "to",
+											"value": "1739833200"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "disable all def filters",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/deferred-order-filters/disable",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"deferred-order-filters",
+										"disable"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Onboardings",
+					"item": [
+						{
+							"name": "v1 driver-onboardings",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverAuthToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/driver-onboardings",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"driver-onboardings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "V1 change status",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverAuthToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"status\": \"completed\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v1/driver-onboardings/filters_creation_onboarding",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"driver-onboardings",
+										"filters_creation_onboarding"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "V2 driver-onboardings",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverAuthToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v2/driver-onboardings?region_id=3",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"driver-onboardings"
+									],
+									"query": [
+										{
+											"key": "region_id",
+											"value": "3"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "V2 change status",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverAuthToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{driverAuthToken}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"status\": \"completed\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{driverGatewayHost}}/api/v2/driver-onboardings/filters_creation_onboarding",
+									"host": [
+										"{{driverGatewayHost}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"driver-onboardings",
+										"filters_creation_onboarding"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Region",
+					"item": [
+						{
+							"name": "New Request",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "vehicle",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{driverAuthToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{driverAuthToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{driverGatewayHost}}/api/v1/vehicle",
+							"host": [
+								"{{driverGatewayHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"vehicle"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send-confirmation-code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{driverAuthToken}}",
+								"type": "text"
+							},
+							{
+								"key": "user-agent",
+								"value": "UklonDriverAndroid/310500, google Pixel 6a, OS Version: 14",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "user-agent",
+								"value": "UklonDriverIOS/3.106.1.3748078",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"380989089898\",\n  \"template\": \"ChangePhone\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{driverGatewayHost}}/api/v1/send-confirmation-code",
+							"host": [
+								"{{driverGatewayHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"send-confirmation-code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "current driver's region",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{driverAuthToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{driverGatewayHost}}/api/v1/regions/current",
+							"host": [
+								"{{driverGatewayHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"regions",
+								"current"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response has correct status code and message\", () => {",
+									"    pm.response.to.have.status(200); // Перевірка статусу коду",
+									"    pm.expect(pm.response.status).to.eql(\"OK\"); // Перевірка статусу тексту",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{driverAuthToken}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "UklonDriverAndroid/311400, samsung SM-A325F, OS Version: 11",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{driverGatewayHost}}/api/v1/resources",
+							"host": [
+								"{{driverGatewayHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"resources"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DO - test driver",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{driverOrderingHost}}/api/test/drivers/{{driverId}}",
+							"host": [
+								"{{driverOrderingHost}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"drivers",
+								"{{driverId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Partners",
+			"item": [
+				{
+					"name": "change region",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminTokenDev}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"region_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/:change-region",
+							"host": [
+								"{{partnersHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"drivers",
+								"{{driverId}}",
+								":change-region"
+							],
+							"variable": [
+								{
+									"key": "change-region",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetRestrictions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminTokenDev}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+							"host": [
+								"{{partnersHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"drivers",
+								"{{driverId}}",
+								"restrictions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PutRestrictions",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminTokenDev}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"FilterOffer\",\n  \"fleet_id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n  \"actual_from\": 0,\n  \"actual_till\": 0,\n  \"linked_entity\": {\n    \"type\": \"string\",\n    \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+							"host": [
+								"{{partnersHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"drivers",
+								"{{driverId}}",
+								"restrictions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminTokenDev}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"FilterOffer\",\n  \"fleet_id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+							"host": [
+								"{{partnersHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"drivers",
+								"{{driverId}}",
+								"restrictions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin token",
+			"item": [
+				{
+					"name": "admin-dev",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var access_token = jsonData.access_token; ",
+									"pm.environment.set(\"adminAuthToken\", access_token);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contact\": {{AdminUsername}},  \n  \"password\": {{AdminPassword}},\n  \"grant_type\": \"password\",\n  \"refresh_token\": \"string\",\n  \"client_id\": \"f26797fdc4e14b9dba64b54a381d4097\",\n  \"client_secret\": \"OKwCEVnapZ7UOJqflaoF2iLNjtUOkrnS\",\n  \"device_id\": \"5f57b42f-901e-7d17-3164-08fefd1f1e92\",\n  \"access_token_lifetime_seconds\": 0,\n  \"refresh_token_lifetime_seconds\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{partnersIdentityHost}}/api/v1/auth",
+							"host": [
+								"{{partnersIdentityHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update roles",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminAuthToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n {\n      \"name\": \"TaxiDriver\"\n    },\n {\n      \"name\": \"Dispatcher\"\n    },\n {\n      \"name\": \"Administrator\"\n    },\n {\n      \"name\": \"GlobalPartnerModerator\"\n    },\n{\n      \"name\": \"PartnersMigrationModerator\"\n    },\n    {\n      \"name\": \"GodPartnerModerator\"\n    },\n{\n      \"name\": \"Moderator\"\n    },\n    {\n      \"name\": \"PartnerModerator\"\n    },\n{\n      \"name\": \"A2CManager\"\n    }\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{partnersIdentityHost}}/api/v1/accounts/{{driverId}}/roles",
+							"host": [
+								"{{partnersIdentityHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"{{driverId}}",
+								"roles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update roles Stage",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminAuthToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n { \"name\": \"TaxiDriver\" },\n    { \"name\": \"Dispatcher\" }\n]\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{partnersIdentityHost}}/api/v1/accounts/{{driverId}}/roles",
+							"host": [
+								"{{partnersIdentityHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"{{driverId}}",
+								"roles"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ChatService",
+			"item": [
+				{
+					"name": "newMsgText",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer ",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"83cc4778-f3f3-48b8-8f41-5e0f7519f038\",\n  \"rider_id\": \"1ab6a007-d749-4666-8cbf-f1b26947f36a\",\n  \"driver_id\": \"{{driverId}}\",\n  \"random_id\": \"{{randomGuid}}\",\n  \"message\": \"тут\", \n  \"message_type\": \"plain_text\",\n   \"shared_location\": {\n    \"lat\": {{lat}},\n    \"lng\": {{lng}}\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{chatServiceHost}}/api/v1/messages",
+							"host": [
+								"{{chatServiceHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"messages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "NewMsgLocation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer ",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"7594255b-92ec-4658-870c-6046dc2ebd98\",\n  \"rider_id\": \"71fb1379-d72a-4552-9254-9d3c0316138c\",\n  \"driver_id\": \"8931f13b-bedd-4756-a6a2-9e46ff9b2f55\",\n  \"random_id\": \"7594255b-92ec-4658-870c-6046dc2ebd98\",\n  \n  \"message_type\": \"location\",\n   \"shared_location\": {\n    \"lat\": 50.44428,\n    \"lng\": 30.52098\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{chatServiceHost}}/api/v1/messages",
+							"host": [
+								"{{chatServiceHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"messages"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "PaymentProcessor",
+			"item": [
+				{
+					"name": "Approve Payonner account",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Payee Id\": \"56ec26ab-aec5-48f5-aa49-58d9b2efac68\",\n    \"Payoneer Id\":\"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{paymentProcessorHost}}/api/v1/payoneer/callback/payee-application/approve",
+							"host": [
+								"{{paymentProcessorHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payoneer",
+								"callback",
+								"payee-application",
+								"approve"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Decline Payonner account",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Payee Id\": \"ec45a3ef-c4fc-4053-a388-e5ec7832eac1\",\n    \"Payoneer Id\":\"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{paymentProcessorHost}}/api/v1/payoneer/callback/payee-application/decline",
+							"host": [
+								"{{paymentProcessorHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"payoneer",
+								"callback",
+								"payee-application",
+								"decline"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "charge balance",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"function generateRandomUUID() {",
+									"    let template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';",
+									"        return template.replace(/[xy]/g, function(c) {",
+									"        let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);",
+									"        return v.toString(16);",
+									"    });",
+									"}",
+									"let randomUUID = generateRandomUUID();",
+									"pm.environment.set(\"randomGuid\", randomUUID);",
+									"console.log(\"Random guid is:\", randomUUID);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminAuthToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 500,\n  \"description\": \"test\",\n  \"initiated_by_user_id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n  \"region_id\": 1,\n  \"order_id\": \"{{randomGuid}}\",\n  \"operation_id\": \"{{randomGuid}}\",\n  \"vb_type\": \"BonusBranding\",\n  \"profit_loss_type\": \"Fee\",\n  \"cf_type\": \"payments_to_drivers\"\n}\n// BonusWeek, BonusBranding, BonusIndividual, BonusOrder, CashDriverEarnings, CashOrderFee, CashWithdrawal, CashlessCorpclientsMargin, CashlessDriverEarnings, CashlessDriverEarningsPromoCode, CashlessOrderFee, CashlessWithdrawal, CompensationReceived, DrvPenalties, PromoCodeActivation, RiderPenalties, Replenishment, ReplenishmentTips, ReplenishmentVat, SubscriptionFee, Tips, TransferIn, TransferOut, BonusGuaranteed\n\n// CashFromDrivers, PaymentsToDrivers",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{paymentProcessorHost}}/api/v1/wallets/{{walletId}}/partner-payments/charge",
+							"host": [
+								"{{paymentProcessorHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"wallets",
+								"{{walletId}}",
+								"partner-payments",
+								"charge"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "commission-programs/participants",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "branding bonus",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
+									"pm.environment.set(\"brandBonusId\", fareId);",
+									"console.log(\"Сгенерированный fare_id:\", fareId);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"4dd769c6-2385-48cd-9a00-9e0ca6608ca1\",\n  \"name\": \"Business (all func)\",\n  \"status\": \"active\",\n  \"life_time\": {\n    \"range\": [\n      1745877600,\n      1767221999\n    ]\n  },\n  \"calculation_periods\": [\n    {\n      \"range\": [\n        1745877600,\n        1746478800\n      ]\n    },\n    {\n      \"range\": [\n        1746478800,\n        1747083600\n      ]\n    },\n    {\n      \"range\": [\n        1747083600,\n        1747688400\n      ]\n    },\n    {\n      \"range\": [\n        1747688400,\n        1748293200\n      ]\n    },\n    {\n      \"range\": [\n        1748293200,\n        1748898000\n      ]\n    },\n    {\n      \"range\": [\n        1748898000,\n        1749502800\n      ]\n    },\n    {\n      \"range\": [\n        1749502800,\n        1750107600\n      ]\n    },\n    {\n      \"range\": [\n        1750107600,\n        1750712400\n      ]\n    },\n    {\n      \"range\": [\n        1750712400,\n        1751317200\n      ]\n    },\n    {\n      \"range\": [\n        1751317200,\n        1751922000\n      ]\n    },\n    {\n      \"range\": [\n        1751922000,\n        1752526800\n      ]\n    },\n    {\n      \"range\": [\n        1752526800,\n        1753131600\n      ]\n    },\n    {\n      \"range\": [\n        1753131600,\n        1753736400\n      ]\n    },\n    {\n      \"range\": [\n        1753736400,\n        1754341200\n      ]\n    },\n    {\n      \"range\": [\n        1754341200,\n        1754946000\n      ]\n    },\n    {\n      \"range\": [\n        1754946000,\n        1755550800\n      ]\n    },\n    {\n      \"range\": [\n        1755550800,\n        1756155600\n      ]\n    },\n    {\n      \"range\": [\n        1756155600,\n        1756760400\n      ]\n    },\n    {\n      \"range\": [\n        1756760400,\n        1757365200\n      ]\n    },\n    {\n      \"range\": [\n        1757365200,\n        1757970000\n      ]\n    },\n    {\n      \"range\": [\n        1757970000,\n        1758574800\n      ]\n    },\n    {\n      \"range\": [\n        1758574800,\n        1759179600\n      ]\n    },\n    {\n      \"range\": [\n        1759179600,\n        1759784400\n      ]\n    },\n    {\n      \"range\": [\n        1759784400,\n        1760389200\n      ]\n    },\n    {\n      \"range\": [\n        1760389200,\n        1760994000\n      ]\n    },\n    {\n      \"range\": [\n        1760994000,\n        1761602400\n      ]\n    },\n    {\n      \"range\": [\n        1761602400,\n        1762207200\n      ]\n    },\n    {\n      \"range\": [\n        1762207200,\n        1762812000\n      ]\n    },\n    {\n      \"range\": [\n        1762812000,\n        1763416800\n      ]\n    },\n    {\n      \"range\": [\n        1763416800,\n        1764021600\n      ]\n    },\n    {\n      \"range\": [\n        1764021600,\n        1764626400\n      ]\n    },\n    {\n      \"range\": [\n        1764626400,\n        1765231200\n      ]\n    },\n    {\n      \"range\": [\n        1765231200,\n        1765836000\n      ]\n    },\n    {\n      \"range\": [\n        1765836000,\n        1766440800\n      ]\n    },\n    {\n      \"range\": [\n        1766440800,\n        1767045600\n      ]\n    },\n    {\n      \"range\": [\n        1767045600,\n        1767221999\n      ]\n    }\n  ],\n  \"is_auto_calculation\": true,\n  \"parameters\": {\n    \"calculation_type\": \"aggregated\",\n    \"regions\": [\n      3,\n      1\n    ],\n    \"driver_rating\": {\n      \"range\": [\n        4,\n        5\n      ]\n    },\n    \"currency\": \"UAH\",\n    \"time_zone\": \"Europe/Kiev\",\n    \"orders\": {\n      \"completed\": {\n        \"count\": [\n          {\n            \"value\": 500,\n            \"range\": [\n              1,\n              3\n            ]\n          },\n          {\n            \"value\": 1000,\n            \"range\": [\n              3,\n              7\n            ]\n          },\n          {\n            \"value\": 2000,\n            \"range\": [\n              7,\n              15\n            ]\n          }\n        ]\n      },\n      \"cancelled\": {\n        \"percent\": [\n          {\n            \"range\": [\n              0,\n              75\n            ]\n          }\n        ]\n      }\n    },\n    \"distance\": null,\n    \"time\": [\n      {\n        \"range\": [\n          \"06:00:00\",\n          \"12:00:00\"\n        ]\n      },\n      {\n        \"range\": [\n          \"16:00:00\",\n          \"21:00:00\"\n        ]\n      }\n    ],\n    \"days\": [\n      \"Monday\",\n      \"Tuesday\",\n      \"Wednesday\",\n      \"Friday\"\n    ],\n    \"order_acceptance_methods\": [\n      \"ByBroadcastFilter\",\n      \"ByChain\",\n      \"ByFastSearch\",\n      \"ByHomeFilter\",\n      \"ByOfferFilter\",\n\"ByOfferLoopFilter\"\n    ],\n    \"product_types\": [\n      \"Business\",\n      \"ComfortPlus\",\n      \"CovidProtected\",\n      \"Delivery\",\n      \"Driver\",\n      \"Help\",\n      \"Inclusive\",\n      \"Premium\",\n      \"Standard\"\n    ],\n    \"fleet_types\": [\n      \"Commercial\",\n      \"Private\",\n      \"Rental\"\n    ],\n    \"fleet_withdrawal_types\": [\n      \"IndividualEntrepreneur\",\n      \"None\",\n      \"PaymentCard\"\n    ],\n    \"branding_types\": [\n      \"Business\",\n      \"Patriotic\",\n      \"YourMove\"\n    ]\n  },\n  \"created_at\": 1745914737,\n  \"updated_at\": 1745914737,\n  \"updated_by\": \"2eec5dde-562c-4b9b-b99e-24a33a0324b2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{paymentProcessorHost}}/api/v1/branding-bonus-programs/{{brandBonusId}}",
+							"host": [
+								"{{paymentProcessorHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"branding-bonus-programs",
+								"{{brandBonusId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "branding bonus",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"4dd769c6-2385-48cd-9a00-9e0ca6608ca1\",\n  \"name\": \"Business (all func)\",\n  \"status\": \"active\",\n  \"life_time\": {\n    \"range\": [\n      1745877600,\n      1767221999\n    ]\n  },\n  \"calculation_periods\": [\n    {\n      \"range\": [\n        1745877600,\n        1746478800\n      ]\n    },\n    {\n      \"range\": [\n        1746478800,\n        1747083600\n      ]\n    },\n    {\n      \"range\": [\n        1747083600,\n        1747688400\n      ]\n    },\n    {\n      \"range\": [\n        1747688400,\n        1748293200\n      ]\n    },\n    {\n      \"range\": [\n        1748293200,\n        1748898000\n      ]\n    },\n    {\n      \"range\": [\n        1748898000,\n        1749502800\n      ]\n    },\n    {\n      \"range\": [\n        1749502800,\n        1750107600\n      ]\n    },\n    {\n      \"range\": [\n        1750107600,\n        1750712400\n      ]\n    },\n    {\n      \"range\": [\n        1750712400,\n        1751317200\n      ]\n    },\n    {\n      \"range\": [\n        1751317200,\n        1751922000\n      ]\n    },\n    {\n      \"range\": [\n        1751922000,\n        1752526800\n      ]\n    },\n    {\n      \"range\": [\n        1752526800,\n        1753131600\n      ]\n    },\n    {\n      \"range\": [\n        1753131600,\n        1753736400\n      ]\n    },\n    {\n      \"range\": [\n        1753736400,\n        1754341200\n      ]\n    },\n    {\n      \"range\": [\n        1754341200,\n        1754946000\n      ]\n    },\n    {\n      \"range\": [\n        1754946000,\n        1755550800\n      ]\n    },\n    {\n      \"range\": [\n        1755550800,\n        1756155600\n      ]\n    },\n    {\n      \"range\": [\n        1756155600,\n        1756760400\n      ]\n    },\n    {\n      \"range\": [\n        1756760400,\n        1757365200\n      ]\n    },\n    {\n      \"range\": [\n        1757365200,\n        1757970000\n      ]\n    },\n    {\n      \"range\": [\n        1757970000,\n        1758574800\n      ]\n    },\n    {\n      \"range\": [\n        1758574800,\n        1759179600\n      ]\n    },\n    {\n      \"range\": [\n        1759179600,\n        1759784400\n      ]\n    },\n    {\n      \"range\": [\n        1759784400,\n        1760389200\n      ]\n    },\n    {\n      \"range\": [\n        1760389200,\n        1760994000\n      ]\n    },\n    {\n      \"range\": [\n        1760994000,\n        1761602400\n      ]\n    },\n    {\n      \"range\": [\n        1761602400,\n        1762207200\n      ]\n    },\n    {\n      \"range\": [\n        1762207200,\n        1762812000\n      ]\n    },\n    {\n      \"range\": [\n        1762812000,\n        1763416800\n      ]\n    },\n    {\n      \"range\": [\n        1763416800,\n        1764021600\n      ]\n    },\n    {\n      \"range\": [\n        1764021600,\n        1764626400\n      ]\n    },\n    {\n      \"range\": [\n        1764626400,\n        1765231200\n      ]\n    },\n    {\n      \"range\": [\n        1765231200,\n        1765836000\n      ]\n    },\n    {\n      \"range\": [\n        1765836000,\n        1766440800\n      ]\n    },\n    {\n      \"range\": [\n        1766440800,\n        1767045600\n      ]\n    },\n    {\n      \"range\": [\n        1767045600,\n        1767221999\n      ]\n    }\n  ],\n  \"is_auto_calculation\": true,\n  \"parameters\": {\n    \"calculation_type\": \"aggregated\",\n    \"regions\": [\n      3,\n      1\n    ],\n    \"driver_rating\": {\n      \"range\": [\n        4,\n        5\n      ]\n    },\n    \"currency\": \"UAH\",\n    \"time_zone\": \"Europe/Kiev\",\n    \"orders\": {\n      \"completed\": {\n        \"count\": [\n          {\n            \"value\": 500,\n            \"range\": [\n              1,\n              3\n            ]\n          },\n          {\n            \"value\": 1000,\n            \"range\": [\n              3,\n              7\n            ]\n          },\n          {\n            \"value\": 2000,\n            \"range\": [\n              7,\n              15\n            ]\n          }\n        ]\n      },\n      \"cancelled\": {\n        \"percent\": [\n          {\n            \"range\": [\n              0,\n              75\n            ]\n          }\n        ]\n      }\n    },\n    \"distance\": null,\n    \"time\": [\n      {\n        \"range\": [\n          \"06:00:00\",\n          \"12:00:00\"\n        ]\n      },\n      {\n        \"range\": [\n          \"16:00:00\",\n          \"21:00:00\"\n        ]\n      }\n    ],\n    \"days\": [\n      \"Monday\",\n      \"Tuesday\",\n      \"Wednesday\",\n      \"Friday\"\n    ],\n    \"order_acceptance_methods\": [\n      \"ByBroadcastFilter\",\n      \"ByChain\",\n      \"ByFastSearch\",\n      \"ByHomeFilter\",\n      \"ByOfferFilter\",\n\"ByOfferLoopFilter\"\n    ],\n    \"product_types\": [\n      \"Business\",\n      \"ComfortPlus\",\n      \"CovidProtected\",\n      \"Delivery\",\n      \"Driver\",\n      \"Help\",\n      \"Inclusive\",\n      \"Premium\",\n      \"Standard\"\n    ],\n    \"fleet_types\": [\n      \"Commercial\",\n      \"Private\",\n      \"Rental\"\n    ],\n    \"fleet_withdrawal_types\": [\n      \"IndividualEntrepreneur\",\n      \"None\",\n      \"PaymentCard\"\n    ],\n    \"branding_types\": [\n      \"Business\",\n      \"Patriotic\",\n      \"YourMove\"\n    ]\n  },\n  \"created_at\": 1745914737,\n  \"updated_at\": 1745914737,\n  \"updated_by\": \"2eec5dde-562c-4b9b-b99e-24a33a0324b2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{paymentProcessorHost}}/api/v1/branding-bonus-programs/{{brandBonusId}}",
+							"host": [
+								"{{paymentProcessorHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"branding-bonus-programs",
+								"{{brandBonusId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications Service",
+			"item": [
+				{
+					"name": "marketing",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"{{driverPhone}}\",\n  \"user_id\": \"{{driverId}}\",\n  \"message\": \"test\",\n  \"locale\": \"ru\",\n  \"deliver_by\": [\n    \"tcp\"\n  ],\n  \"data\": {\n    \"additionalProp1\": \"string\",\n    \"additionalProp2\": \"string\",\n    \"additionalProp3\": \"string\"\n  },\n  \"deep_link\": \"string\",\n  \"title\": \"Title test\",\n  \"tag\": \"test tag\",\n  \"category\": \"marketing\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{notificationServiceHost}}/api/test/send/plaintext",
+							"host": [
+								"{{notificationServiceHost}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"send",
+								"plaintext"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "notification-template",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message_type\": \"payoneer_ticket_declined\",\n  \"data\": {\n    \"IBAN\": \"UA12*********************7890\"\n  },\n  \"deliver_by\": [\n    \"push\"\n  ],\n  \"locale\": \"en\",\n  \"phone\": \"{{driverPhone}}\",\n  \"user_id\": \"{{driverId}}\",\n  \"count\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{notificationServiceHost}}/api/test/send/templated",
+							"host": [
+								"{{notificationServiceHost}}"
+							],
+							"path": [
+								"api",
+								"test",
+								"send",
+								"templated"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Search Service",
+			"item": [
+				{
+					"name": "get sectors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{searchHost}}/api/v1/regions/1/sectors",
+							"host": [
+								"{{searchHost}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"regions",
+								"1",
+								"sectors"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
