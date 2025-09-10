@@ -851,7 +851,7 @@ el('div', {
   contentEditable: true,
   spellcheck: false,
   oninput: (e) => {
-    const text = e.currentTarget.innerText.replace(/\n+/g, '');
+    const text = e.currentTarget.textContent.replace(/\n+/g, '');
     e.currentTarget.innerHTML = highlightUrlVars(text);
     placeCaretAtEnd(e.currentTarget);
     debSave();
