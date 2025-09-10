@@ -390,7 +390,7 @@ function pathOnly(u){
   if(!u) return '';
   try{
     const full = resolveVars(u);
-    !***const isAbs = /^https?:\/\//i.test(full);
+    const isAbs = /^https?:\/\//i.test(full);
     const urlObj = new URL(isAbs ? full : (location.origin + (full.startsWith('/')?full:'/'+full)));
     return urlObj.pathname || '/';
   }catch{ return String(u).replace(/^https?:\/\/[^/]+/i,'') || '/'; }
