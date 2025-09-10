@@ -100,9 +100,12 @@
   .op.HEAD,.op.OPTIONS,.op.TRACE{background:var(--op-other)} .op.HEAD .op-method,.op.OPTIONS .op-method,.op.TRACE .op-method{background:var(--op-other-b); color:var(--op-other-f)}
 
   /* ---------- Request editor ---------- */
-  .reqHeader{display:grid; grid-template-columns: 140px 1fr auto; gap:12px; padding:12px 14px; background:#fff7e8; border-bottom:1px solid var(--divider)}
+  .reqHeader{
+    display:grid; grid-template-columns:auto 1fr auto; gap:12px; padding:12px 14px;
+    background:#fff7e8; border-bottom:1px solid var(--divider); align-items:center;
+  }
   [data-theme="dark"] .reqHeader{background:#2a1f0f}
-  .reqHeader select, .reqHeader input{padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg)}
+  .reqHeader input{padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg)}
   .apiBadge{align-self:center; font-weight:800; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(0,0,0,.08); background:var(--chip-bg-2); color:var(--chip-fg); white-space:nowrap}
 
   .tabs{ display:flex; gap:6px; padding:8px 10px; border-bottom:1px solid var(--divider); background:var(--soft) }
@@ -148,25 +151,38 @@
   /* Modals */
   .modal{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; z-index:10000 }
   .modal[hidden]{ display:none }
-  .modalCard{ width:720px; max-height:80vh; overflow:auto; background:var(--panel); border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:16px }
-  .modalCard h3{ margin:0 0 10px 0; font-size:16px; color:var(--ink) }
-  .modalActions{ display:flex; gap:8px; justify-content:space-between; margin-top:8px; align-items:center }
+  .modalCard{ width:520px; max-width:90%; max-height:80vh; overflow:auto; background:var(--panel); border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:20px }
+  .modalCard h3{ margin:0 0 14px 0; font-size:16px; color:var(--ink) }
+  .modalCard .row input{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); font-size:14px; background:#0000; color:var(--fg) }
+  .modalActions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px; align-items:center }
+  .modalActions button{ min-width:80px; padding:8px 14px; border-radius:8px; font-size:14px }
   .auth-ok{ background:#10b981; color:#fff; border:none }
   .auth-bad{ background:var(--chip-bg); color:var(--fg) }
   .authState{ font-size:12px; color:#065f46; }
   [data-theme="dark"] .authState{ color:#34d399 }
-  .varsTable{ width:100%; border-collapse:collapse; font-size:14px; background:#0000 }
-  .varsTable th,.varsTable td{ border-bottom:1px solid var(--divider); padding:8px }
-  .varsTable th{ position:sticky; top:0; z-index:2; background:var(--soft); color:var(--muted); font-weight:600; text-align:left; box-shadow:0 2px 0 var(--divider); }
-  .varsTable td input[type="text"]{ width:100%; padding:6px 8px; border:1px solid var(--divider); border-radius:6px; font-size:13px; background:#0000; color:var(--fg) }
-  .varsTable td input[type="checkbox"]{ width:auto; margin:auto; display:block; }
-  .varsHelp{ font-size:12px; color:var(--muted); }
+
+  /* Authorization tab (fix key/value layout) */
+  .authRow{ display:grid; grid-template-columns:140px 1fr; gap:12px; padding:8px 0; align-items:center }
+  .authRow .muted{ font-size:14px; color:var(--muted) }
+  .authRow select, .authRow input{ width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg); font-size:14px }
 
   /* loader */
   .loaderOverlay{ position:fixed; inset:56px 0 0 0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.2); z-index:9999; backdrop-filter:saturate(1.2) blur(2px); }
   .loaderOverlay[hidden]{ display:none }
   .spinner{ width:40px; height:40px; border-radius:50%; border:4px solid #dbe3ed; border-top-color: var(--accent); animation: spin 0.9s linear infinite }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Tabs fix */
+  .tabPane { display:none; }
+  .tabPane.active { display:block; }
+
+  /* JSON highlight */
+  .json-key { color:#0b6cff; font-weight:600; }
+  .json-string { color:#16a34a; }
+  .json-number { color:#dc2626; }
+  .json-boolean { color:#b45309; font-weight:600; }
+  .json-null { color:#6b7280; font-style:italic; }
+  .json-url { color:#7a3cff; text-decoration:underline; cursor:pointer; }
 </style>
 </head>
 
@@ -455,19 +471,16 @@ function tableToSimpleArray(tbody){
 }
 
 /* ========= Request UI ========= */
-function getInitialStateForItem(item){
+function getInitialStateForItem(item, forceDefaults=false){
   const id = item.id;
-  const saved = loadReqState(id);
+  const saved = forceDefaults ? null : loadReqState(id);
 
-  // Метод из коллекции (оригинальный Postman)
   const methodOrig = String(item.request.method || 'GET').toUpperCase();
   const urlRaw     = normalizeUrl(item.request.url);
 
-  // ✅ Теперь берём метод из коллекции, если пользователь ничего не менял
-  const method = saved?.method ? saved.method.toUpperCase() : methodOrig;
+  const method = methodOrig; // метод из коллекции по умолчанию
   const url    = saved?.url || urlRaw;
 
-  // Query params
   const paramsInit = saved?.params ?? (
     (typeof item.request.url === 'object' && Array.isArray(item.request.url.query))
       ? item.request.url.query.map(q => ({
@@ -478,7 +491,6 @@ function getInitialStateForItem(item){
       : []
   );
 
-  // Headers
   let headersInit = saved?.headers ?? (
     Array.isArray(item.request.header)
       ? item.request.header.map(h => ({
@@ -489,7 +501,6 @@ function getInitialStateForItem(item){
       : []
   );
 
-  // Добавляем Authorization, если он не сохранён
   if (!saved?.headers){
     if (GLOBAL_BEARER && !headersInit.some(h => String(h.key || '').toLowerCase() === 'authorization')){
       headersInit.unshift({ key: 'Authorization', value: 'Bearer ' + GLOBAL_BEARER, enabled: true });
@@ -502,7 +513,6 @@ function getInitialStateForItem(item){
     }
   }
 
-  // Body
   let bodyText = saved?.body;
   if (bodyText == null){
     bodyText = item.request.body?.raw != null
@@ -512,10 +522,7 @@ function getInitialStateForItem(item){
       : '';
   }
 
-  // Scripts
   const scripts = saved?.scripts ?? loadScriptsLegacy(id) ?? { pre: '', post: '' };
-
-  // Auth tab
   const auth = saved?.auth ?? { type: 'bearer', token: '' };
 
   return {
@@ -531,23 +538,50 @@ function getInitialStateForItem(item){
   };
 }
 
-function openRequest(item){
+function openRequest(item, forceDefaults = false){
   CURRENT_REQ_ID = item.id;
 
   const {
-    method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response
-  } = getInitialStateForItem(item);
+    methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response
+  } = getInitialStateForItem(item, forceDefaults);
 
-  const pane = $('#reqPane'); pane.innerHTML='';
-  const card = el('div', {class:'card'});
+  const pane = $('#reqPane'); 
+  pane.innerHTML = '';
+  const card = el('div', { class:'card' });
 
   // Header: Method + URL + API badge
-  const header = el('div', {class:'reqHeader'},
-    el('select', {id:'methodSel'},
-      ...['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'].map(m=>el('option', {value:m, selected:m===method}, m))
-    ),
-    el('input', {id:'urlInp', value: url, placeholder:'https://api.example.com/path?x=1'}),
-    el('div', {id:'apiBadge', class:'apiBadge'}, `API: ${methodOrig}`)
+  const header = el('div', { class: 'reqHeader' },
+
+    // --- Method buttons ---
+    (() => {
+      const methods = ['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
+      const grp = el('div', { id: 'methodGroup', class: 'methodGroup' },
+        ...methods.map(m =>
+          el('button', {
+            type: 'button',
+            class: 'methodBtn' + (m === methodOrig ? ' active' : ''),
+            'data-m': m,
+            onclick: (e) => {
+              document.querySelectorAll('#methodGroup .methodBtn')
+                .forEach(b => b.classList.remove('active'));
+              e.currentTarget.classList.add('active');
+              $('#apiBadge').textContent = `API: ${m}`;
+            }
+          }, m)
+        )
+      );
+      return grp;
+    })(),
+
+    // --- URL input ---
+    el('input', { 
+      id: 'urlInp', 
+      value: url, 
+      placeholder: 'https://api.example.com/path?x=1' 
+    }),
+
+    // --- API badge ---
+    el('div', { id: 'apiBadge', class: 'apiBadge' }, `API: ${methodOrig}`)
   );
 
   // Tabs
@@ -610,6 +644,7 @@ function openRequest(item){
   const resetBtn= el('button', {id:'resetBtn', class:'reset', title:'Reset local changes for this request'}, 'Reset to defaults');
   actions.append(sendBtn, curlBtn, resetBtn);
 
+  // Mount UI
   card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
   pane.append(card);
 
@@ -642,14 +677,13 @@ function openRequest(item){
     }catch{ alert('Body is not valid JSON'); }
   };
 
-  // Autosave
+  // Autosave (метод не сохраняем!)
   const debSave = debounce(()=> {
     const params = tableToSimpleArray(paramsTable.tBodies[0]);
     const headers= tableToSimpleArray(headersTable.tBodies[0]);
     const scriptsNew = { pre: preTA.value, post: postTA.value };
     const authNew = { type: $('#authType').value, token: $('#authTokenInp').value };
     const patch = {
-      method: $('#methodSel').value,
       url: $('#urlInp').value,
       params, headers,
       body: $('#bodyRawArea').value,
@@ -668,11 +702,10 @@ function openRequest(item){
     bodyWrap.addEventListener(ev, debSave);
   });
 
-  // Reset only current request
+  // Reset only current request (возврат к methodOrig)
   $('#resetBtn').onclick = ()=>{
     clearReqState(CURRENT_REQ_ID);
-    openRequest(item); // reopen from collection defaults
-    // keep tree highlight
+    openRequest(item, true); // force defaults
   };
 
   // ==== SEND ====
@@ -681,13 +714,15 @@ function openRequest(item){
     const params = tableToSimpleArray(paramsTable.tBodies[0]);
     const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
     let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
-    let method = $('#methodSel').value;
+
+    // метод берём из кнопок
+    let method = getSelectedMethod();
     let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
     let body = resolveVars($('#bodyRawArea').value || '');
     const authType = $('#authType').value;
     const authToken = $('#authTokenInp').value.trim();
 
-    // Inject Authorization if missing (tab > global), key strictly 'Authorization'
+    // Inject Authorization if missing
     const hasAuth = Object.keys(headers).some(h=>h.toLowerCase()==='authorization');
     if (!hasAuth){
       if (authType==='bearer' && authToken){
@@ -697,7 +732,7 @@ function openRequest(item){
       }
     }
 
-    // Auto Content-Type (if missing)
+    // Auto Content-Type
     if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
       const ct = detectContentType(body);
       if (ct) headers['Content-Type'] = ct;
@@ -765,26 +800,31 @@ function openRequest(item){
 
   // cURL
   $('#curlBtn').onclick = ()=>{
-    const m = $('#methodSel').value;
+    const m = getSelectedMethod();
+
     const params = tableToSimpleArray(paramsTable.tBodies[0]);
     const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
     const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
     const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
     const authType = $('#authType').value;
     const authToken = $('#authTokenInp').value.trim();
+
     if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
       if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
       else if (GLOBAL_BEARER) hdrs['Authorization']='Bearer '+GLOBAL_BEARER;
     }
+
     if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
       const ct = detectContentType($('#bodyRawArea').value || '');
       if (ct) hdrs['Content-Type'] = ct;
     }
-    const body     = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
+
+    const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
     const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
     const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
     const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
-    navigator.clipboard.writeText(cmd); alert('cURL copied');
+    navigator.clipboard.writeText(cmd); 
+    alert('cURL copied');
   };
 
   // Show saved response if any
@@ -793,6 +833,10 @@ function openRequest(item){
   } else {
     $('#resPane').innerHTML = '';
   }
+}
+
+function getSelectedMethod(){
+  return document.querySelector('#methodGroup .methodBtn.active')?.dataset.m || 'GET';
 }
 
 /* ==== Content-Type detection ==== */
@@ -831,61 +875,6 @@ function makePostCtx({request, response, error}){
 }
 
 /* ========= Response ========= */
-function renderResponse(res, text, ms, url){
-  const pane = $('#resPane'); pane.innerHTML = '';
-  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response'));
-  const head = el('div', {class:'respHeader'});
-  const status = res ? `${res.status} ${res.statusText}` : 'Network error';
-  head.append(el('span', {class:'pill', style:`color:${res ? (res.ok?'var(--ok)':'var(--err)'):'var(--err)'}`}, status));
-  head.append(el('span', {class:'pill'}, `Time: ${ms.toFixed(0)} ms`));
-  head.append(el('span', {class:'pill'}, `URL: ${url}`));
-  card.append(head);
-
-  const tools = buildRespTools(text);
-  card.append(tools);
-
-  const bodyWrap = el('div', {class:'respBody'});
-  let formatted = text; try{ formatted = JSON.stringify(JSON.parse(text),null,2);}catch{}
-  bodyWrap.append(el('pre', {id:'respPre'}, formatted || (text || '—')));
-  card.append(bodyWrap);
-
-  if (res){
-    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
-    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
-    const tb = el('tbody'); res.headers.forEach((v,k)=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, v))));
-    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
-    pane.append(card, hdrsCard);
-  }else{
-    pane.append(card);
-  }
-}
-function renderResponseSaved(resp){
-  const pane = $('#resPane'); pane.innerHTML = '';
-  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response (last)'));
-  const head = el('div', {class:'respHeader'});
-  head.append(el('span', {class:'pill', style:`color:${resp.status && resp.status>=200 && resp.status<400 ? 'var(--ok)' : 'var(--err)'}`}, `${resp.status||0} ${resp.statusText||''}`));
-  if (resp.timeMs!=null) head.append(el('span', {class:'pill'}, `Time: ${Math.round(resp.timeMs)} ms`));
-  if (resp.url) head.append(el('span', {class:'pill'}, `URL: ${resp.url}`));
-  card.append(head);
-
-  const tools = buildRespTools(resp.bodyText||'');
-  card.append(tools);
-
-  const bodyWrap = el('div', {class:'respBody'});
-  let formatted = resp.bodyText; try{ formatted = JSON.stringify(JSON.parse(resp.bodyText||''),null,2);}catch{}
-  bodyWrap.append(el('pre', {id:'respPre'}, formatted || (resp.bodyText || '—')));
-  card.append(bodyWrap);
-
-  if (resp.headers && Object.keys(resp.headers).length){
-    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
-    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
-    const tb = el('tbody'); Object.entries(resp.headers).forEach(([k,v])=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, String(v)))));
-    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
-    pane.append(card, hdrsCard);
-  }else{
-    pane.append(card);
-  }
-}
 function buildRespTools(rawText){
   const tools = el('div', {class:'respTools'});
   const input = el('input', {id:'copyField', placeholder:'Field to copy (e.g., access_token or data.token)'});
@@ -914,6 +903,89 @@ function buildRespTools(rawText){
 }
 function getByPath(obj, path){
   return path.split('.').reduce((acc, key)=> (acc!=null ? acc[key] : undefined), obj);
+}
+
+/* ---- JSON highlight ---- */
+function syntaxHighlight(json) {
+  if (typeof json != 'string') {
+    json = JSON.stringify(json, undefined, 2);
+  }
+  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+    if (/^"/.test(match)) {
+      if (/:$/.test(match)) return '<span class="json-key">' + match + '</span>';
+      if (/^"(http|https):/.test(match)) return '<span class="json-url">' + match + '</span>';
+      return '<span class="json-string">' + match + '</span>';
+    }
+    if (/true|false/.test(match)) return '<span class="json-boolean">' + match + '</span>';
+    if (/null/.test(match)) return '<span class="json-null">' + match + '</span>';
+    return '<span class="json-number">' + match + '</span>';
+  });
+}
+
+function renderResponse(res, text, ms, url){
+  const pane = $('#resPane'); pane.innerHTML = '';
+  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response'));
+  const head = el('div', {class:'respHeader'});
+  const status = res ? `${res.status} ${res.statusText}` : 'Network error';
+  head.append(el('span', {class:'pill', style:`color:${res ? (res.ok?'var(--ok)':'var(--err)'):'var(--err)'}`}, status));
+  head.append(el('span', {class:'pill'}, `Time: ${ms.toFixed(0)} ms`));
+  head.append(el('span', {class:'pill'}, `URL: ${url}`));
+  card.append(head);
+
+  const tools = buildRespTools(text);
+  card.append(tools);
+
+  const bodyWrap = el('div', {class:'respBody'});
+  let formatted = text; 
+  try { 
+    formatted = JSON.stringify(JSON.parse(text),null,2); 
+    formatted = syntaxHighlight(formatted);
+  } catch {}
+  bodyWrap.innerHTML = '<pre id="respPre">'+(formatted || (text || '—'))+'</pre>';
+  card.append(bodyWrap);
+
+  if (res){
+    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
+    const tb = el('tbody'); res.headers.forEach((v,k)=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, v))));
+    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
+    pane.append(card, hdrsCard);
+  } else {
+    pane.append(card);
+  }
+}
+
+function renderResponseSaved(resp){
+  const pane = $('#resPane'); pane.innerHTML = '';
+  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response (last)'));
+  const head = el('div', {class:'respHeader'});
+  head.append(el('span', {class:'pill', style:`color:${resp.status && resp.status>=200 && resp.status<400 ? 'var(--ok)' : 'var(--err)'}`}, `${resp.status||0} ${resp.statusText||''}`));
+  if (resp.timeMs!=null) head.append(el('span', {class:'pill'}, `Time: ${Math.round(resp.timeMs)} ms`));
+  if (resp.url) head.append(el('span', {class:'pill'}, `URL: ${resp.url}`));
+  card.append(head);
+
+  const tools = buildRespTools(resp.bodyText||'');
+  card.append(tools);
+
+  const bodyWrap = el('div', {class:'respBody'});
+  let formatted = resp.bodyText; 
+  try { 
+    formatted = JSON.stringify(JSON.parse(resp.bodyText||''),null,2); 
+    formatted = syntaxHighlight(formatted);
+  } catch {}
+  bodyWrap.innerHTML = '<pre id="respPre">'+(formatted || (resp.bodyText || '—'))+'</pre>';
+  card.append(bodyWrap);
+
+  if (resp.headers && Object.keys(resp.headers).length){
+    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
+    const tb = el('tbody'); Object.entries(resp.headers).forEach(([k,v])=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, String(v)))));
+    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
+    pane.append(card, hdrsCard);
+  } else {
+    pane.append(card);
+  }
 }
 
 /* ========= Authorize (global) ========= */
