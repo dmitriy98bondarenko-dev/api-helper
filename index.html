@@ -436,7 +436,33 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
 @media (max-width: 720px){
   .methodBtn{ padding:8px 10px; font-size:12px; }
 }
-
+.urlEditable {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--divider);
+  background: #fff;
+  color: var(--fg);
+  letter-spacing: .2px;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+[data-theme="dark"] .urlEditable {
+  background: #0d1525;
+  border-color: #2c3a52;
+  color: var(--fg);
+}
+.urlEditable:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.url-var {
+  color: #0b6cff;
+  font-weight: 700;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -721,6 +747,23 @@ function tableToSimpleArray(tbody){
   });
   return out;
 }
+  function highlightUrlVars(str){
+  if (!str) return '';
+  return str.replace(/({{[^}]+}})/g, '<span class="url-var">$1</span>');
+}
+function placeCaretAtEnd(el) {
+  el.focus();
+  if (typeof window.getSelection != "undefined"
+      && typeof document.createRange != "undefined") {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
 
 /* ========= Request UI ========= */
 function getInitialStateForItem(item){
@@ -800,8 +843,21 @@ function openRequest(item, forceDefaults = false){
       return grp;
     })(),
 
-    // --- URL input ---
-    el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
+  
+// --- URL input (с подсветкой {{vars}}) ---
+el('div', {
+  id: 'urlInp',
+  class: 'urlEditable',
+  contentEditable: true,
+  spellcheck: false,
+  oninput: (e) => {
+    const text = e.currentTarget.innerText.replace(/\n+/g, '');
+    e.currentTarget.innerHTML = highlightUrlVars(text);
+    placeCaretAtEnd(e.currentTarget);
+    debSave();
+  }
+}, highlightUrlVars(url)),
+
 
     // --- API badge ---
     el('div', { id: 'apiBadge', class: 'apiBadge' }, `API: ${method}`)
