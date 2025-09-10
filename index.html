@@ -100,12 +100,9 @@
   .op.HEAD,.op.OPTIONS,.op.TRACE{background:var(--op-other)} .op.HEAD .op-method,.op.OPTIONS .op-method,.op.TRACE .op-method{background:var(--op-other-b); color:var(--op-other-f)}
 
   /* ---------- Request editor ---------- */
-  .reqHeader{
-    display:grid; grid-template-columns:auto 1fr auto; gap:12px; padding:12px 14px;
-    background:#fff7e8; border-bottom:1px solid var(--divider); align-items:center;
-  }
+  .reqHeader{display:grid; grid-template-columns: 140px 1fr auto; gap:12px; padding:12px 14px; background:#fff7e8; border-bottom:1px solid var(--divider)}
   [data-theme="dark"] .reqHeader{background:#2a1f0f}
-  .reqHeader input{padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg)}
+  .reqHeader select, .reqHeader input{padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg)}
   .apiBadge{align-self:center; font-weight:800; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(0,0,0,.08); background:var(--chip-bg-2); color:var(--chip-fg); white-space:nowrap}
 
   .tabs{ display:flex; gap:6px; padding:8px 10px; border-bottom:1px solid var(--divider); background:var(--soft) }
@@ -154,13 +151,7 @@
   .modalCard{ width:520px; max-width:90%; max-height:80vh; overflow:auto; background:var(--panel); border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:20px }
   .modalCard h3{ margin:0 0 14px 0; font-size:16px; color:var(--ink) }
   .modalCard .row input{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); font-size:14px; background:#0000; color:var(--fg) }
-.modalActions{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  margin-top:16px;
-  align-items:center;
-}
+  .modalActions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px }
   .modalActions button{ min-width:80px; padding:8px 14px; border-radius:8px; font-size:14px }
   .auth-ok{ background:#10b981; color:#fff; border:none }
   .auth-bad{ background:var(--chip-bg); color:var(--fg) }
@@ -171,13 +162,14 @@
   .authRow{ display:grid; grid-template-columns:140px 1fr; gap:12px; padding:8px 0; align-items:center }
   .authRow .muted{ font-size:14px; color:var(--muted) }
   .authRow select, .authRow input{ width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg); font-size:14px }
-/* Vars */
-.varsTable{ width:100%; border-collapse:collapse; font-size:14px; background:#0000 }
-.varsTable th,.varsTable td{ border-bottom:1px solid var(--divider); padding:8px }
-.varsTable th{ position:sticky; top:0; z-index:2; background:var(--soft); color:var(--muted); font-weight:600; text-align:left; box-shadow:0 2px 0 var(--divider); }
-.varsTable td input[type="text"]{ width:100%; padding:6px 8px; border:1px solid var(--divider); border-radius:6px; font-size:13px; background:#0000; color:var(--fg) }
-.varsTable td input[type="checkbox"]{ width:auto; margin:auto; display:block; }
-.varsHelp{ font-size:12px; color:var(--muted); }
+
+  /* Vars */
+  .varsTable{ width:100%; border-collapse:collapse; font-size:14px; background:#0000 }
+  .varsTable th,.varsTable td{ border-bottom:1px solid var(--divider); padding:8px }
+  .varsTable th{ position:sticky; top:0; z-index:2; background:var(--soft); color:var(--muted); font-weight:600; text-align:left; box-shadow:0 2px 0 var(--divider); }
+  .varsTable td input[type="text"]{ width:100%; padding:6px 8px; border:1px solid var(--divider); border-radius:6px; font-size:13px; background:#0000; color:var(--fg) }
+  .varsTable td input[type="checkbox"]{ width:auto; margin:auto; display:block; }
+  .varsHelp{ font-size:12px; color:var(--muted); }
 
   /* loader */
   .loaderOverlay{ position:fixed; inset:56px 0 0 0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.2); z-index:9999; backdrop-filter:saturate(1.2) blur(2px); }
@@ -196,38 +188,160 @@
   .json-boolean { color:#b45309; font-weight:600; }
   .json-null { color:#6b7280; font-style:italic; }
   .json-url { color:#7a3cff; text-decoration:underline; cursor:pointer; }
-/* Method picker */
-.methodGroup{
-  display:flex;
-  gap:6px;
-  align-items:center;
-  flex-wrap:wrap;      /* чтобы кнопки переносились, если не влазят */
-  max-width:280px;     /* чтобы не наезжали на URL */
-}
-.methodBtn{
-  padding:6px 10px;
-  border:1px solid var(--divider);
-  border-radius:6px;
-  cursor:pointer;
-  background:var(--chip-bg);
-  font-weight:600;
-  font-size:12px;
-  min-width:60px;
-  text-align:center;
-}
-.methodBtn.active{ outline:2px solid #2b8cff33; background:var(--pill); }
 
-/* Request header */
-.reqHeader{
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  gap:12px;
-  padding:12px 14px;
-  background:#fff7e8;
-  border-bottom:1px solid var(--divider);
-  align-items:center;
+  /* Method picker */
+.methodGroup{display:flex; gap:6px; align-items:center}
+.methodBtn{
+  padding:8px 10px; border:1px solid var(--divider); border-radius:8px;
+  cursor:pointer; background:var(--chip-bg); font-weight:700; min-width:70px; text-align:center;
 }
-[data-theme="dark"] .reqHeader{ background:#2a1f0f; }
+.methodBtn.active{ outline:2px solid #2b8cff33; background:var(--pill) }
+
+  .reqHeader {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fff7e8;
+  border-bottom: 1px solid var(--divider);
+  align-items: center;
+}
+[data-theme="dark"] .reqHeader { background: #2a1f0f }
+
+.methodGroup {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;       /* чтобы кнопки переносились, если не влазят */
+  max-width: 280px;      /* ограничиваем ширину, чтобы не залезали на URL */
+}
+
+.methodBtn {
+  padding: 6px 10px;
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--chip-bg);
+  font-weight: 600;
+  font-size: 12px;
+  min-width: 60px;
+  text-align: center;
+}
+.methodBtn.active {
+  outline: 2px solid #2b8cff33;
+  background: var(--pill);
+}
+/* === Authorize modal – overlay темнее + блокируем скролл страницы === */
+#authModal.modal{
+  background: rgba(2, 6, 23, .58);
+  backdrop-filter: saturate(1.2) blur(2px);
+}
+/* когда окно открыто — выключаем скролл у страницы */
+html:has(#authModal:not([hidden])){ overflow: hidden; }
+
+/* === Карточка модала: размеры, отступы, тени === */
+#authModal .modalCard{
+  width: 760px;             
+  max-width: 92vw;
+  padding: 24px 28px;
+  border-radius: 14px;
+  border: 1px solid var(--divider);
+  box-shadow: 0 20px 60px rgba(0,0,0,.18);
+}
+
+
+#authModal .modalCard h3{
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 800;
+  margin: 0 0 18px 0;
+  color: var(--ink);
+}
+
+
+#authModal .row{
+  display: block;
+  padding: 0;
+  margin: 6px 0 0 0;
+}
+#authModal .row::before{
+  content: "Value:";
+  display: block;
+  font-weight: 700;
+  color: var(--muted);
+  margin: 0 0 6px 0;
+}
+#authModal .row input{
+  width: 100%;
+  height: 48px;
+  padding: 10px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--divider);
+  background: #0000;
+  color: var(--fg);
+}
+
+
+#authModal .authState{
+  margin-top: 12px;
+  font-size: 13px;
+  color: #065f46;
+}
+[data-theme="dark"] #authModal .authState{ color:#34d399; }
+
+
+#authModal .modalActions{
+  display: flex;
+  justify-content: flex-end;   /* вправо */
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+#authModal .modalActions > div{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#authModal .modalActions button{
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* порядок кнопок */
+#authModal #authSave{   order: 1; }
+#authModal #authCancel{ order: 2; }
+#authModal #authClear{  order: 3; }
+
+/* стили кнопок */
+#authModal #authSave{
+  background: #10b981;
+  color: #fff;
+  border: none;
+}
+#authModal #authSave:hover{ filter: brightness(1.05); }
+
+#authModal #authCancel{
+  background: var(--panel);
+  color: var(--fg);
+  border: 1px solid var(--divider);
+}
+#authModal #authCancel:hover{ filter: brightness(1.02); }
+
+#authModal #authClear{
+  background: var(--soft);
+  color: var(--muted);
+  border: 1px solid var(--divider);
+}
+[data-theme="dark"] #authModal #authClear{
+  color: var(--muted);
+  background: #121a2a;
+  border-color: #25314a;
+}
+
 </style>
 </head>
 
@@ -516,81 +630,54 @@ function tableToSimpleArray(tbody){
 }
 
 /* ========= Request UI ========= */
-function getInitialStateForItem(item, forceDefaults=false){
+function getInitialStateForItem(item){
   const id = item.id;
-  const saved = forceDefaults ? null : loadReqState(id);
-
+  const saved = loadReqState(id);
   const methodOrig = String(item.request.method || 'GET').toUpperCase();
   const urlRaw     = normalizeUrl(item.request.url);
 
-  const method = methodOrig; // метод из коллекции по умолчанию
+  // Method: prefer saved; else API method
+  const method = (saved?.method || methodOrig).toUpperCase();
   const url    = saved?.url || urlRaw;
 
   const paramsInit = saved?.params ?? (
-    (typeof item.request.url === 'object' && Array.isArray(item.request.url.query))
-      ? item.request.url.query.map(q => ({
-          key: q.key,
-          value: resolveVars(q.value ?? ''),
-          enabled: q.disabled !== true
-        }))
+    (typeof item.request.url==='object' && Array.isArray(item.request.url.query))
+      ? item.request.url.query.map(q=>({key:q.key, value: resolveVars(q.value??''), enabled: q.disabled!==true }))
       : []
   );
-
   let headersInit = saved?.headers ?? (
     Array.isArray(item.request.header)
-      ? item.request.header.map(h => ({
-          key: h.key,
-          value: resolveVars(h.value ?? ''),
-          enabled: h.disabled !== true
-        }))
+      ? item.request.header.map(h=>({key:h.key, value: resolveVars(h.value??''), enabled: h.disabled!==true }))
       : []
   );
 
   if (!saved?.headers){
-    if (GLOBAL_BEARER && !headersInit.some(h => String(h.key || '').toLowerCase() === 'authorization')){
-      headersInit.unshift({ key: 'Authorization', value: 'Bearer ' + GLOBAL_BEARER, enabled: true });
-    } else if (item.request.auth && item.request.auth.type === 'bearer'){
-      const token = (item.request.auth.bearer || []).find(x => x.key === 'token')?.value 
-                    || VARS.token || VARS.access_token || '';
-      if (token && !headersInit.some(h => String(h.key || '').toLowerCase() === 'authorization')){
-        headersInit.unshift({ key: 'Authorization', value: 'Bearer ' + resolveVars(token), enabled: true });
+    if (GLOBAL_BEARER && !headersInit.some(h=>String(h.key||'').toLowerCase()==='authorization')){
+      headersInit.unshift({key:'Authorization', value:'Bearer '+GLOBAL_BEARER, enabled:true});
+    } else if (item.request.auth && item.request.auth.type==='bearer'){
+      const token = (item.request.auth.bearer||[]).find(x=>x.key==='token')?.value || VARS.token || VARS.access_token || '';
+      if (token && !headersInit.some(h=>String(h.key||'').toLowerCase()==='authorization')){
+        headersInit.unshift({key:'Authorization', value:'Bearer '+resolveVars(token), enabled:true});
       }
     }
   }
 
   let bodyText = saved?.body;
   if (bodyText == null){
-    bodyText = item.request.body?.raw != null
-      ? (typeof item.request.body.raw === 'string'
-          ? item.request.body.raw
-          : JSON.stringify(item.request.body.raw, null, 2))
-      : '';
+    bodyText = item.request.body?.raw != null ? (typeof item.request.body.raw === 'string' ? item.request.body.raw : JSON.stringify(item.request.body.raw, null, 2)) : '';
   }
 
-  const scripts = saved?.scripts ?? loadScriptsLegacy(id) ?? { pre: '', post: '' };
-  const auth = saved?.auth ?? { type: 'bearer', token: '' };
+  const scripts = saved?.scripts ?? loadScriptsLegacy(id) ?? {pre:'', post:''};
+  const auth = saved?.auth ?? { type:'bearer', token: '' };
 
-  return {
-    method,
-    methodOrig,
-    url,
-    paramsInit,
-    headersInit,
-    bodyText,
-    scripts,
-    auth,
-    response: saved?.response || null
-  };
+  return { method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response: saved?.response || null };
 }
 
 function openRequest(item, forceDefaults = false){
   CURRENT_REQ_ID = item.id;
 
   const {
-const {
-  method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response
-} = getInitialStateForItem(item, forceDefaults);
-
+    method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response
   } = getInitialStateForItem(item, forceDefaults);
 
   const pane = $('#reqPane'); 
@@ -613,7 +700,7 @@ const {
               document.querySelectorAll('#methodGroup .methodBtn')
                 .forEach(b => b.classList.remove('active'));
               e.currentTarget.classList.add('active');
-
+              // обновляем бейдж
               $('#apiBadge').textContent = `API: ${m}`;
             }
           }, m)
@@ -698,7 +785,6 @@ function getSelectedMethod(){
   const resetBtn= el('button', {id:'resetBtn', class:'reset', title:'Reset local changes for this request'}, 'Reset to defaults');
   actions.append(sendBtn, curlBtn, resetBtn);
 
-  // Mount UI
   card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
   pane.append(card);
 
@@ -731,13 +817,14 @@ function getSelectedMethod(){
     }catch{ alert('Body is not valid JSON'); }
   };
 
-  // Autosave (метод не сохраняем!)
+  // Autosave
   const debSave = debounce(()=> {
     const params = tableToSimpleArray(paramsTable.tBodies[0]);
     const headers= tableToSimpleArray(headersTable.tBodies[0]);
     const scriptsNew = { pre: preTA.value, post: postTA.value };
     const authNew = { type: $('#authType').value, token: $('#authTokenInp').value };
     const patch = {
+      method: $('#methodSel').value,
       url: $('#urlInp').value,
       params, headers,
       body: $('#bodyRawArea').value,
@@ -756,20 +843,21 @@ function getSelectedMethod(){
     bodyWrap.addEventListener(ev, debSave);
   });
 
-  // Reset only current request (возврат к methodOrig)
+  // Reset only current request
   $('#resetBtn').onclick = ()=>{
     clearReqState(CURRENT_REQ_ID);
-    openRequest(item, true); // force defaults
+    openRequest(item); // reopen from collection defaults
+    // keep tree highlight
   };
 
-// ==== SEND ====
-$('#sendBtn').onclick = async () => {
+ // ==== SEND ====
+$('#sendBtn').onclick = async ()=>{
   debSave();
   const params = tableToSimpleArray(paramsTable.tBodies[0]);
-  const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h => h.enabled !== false);
-  let headers = Object.fromEntries(hdrArr.filter(x => x.key).map(x => [x.key, resolveVars(x.value)]));
+  const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+  let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
 
-  // метод берём из кнопок
+  // ⚡ метод теперь берём из кнопок
   let method = getSelectedMethod();
   let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
   let body = resolveVars($('#bodyRawArea').value || '');
@@ -777,99 +865,20 @@ $('#sendBtn').onclick = async () => {
   const authToken = $('#authTokenInp').value.trim();
 
   // Inject Authorization if missing
-  const hasAuth = Object.keys(headers).some(h => h.toLowerCase() === 'authorization');
-  if (!hasAuth) {
-    if (authType === 'bearer' && authToken) {
+  const hasAuth = Object.keys(headers).some(h=>h.toLowerCase()==='authorization');
+  if (!hasAuth){
+    if (authType==='bearer' && authToken){
       headers['Authorization'] = 'Bearer ' + authToken;
-    } else if (GLOBAL_BEARER) {
+    } else if (GLOBAL_BEARER){
       headers['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
     }
   }
 
   // Auto Content-Type
-  if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
+  if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
     const ct = detectContentType(body);
     if (ct) headers['Content-Type'] = ct;
   }
-
-  // PRE
-  const preCode = preTA.value.trim();
-  if (preCode) {
-    try {
-      const ctx = makePreCtx({ method, url: finalUrl, params, headers, body });
-      runUserScript(preCode, ctx);
-      ({ method } = ctx.request);
-      finalUrl = ctx.request.url;
-      headers  = ctx.request.headers;
-      body     = ctx.request.body;
-    } catch (e) {
-      renderResponse(null, 'PRE error: ' + e.message, 0, finalUrl);
-      return;
-    }
-  }
-
-  showLoader(true); $('#sendBtn').disabled = true;
-  const started = performance.now();
-  let res, text;
-
-  try {
-    res = await fetch(finalUrl, { method, headers, body: (method === 'GET' || method === 'HEAD') ? undefined : body });
-    text = await res.text();
-  } catch (e) {
-    const ms = performance.now() - started;
-    renderResponse(null, String(e), ms, finalUrl);
-
-    const postCode = postTA.value.trim();
-    if (postCode) {
-      try {
-        const ctxPost = makePostCtx({ request: { method, url: finalUrl, headers, body }, response: null, error: String(e) });
-        runUserScript(postCode, ctxPost);
-      } catch (_) {}
-    }
-
-    saveReqState(CURRENT_REQ_ID, { response: { status: 0, statusText: 'Network error', headers: {}, bodyText: String(e), url: finalUrl, timeMs: ms } });
-    showLoader(false); $('#sendBtn').disabled = false;
-    return;
-  }
-
-  // POST
-  const postCode = postTA.value.trim();
-  if (postCode) {
-    try {
-      const ctxPost = makePostCtx({
-        request: { method, url: finalUrl, headers, body },
-        response: { status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
-      });
-      runUserScript(postCode, ctxPost);
-      if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') text = ctxPost.response.bodyText;
-    } catch (e) { /* ignore */ }
-  }
-
-  const ms = performance.now() - started;
-  renderResponse(res, text, ms, finalUrl);
-
-  const respObj = {
-    status: res.status,
-    statusText: res.statusText,
-    headers: Object.fromEntries(res.headers.entries()),
-    bodyText: text,
-    url: finalUrl,
-    timeMs: ms
-  };
-  saveReqState(CURRENT_REQ_ID, { response: respObj });
-
-  showLoader(false); $('#sendBtn').disabled = false;
-};
-
-    }
-  }
-
-// Auto Content-Type
-if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
-  const ct = detectContentType(body);
-  if (ct) headers['Content-Type'] = ct;
-}
-
 
     // PRE
     const preCode = preTA.value.trim();
@@ -932,34 +941,32 @@ if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
   };
 
 // cURL
-$('#curlBtn').onclick = () => {
+$('#curlBtn').onclick = ()=>{
+  // ⚡ метод из кнопок
   const m = getSelectedMethod();
 
   const params = tableToSimpleArray(paramsTable.tBodies[0]);
   const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
-  const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h => h.enabled !== false);
-  const hdrs = Object.fromEntries(hdrsArr.map(p => [p.key, resolveVars(p.value)]));
+  const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+  const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
   const authType = $('#authType').value;
   const authToken = $('#authTokenInp').value.trim();
 
-  if (!Object.keys(hdrs).some(h => h.toLowerCase() === 'authorization')) {
-    if (authType === 'bearer' && authToken) hdrs['Authorization'] = 'Bearer ' + authToken;
-    else if (GLOBAL_BEARER) hdrs['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
+  if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
+    if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
+    else if (GLOBAL_BEARER) hdrs['Authorization']='Bearer '+GLOBAL_BEARER;
   }
 
-  if (!Object.keys(hdrs).some(h => h.toLowerCase() === 'content-type')) {
+  if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
     const ct = detectContentType($('#bodyRawArea').value || '');
     if (ct) hdrs['Content-Type'] = ct;
   }
 
-  const body = (m === 'GET' || m === 'HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
-  const hdrStr = Object.entries(hdrs)
-    .filter(([k]) => k)
-    .map(([k, v]) => ` -H '${k}: ${String(v).replace(/'/g, "'\\''")}'`)
-    .join('');
-  const bodyStr = body ? ` --data '${String(body).replace(/'/g, "'\\''")}'` : '';
-  const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g, "'\\''")}'`;
-  navigator.clipboard.writeText(cmd);
+  const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
+  const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
+  const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
+  const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
+  navigator.clipboard.writeText(cmd); 
   alert('cURL copied');
 };
 
@@ -969,10 +976,6 @@ $('#curlBtn').onclick = () => {
   } else {
     $('#resPane').innerHTML = '';
   }
-}
-
-function getSelectedMethod(){
-  return document.querySelector('#methodGroup .methodBtn.active')?.dataset.m || 'GET';
 }
 
 /* ==== Content-Type detection ==== */
@@ -1011,6 +1014,61 @@ function makePostCtx({request, response, error}){
 }
 
 /* ========= Response ========= */
+function renderResponse(res, text, ms, url){
+  const pane = $('#resPane'); pane.innerHTML = '';
+  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response'));
+  const head = el('div', {class:'respHeader'});
+  const status = res ? `${res.status} ${res.statusText}` : 'Network error';
+  head.append(el('span', {class:'pill', style:`color:${res ? (res.ok?'var(--ok)':'var(--err)'):'var(--err)'}`}, status));
+  head.append(el('span', {class:'pill'}, `Time: ${ms.toFixed(0)} ms`));
+  head.append(el('span', {class:'pill'}, `URL: ${url}`));
+  card.append(head);
+
+  const tools = buildRespTools(text);
+  card.append(tools);
+
+  const bodyWrap = el('div', {class:'respBody'});
+  let formatted = text; try{ formatted = JSON.stringify(JSON.parse(text),null,2);}catch{}
+  bodyWrap.append(el('pre', {id:'respPre'}, formatted || (text || '—')));
+  card.append(bodyWrap);
+
+  if (res){
+    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
+    const tb = el('tbody'); res.headers.forEach((v,k)=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, v))));
+    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
+    pane.append(card, hdrsCard);
+  }else{
+    pane.append(card);
+  }
+}
+function renderResponseSaved(resp){
+  const pane = $('#resPane'); pane.innerHTML = '';
+  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response (last)'));
+  const head = el('div', {class:'respHeader'});
+  head.append(el('span', {class:'pill', style:`color:${resp.status && resp.status>=200 && resp.status<400 ? 'var(--ok)' : 'var(--err)'}`}, `${resp.status||0} ${resp.statusText||''}`));
+  if (resp.timeMs!=null) head.append(el('span', {class:'pill'}, `Time: ${Math.round(resp.timeMs)} ms`));
+  if (resp.url) head.append(el('span', {class:'pill'}, `URL: ${resp.url}`));
+  card.append(head);
+
+  const tools = buildRespTools(resp.bodyText||'');
+  card.append(tools);
+
+  const bodyWrap = el('div', {class:'respBody'});
+  let formatted = resp.bodyText; try{ formatted = JSON.stringify(JSON.parse(resp.bodyText||''),null,2);}catch{}
+  bodyWrap.append(el('pre', {id:'respPre'}, formatted || (resp.bodyText || '—')));
+  card.append(bodyWrap);
+
+  if (resp.headers && Object.keys(resp.headers).length){
+    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
+    const tb = el('tbody'); Object.entries(resp.headers).forEach(([k,v])=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, String(v)))));
+    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
+    pane.append(card, hdrsCard);
+  }else{
+    pane.append(card);
+  }
+}
 function buildRespTools(rawText){
   const tools = el('div', {class:'respTools'});
   const input = el('input', {id:'copyField', placeholder:'Field to copy (e.g., access_token or data.token)'});
@@ -1039,89 +1097,6 @@ function buildRespTools(rawText){
 }
 function getByPath(obj, path){
   return path.split('.').reduce((acc, key)=> (acc!=null ? acc[key] : undefined), obj);
-}
-
-/* ---- JSON highlight ---- */
-function syntaxHighlight(json) {
-  if (typeof json != 'string') {
-    json = JSON.stringify(json, undefined, 2);
-  }
-  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-    if (/^"/.test(match)) {
-      if (/:$/.test(match)) return '<span class="json-key">' + match + '</span>';
-      if (/^"(http|https):/.test(match)) return '<span class="json-url">' + match + '</span>';
-      return '<span class="json-string">' + match + '</span>';
-    }
-    if (/true|false/.test(match)) return '<span class="json-boolean">' + match + '</span>';
-    if (/null/.test(match)) return '<span class="json-null">' + match + '</span>';
-    return '<span class="json-number">' + match + '</span>';
-  });
-}
-
-function renderResponse(res, text, ms, url){
-  const pane = $('#resPane'); pane.innerHTML = '';
-  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response'));
-  const head = el('div', {class:'respHeader'});
-  const status = res ? `${res.status} ${res.statusText}` : 'Network error';
-  head.append(el('span', {class:'pill', style:`color:${res ? (res.ok?'var(--ok)':'var(--err)'):'var(--err)'}`}, status));
-  head.append(el('span', {class:'pill'}, `Time: ${ms.toFixed(0)} ms`));
-  head.append(el('span', {class:'pill'}, `URL: ${url}`));
-  card.append(head);
-
-  const tools = buildRespTools(text);
-  card.append(tools);
-
-  const bodyWrap = el('div', {class:'respBody'});
-  let formatted = text; 
-  try { 
-    formatted = JSON.stringify(JSON.parse(text),null,2); 
-    formatted = syntaxHighlight(formatted);
-  } catch {}
-  bodyWrap.innerHTML = '<pre id="respPre">'+(formatted || (text || '—'))+'</pre>';
-  card.append(bodyWrap);
-
-  if (res){
-    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
-    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
-    const tb = el('tbody'); res.headers.forEach((v,k)=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, v))));
-    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
-    pane.append(card, hdrsCard);
-  } else {
-    pane.append(card);
-  }
-}
-
-function renderResponseSaved(resp){
-  const pane = $('#resPane'); pane.innerHTML = '';
-  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response (last)'));
-  const head = el('div', {class:'respHeader'});
-  head.append(el('span', {class:'pill', style:`color:${resp.status && resp.status>=200 && resp.status<400 ? 'var(--ok)' : 'var(--err)'}`}, `${resp.status||0} ${resp.statusText||''}`));
-  if (resp.timeMs!=null) head.append(el('span', {class:'pill'}, `Time: ${Math.round(resp.timeMs)} ms`));
-  if (resp.url) head.append(el('span', {class:'pill'}, `URL: ${resp.url}`));
-  card.append(head);
-
-  const tools = buildRespTools(resp.bodyText||'');
-  card.append(tools);
-
-  const bodyWrap = el('div', {class:'respBody'});
-  let formatted = resp.bodyText; 
-  try { 
-    formatted = JSON.stringify(JSON.parse(resp.bodyText||''),null,2); 
-    formatted = syntaxHighlight(formatted);
-  } catch {}
-  bodyWrap.innerHTML = '<pre id="respPre">'+(formatted || (resp.bodyText || '—'))+'</pre>';
-  card.append(bodyWrap);
-
-  if (resp.headers && Object.keys(resp.headers).length){
-    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
-    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
-    const tb = el('tbody'); Object.entries(resp.headers).forEach(([k,v])=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, String(v)))));
-    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
-    pane.append(card, hdrsCard);
-  } else {
-    pane.append(card);
-  }
 }
 
 /* ========= Authorize (global) ========= */
