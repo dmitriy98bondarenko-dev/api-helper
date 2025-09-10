@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Driver team collections</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --panel:#ffffff; --muted:#6b7280; --fg:#0a0d14; --accent:#0b6cff;
+    --ok:#16a34a; --warn:#b45309; --err:#dc2626; --divider:#e5e7eb; --code:#0f172a;
+    --soft:#f9fafb; --ink:#0b1220;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif,system-ui,Segoe UI,Roboto,Arial;
+    background:var(--bg); color:var(--fg);
+    display:grid; grid-template-columns: 460px 1fr; grid-template-rows: 56px calc(100dvh - 56px);
+    grid-template-areas: "top top" "left right";
+  }
+
+  header{
+    grid-area:top; display:flex; gap:12px; align-items:center; padding:8px 12px;
+    background:var(--panel); border-bottom:1px solid var(--divider);
+  }
+  header h1{font-size:16px; margin:0; letter-spacing:.2px; color:var(--accent)}
+  .bar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .btn, button{
+    background:#f3f4f6; color:var(--fg); border:1px solid var(--divider);
+    padding:8px 10px; border-radius:8px; cursor:pointer
+  }
+  .btn:hover, button:hover{background:#eef2f7}
+  input[type="file"]{display:none}
+  label.file{padding:8px 10px; border:1px dashed var(--divider); border-radius:8px; cursor:pointer; background:#fafafa}
+  .left{grid-area:left; border-right:1px solid var(--divider); overflow:auto; background:var(--panel)}
+  .right{grid-area:right; overflow:auto; background:var(--bg)}
+  .section{padding:12px}
+  .search{width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); background:#f9fafb; color:var(--fg)}
+  .pane{max-width:1100px; margin:18px auto; padding:0 18px 80px}
+
+  .card{background:var(--panel); border:1px solid var(--divider); border-radius:12px; overflow:hidden; margin-bottom:16px}
+  .card h3{margin:0; padding:12px 14px; border-bottom:1px solid var(--divider); font-size:14px; letter-spacing:.2px; color:#0b1220; background:#f3f4f6}
+  .row{display:grid; grid-template-columns: 110px 1fr; gap:8px; padding:10px 12px; align-items:center}
+  .row input, .row textarea, .row select{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); background:#ffffff; color:var(--fg); font-family:inherit; font-size:14px }
+  textarea.code{min-height:160px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#ffffff}
+
+  .kvs{padding:10px 12px}
+  table{width:100%; border-collapse:collapse; font-size:14px; background:#fff}
+  th, td{border-bottom:1px solid var(--divider); padding:8px}
+  th{color:#374151; text-align:left; background:#f3f4f6; position:sticky; top:0; z-index:2; box-shadow:0 2px 0 #e5e7eb;}
+  .actions{display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--divider); background:#f8fafc; position:sticky; bottom:0}
+  .send{background:var(--accent); color:#ffffff; font-weight:700; border:none}
+  .reset{background:#fff0f0; color:#7a1d16; border:1px solid #ffc0b6}
+  .pill{border:1px solid var(--divider); padding:4px 8px; border-radius:999px; font-size:12px; color:#334155; background:#ffffff}
+  .small{font-size:12px; color:var(--muted)} .muted{color:var(--muted)} .inline{display:flex; gap:8px; align-items:center}
+  .rightInfo{font-size:12px; color:#475569}
+
+  /* Sidebar / API list */
+  .tree{margin-top:12px}
+  .folder{color:#0b1220; font-weight:800; text-transform:none; letter-spacing:.2px; font-size:18px; margin:18px 10px 6px;}
+  .op{display:flex; align-items:center; gap:12px; border-radius:8px; padding:10px 12px; margin:8px 6px; border:1px solid var(--divider); cursor:pointer; background:#ffffff; transition: transform .05s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease; box-shadow: 0 1px 0 rgba(15,23,42,.03);}
+  .op:hover{ background:#f9fafb; border-color:#dbe3ed; transform: translateY(-1px); }
+  .op.active{ outline:2px solid #2b8cff33; }
+  .op .op-method{min-width:66px; text-align:center; font-weight:800; font-size:12px; padding:6px 8px; border-radius:6px; letter-spacing:.5px; border:1px solid rgba(0,0,0,.06);}
+  .op .op-path{ flex:1; min-width:0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; color:#0b1220; white-space:normal; word-break:break-all; }
+  .op.GET{background:#e8f5ee} .op.GET .op-method{background:#dff3e7; color:#0a7c3a}
+  .op.POST{background:#f3e9ff} .op.POST .op-method{background:#efe4ff; color:#7a3cff}
+  .op.PUT{background:#f6f7dd} .op.PUT .op-method{background:#f2f4c9; color:#7a7f17}
+  .op.PATCH{background:#ffe9d9} .op.PATCH .op-method{background:#ffe1cd; color:#c05621}
+  .op.DELETE{background:#ffe5e7} .op.DELETE .op-method{background:#ffdadd; color:#c81e1e}
+  .op.HEAD,.op.OPTIONS,.op.TRACE{background:#eaf2ff} .op.HEAD .op-method,.op.OPTIONS .op-method,.op.TRACE .op-method{background:#e2ecff; color:#0b6cff}
+
+  /* Request editor */
+  .reqHeader{display:grid; grid-template-columns: 140px 1fr auto; gap:12px; padding:12px 14px; background:#fff7e8; border-bottom:1px solid var(--divider)}
+  .reqHeader select{padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#fff}
+  .reqHeader input{padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#fff}
+  .apiBadge{align-self:center; font-weight:800; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(0,0,0,.08); background:#ffefd2; color:#8a5a00; white-space:nowrap}
+
+  .tabs{ display:flex; gap:6px; padding:8px 10px; border-bottom:1px solid var(--divider); background:#f3f4f6 }
+  .tab{ padding:8px 12px; border:1px solid transparent; border-radius:8px; cursor:pointer; color:#0b1220; background:#ffffff }
+  .tab.active{ border-color:#cfd7e3; background:#f9fafb }
+  .tabPane{ display:none } .tabPane.active{ display:block }
+
+  /* Enhanced KV tables */
+  .kvTable{ width:100%; border-collapse:separate; border-spacing:0; background:#fff; border:1px solid var(--divider); border-radius:10px; overflow:hidden }
+  .kvTable thead th{ background:#f5f7fb; font-size:12px; letter-spacing:.3px; color:#475569; text-transform:uppercase; }
+  .kvTable tbody tr:not(:last-child) td{ border-bottom:1px solid var(--divider) }
+  .kvTable td{ padding:0 }
+  .kvTable td .cell{ display:flex; align-items:center; padding:8px }
+  .kvTable input{ width:100%; padding:9px 10px; border:1px solid transparent; outline:none; background:#fff; border-radius:6px }
+  .kvTable input:focus{ border-color:#d6e2ff; background:#f8fbff }
+  .kvOn{ width:64px; text-align:center; }
+  .kvHint{ font-size:12px; color:#64748b; padding:8px 2px }
+
+  .scriptsSwitcher{ display:flex; gap:8px; padding:10px 12px; background:#f9fafb; border-bottom:1px solid var(--divider) }
+  .scriptsSwitcher button{ padding:6px 10px; border-radius:6px; background:#ffffff; border:1px solid #dbe3ed; color:#0b1220; cursor:pointer }
+  .scriptsSwitcher button.active{ background:#eef4ff; border-color:#c9dcff }
+  .scriptsArea{ padding:12px; background:#ffffff }
+  .scriptsArea textarea{ width:100%; min-height:160px; border:1px solid var(--divider); border-radius:8px; background:#ffffff; color:#0b1220; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding:10px }
+
+  .reqBodyWrap{ padding:12px 14px; background:#fff7e8; color:#1d1408; border-top:1px solid var(--divider) }
+  .reqBodyToolbar{ display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap }
+  .reqBodyToolbar .clear{ background:#ffd7cf; color:#7a1d16; border:1px solid #ffc0b6 }
+  .reqBodyToolbar .beautify{ background:#e8f7ff; color:#084c7f; border:1px solid #bfe2ff }
+  .reqBodyWrap textarea{ width:100%; min-height:220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:14px; border:1px solid #e6d7c8; border-radius:8px; padding:10px; background:#ffffff; color:#1d1408 }
+
+  /* Authorization tab */
+  .authRow{ display:grid; grid-template-columns: 160px 1fr; gap:10px; padding:10px 12px; align-items:center }
+  .authRow select, .authRow input{ padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#fff }
+
+  /* Response */
+  .respHeader{display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px; border-bottom:1px solid var(--divider); background:#f8fafc}
+  .respBody{ max-height:480px; overflow:auto; padding:12px }
+  .respBody pre{ margin:0; white-space:pre-wrap; word-wrap:break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .respTools{ display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--divider); background:#fafafa; align-items:center; flex-wrap:wrap }
+  .respTools input{ padding:8px 10px; border:1px solid var(--divider); border-radius:8px; min-width:220px }
+
+  /* Modals */
+  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; z-index:10000 }
+  .modal[hidden]{ display:none }
+  .modalCard{ width:720px; max-height:80vh; overflow:auto; background:#fff; border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:16px }
+  .modalCard h3{ margin:0 0 10px 0; font-size:16px }
+  .modalActions{ display:flex; gap:8px; justify-content:space-between; margin-top:8px; align-items:center }
+  .auth-ok{ background:#10b981; color:#fff; border:none }
+  .auth-bad{ background:#f3f4f6; color:#111827 }
+  .authState{ font-size:12px; color:#065f46; }
+  .varsTable{ width:100%; border-collapse:collapse; font-size:14px; background:#fff }
+  .varsTable th,.varsTable td{ border-bottom:1px solid var(--divider); padding:8px }
+  .varsTable th{ position:sticky; top:0; z-index:2; background:#f9fafb; color:#374151; font-weight:600; text-align:left; box-shadow:0 2px 0 #e5e7eb; }
+  .varsTable td input[type="text"]{ width:100%; padding:6px 8px; border:1px solid var(--divider); border-radius:6px; font-size:13px; }
+  .varsTable td input[type="checkbox"]{ width:auto; margin:auto; display:block; }
+  .varsHelp{ font-size:12px; color:#64748b; }
+
+  /* loader */
+  .loaderOverlay{ position:fixed; inset:56px 0 0 0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.6); z-index:9999; backdrop-filter:saturate(1.2) blur(2px); }
+  .loaderOverlay[hidden]{ display:none }
+  .spinner{ width:40px; height:40px; border-radius:50%; border:4px solid #dbe3ed; border-top-color: var(--accent); animation: spin 0.9s linear infinite }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+
+<body>
+  <header>
+    <h1>Driver team collections</h1>
+    <div class="bar">
+      <label class="file" id="colLabel">Collection
+        <input id="collectionFile" type="file" accept=".json,application/json" />
+      </label>
+      <label class="file" id="envLabel">Environment
+        <input id="envFile" type="file" accept=".json,application/json" />
+      </label>
+      <button id="clearBtn" title="Clear all local data">Reset</button>
+      <button id="authBtn" title="Global Bearer token">Authorize</button>
+      <button id="varsBtn" title="Postman environment">Environment Variables</button>
+      <span class="small muted">Proxy prefix:</span>
+      <input id="proxyPrefix" placeholder="e.g. http://localhost:8080/" style="width:280px;padding:8px;border-radius:8px;border:1px solid var(--divider);background:#fff;color:#111" />
+      <span id="loadedInfo" class="rightInfo"></span>
+    </div>
+  </header>
+
+  <aside class="left">
+    <div class="section">
+      <input id="search" class="search" placeholder="Search by name/path…" />
+      <div id="tree" class="tree"></div>
+    </div>
+  </aside>
+
+  <main class="right">
+    <div class="pane">
+      <div class="card" id="welcomeCard">
+        <h3>Welcome</h3>
+        <div class="section">
+          If <code>postman_collection.json</code> and <code>postman_environment.json</code> exist in root, they will auto-load.
+          Or load manually. You can override paths: <code>?collection=./api/col.json&amp;env=./envs/dev.json</code>.
+        </div>
+      </div>
+
+      <div id="reqPane"></div>
+      <div id="resPane"></div>
+    </div>
+  </main>
+
+  <!-- Authorize modal -->
+  <div id="authModal" class="modal" hidden>
+    <div class="modalCard">
+      <h3>Authorize</h3>
+      <div class="row">
+        <input id="authToken" placeholder="Bearer token" />
+      </div>
+      <div class="modalActions">
+        <div class="authState" id="authState" style="display:none;"></div>
+        <div>
+          <button id="authClear" class="auth-bad">Clear</button>
+          <button id="authCancel">Cancel</button>
+          <button id="authSave" class="auth-ok">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Variables modal -->
+  <div id="varsModal" class="modal" hidden>
+    <div class="modalCard">
+      <h3>Environment variables</h3>
+
+      <div class="kvs" style="max-height:42vh; overflow:auto; border:1px solid var(--divider); border-radius:10px">
+        <table id="varsTable" class="varsTable">
+          <thead><tr><th style="width:40%">Key</th><th>Value</th><th style="width:80px">On</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="modalActions">
+        <div class="varsHelp">Variables are stored locally (in your browser).</div>
+        <div style="display:flex; gap:8px; align-items:center">
+          <label class="file" for="envImportFile">Import JSON<input id="envImportFile" type="file" accept=".json,application/json"/></label>
+          <button id="varsCancel">Cancel</button>
+          <button id="varsSave" class="auth-ok">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loader" class="loaderOverlay" hidden><div class="spinner"></div></div>
+
+<script>
+/* ========= Config ========= */
+const urlParams = new URLSearchParams(location.search);
+const DEFAULT_COLLECTION_PATH = urlParams.get('collection') || './postman_collection.json';
+const DEFAULT_ENV_PATH        = urlParams.get('env')        || './postman_environment.json';
+const AUTO_OPEN_FIRST         = urlParams.get('autoOpen') !== '0';
+
+/* ========= Utilities ========= */
+const $ = sel => document.querySelector(sel);
+const el = (tag, attrs={}, ...children) => { const n=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{
+  if (k==='class') n.className=v; else if (k==='dataset') Object.assign(n.dataset,v);
+  else if (k.startsWith('on') && typeof v==='function') n.addEventListener(k.slice(2),v); else n.setAttribute(k,v);
+}); children.forEach(c=>n.append(c)); return n; };
+function debounce(fn, ms=250){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+function prettyJSON(x){ try{ return typeof x==='string'?JSON.stringify(JSON.parse(x),null,2):JSON.stringify(x,null,2);}catch{ return String(x);} }
+function showLoader(on){ const l = $('#loader'); if (!l) return; l.hidden = !on; }
+function pathOnly(u){
+  if(!u) return '';
+  try{
+    const full = resolveVars(u);
+    const isAbs = /^https?:\/\//i.test(full);
+    const urlObj = new URL(isAbs ? full : (location.origin + (full.startsWith('/')?full:'/'+full)));
+    return urlObj.pathname || '/';
+  }catch{ return String(u).replace(/^https?:\/\/[^/]+/i,'') || '/'; }
+}
+
+/* ========= State ========= */
+let COLLECTION = null, ENV = null, VARS = {};
+let ITEMS_FLAT = [];
+let CURRENT_REQ_ID = null;
+let GLOBAL_BEARER = localStorage.getItem('global_bearer') || '';
+
+/* ========= LocalStorage per-request ========= */
+const reqKey = id => `pm_req_${id}`;
+const scriptsKey = id => `pm_scripts_${id}`; // legacy
+
+function loadReqState(id){
+  try { const raw = localStorage.getItem(reqKey(id)); return raw ? JSON.parse(raw) : null; } catch{ return null; }
+}
+function saveReqState(id, patch){
+  const prev = loadReqState(id) || {};
+  const next = {...prev, ...patch};
+  try { localStorage.setItem(reqKey(id), JSON.stringify(next)); } catch {}
+}
+function clearReqState(id){ try{ localStorage.removeItem(reqKey(id)); }catch{} }
+function loadScriptsLegacy(id){ try{ return JSON.parse(localStorage.getItem(scriptsKey(id))||'{}'); }catch{ return {}; } }
+
+/* ========= Variables & helpers ========= */
+function buildVarMap(){
+  const map = {};
+  if (ENV && Array.isArray(ENV.values)){
+    ENV.values.forEach(v=>{
+      if(!v) return;
+      if (v.enabled === false) return;
+      const key = v.key ?? v.name;
+      const val = (v.currentValue ?? v.value ?? v.initialValue);
+      if (key) map[key] = val;
+    });
+  }
+  if (COLLECTION && Array.isArray(COLLECTION.variable)){
+    COLLECTION.variable.forEach(v=>{
+      if(!v) return;
+      const key = v.key ?? v.name;
+      const val = (v.currentValue ?? v.value ?? v.initialValue);
+      if (key && map[key]==null) map[key]=val;
+    });
+  }
+  VARS = map;
+}
+function resolveVars(str, extra={}){ if(typeof str!=='string') return str; return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=> String((extra && extra[k]!=null)?extra[k]:(VARS[k]!=null?VARS[k]:''))); }
+function normalizeUrl(u){
+  if(!u) return ''; if(typeof u==='string') return u;
+  let raw = u.raw || '';
+  if(!raw){
+    const protocol = u.protocol ? u.protocol+'://' : '';
+    const host = Array.isArray(u.host) ? u.host.join('.') : (u.host||'');
+    const path = Array.isArray(u.path) ? '/'+u.path.join('/') : (u.path||'');
+    const query = Array.isArray(u.query) && u.query.length ? '?' + u.query.filter(q=>!q.disabled).map(q=>`${q.key}=${q.value??''}`).join('&') : '';
+    raw = protocol + host + path + query;
+  }
+  return raw;
+}
+function flattenItems(node, path=[]){
+  if(!node) return;
+  if(Array.isArray(node)){ node.forEach(n=>flattenItems(n, path)); return; }
+  if(node.item){ const newPath = node.name ? path.concat(node.name) : path; node.item.forEach(child=>flattenItems(child, newPath)); return; }
+  if(node.request){ ITEMS_FLAT.push({ id: crypto.randomUUID(), path: path.join(' / '), name: node.name || '(untitled)', request: node.request }); }
+}
+function safeBuildUrl(url, queryArr){
+  let u = resolveVars(url || '');
+  const extra = new URLSearchParams();
+  (queryArr||[]).filter(x=>x.key && x.enabled!==false).forEach(p=> extra.set(p.key, resolveVars(String(p.value??''))));
+  const glue = u.includes('?') ? (u.endsWith('?') || u.endsWith('&') ? '' : '&') : (extra.toString()? '?' : '');
+  const composed = u + (glue ? glue + extra.toString() : '');
+  try{
+    const urlObj = new URL(composed, composed.startsWith('http') ? undefined : location.origin);
+    return urlObj.href.replace(location.origin,'') || urlObj.href;
+  }catch{ return composed; }
+}
+
+/* ========= Sidebar ========= */
+function renderTree(filter = '') {
+  const tree = $('#tree');
+  tree.innerHTML = '';
+
+  const q = (filter || '').toLowerCase();
+  const match = s => (s || '').toLowerCase().includes(q);
+
+  const groups = {};
+  ITEMS_FLAT.forEach(it => {
+    const folder = it.path || 'ROOT';
+    const urlRaw = normalizeUrl(it.request.url);
+    if (q && !(match(it.name) || match(folder) || match(urlRaw))) return;
+    (groups[folder] ||= []).push(it);
+  });
+
+  Object.entries(groups).forEach(([folder, items]) => {
+    const sec = el('div', { class: 'node' });
+    sec.append(el('div', { class: 'folder' }, folder === 'ROOT' ? 'No folder' : folder));
+
+    items.forEach(it => {
+      const urlRaw = normalizeUrl(it.request.url);
+      const urlResolved = resolveVars(urlRaw);
+      const method = (it.request.method || 'GET').toUpperCase();
+      const displayPath = pathOnly(urlResolved || urlRaw);
+      const row = el(
+        'div',
+        { class: 'op ' + method, onclick: () => openRequest(it),
+          title: (it.name ? it.name + ' • ' : '') + (urlResolved || urlRaw || '') },
+        el('div', { class: 'op-method' }, method),
+        el('div', { class: 'op-path' }, displayPath || '(no url)')
+      );
+      sec.append(row);
+    });
+
+    tree.append(sec);
+  });
+
+  if (!tree.children.length) {
+    tree.append(el('div', { class: 'section muted small' }, 'Nothing found'));
+  }
+}
+
+/* ========= KV tables (with On/Off) ========= */
+function buildKVTable(rows){
+  const t = el('table', {class:'kvTable'});
+  t.append(el('thead', {}, el('tr', {}, el('th', {class:'kvOn'}, 'On'), el('th', {}, 'Key'), el('th', {}, 'Value'))));
+  const tb = el('tbody');
+  (rows||[]).forEach(r=>{
+    const tr = el('tr');
+    tr.append(
+      el('td', {class:'kvOn'}, el('div',{class:'cell'}, el('input',{type:'checkbox','data-field':'enabled', checked: r.enabled !== false}))),
+      el('td', {}, el('div', {class:'cell'}, el('input', {value: r.key ?? '', 'data-field':'key'}))),
+      el('td', {}, el('div', {class:'cell'}, el('input', {value: r.value ?? '', 'data-field':'value'})))
+    );
+    tb.append(tr);
+  });
+  const trNew = el('tr');
+  trNew.append(
+    el('td', {class:'kvOn'}, el('div',{class:'cell'}, el('input',{type:'checkbox','data-field':'enabled', checked:true}))),
+    el('td', {}, el('div', {class:'cell'}, el('input', {'data-field':'key', placeholder:'key'}))),
+    el('td', {}, el('div', {class:'cell'}, el('input', {'data-field':'value', placeholder:'value'})))
+  );
+  tb.append(trNew);
+  t.append(tb);
+  return t;
+}
+function tableToSimpleArray(tbody){
+  const out = [];
+  Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+    const key = tr.querySelector('input[data-field="key"]')?.value?.trim() ?? '';
+    const val = tr.querySelector('input[data-field="value"]')?.value ?? '';
+    const en  = tr.querySelector('input[data-field="enabled"]')?.checked;
+    if (key || val) out.push({key, value: val, enabled: !!en});
+  });
+  return out;
+}
+
+/* ========= Request UI ========= */
+function getInitialStateForItem(item){
+  const id = item.id;
+  const saved = loadReqState(id);
+  const methodOrig = String(item.request.method || 'GET').toUpperCase();
+  const urlRaw     = normalizeUrl(item.request.url);
+
+  const method = saved?.method || methodOrig;
+  const url    = saved?.url || urlRaw;
+
+  const paramsInit = saved?.params ?? (
+    (typeof item.request.url==='object' && Array.isArray(item.request.url.query))
+      ? item.request.url.query.map(q=>({key:q.key, value: resolveVars(q.value??''), enabled: q.disabled!==true }))
+      : []
+  );
+  let headersInit = saved?.headers ?? (
+    Array.isArray(item.request.header)
+      ? item.request.header.map(h=>({key:h.key, value: resolveVars(h.value??''), enabled: h.disabled!==true }))
+      : []
+  );
+
+  if (!saved?.headers){
+    if (GLOBAL_BEARER && !headersInit.some(h=>String(h.key||'').toLowerCase()==='authorization')){
+      headersInit.unshift({key:'Authorization', value:'Bearer '+GLOBAL_BEARER, enabled:true});
+    } else if (item.request.auth && item.request.auth.type==='bearer'){
+      const token = (item.request.auth.bearer||[]).find(x=>x.key==='token')?.value || VARS.token || VARS.access_token || '';
+      if (token && !headersInit.some(h=>String(h.key||'').toLowerCase()==='authorization')){
+        headersInit.unshift({key:'Authorization', value:'Bearer '+resolveVars(token), enabled:true});
+      }
+    }
+  }
+
+  let bodyText = saved?.body;
+  if (bodyText == null){
+    bodyText = item.request.body?.raw != null ? (typeof item.request.body.raw === 'string' ? item.request.body.raw : JSON.stringify(item.request.body.raw, null, 2)) : '';
+  }
+
+  const scripts = saved?.scripts ?? loadScriptsLegacy(id) ?? {pre:'', post:''};
+  const auth = saved?.auth ?? { type:'bearer', token: '' };
+
+  return { method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response: saved?.response || null };
+}
+
+function openRequest(item){
+  CURRENT_REQ_ID = item.id;
+
+  const {
+    method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response
+  } = getInitialStateForItem(item);
+
+  const pane = $('#reqPane'); pane.innerHTML='';
+  const card = el('div', {class:'card'});
+
+  // Header: Method + URL + API badge
+  const header = el('div', {class:'reqHeader'},
+    el('select', {id:'methodSel'},
+      ...['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'].map(m=>el('option', {value:m, selected:m===method}, m))
+    ),
+    el('input', {id:'urlInp', value: url, placeholder:'https://api.example.com/path?x=1'}),
+    el('div', {id:'apiBadge', class:'apiBadge'}, `API: ${methodOrig}`)
+  );
+
+  // Tabs
+  const tabs = el('div', {class:'tabs'},
+    el('div', {class:'tab active', id:'tabParams'}, 'Params'),
+    el('div', {class:'tab', id:'tabHeaders'}, 'Headers'),
+    el('div', {class:'tab', id:'tabAuth'}, 'Authorization'),
+    el('div', {class:'tab', id:'tabScripts'}, 'Scripts')
+  );
+
+  const paramsPane = el('div', {class:'tabPane active', id:'paneParams'});
+  const headersPane= el('div', {class:'tabPane',        id:'paneHeaders'});
+  const authPane   = el('div', {class:'tabPane',        id:'paneAuth'});
+  const scriptsPane= el('div', {class:'tabPane',        id:'paneScripts'});
+
+  // Params
+  const paramsTable = buildKVTable(paramsInit);
+  paramsPane.append(el('div', {class:'kvs'}, paramsTable, el('div',{class:'kvHint'},'Add or change query parameters')));
+
+  // Headers
+  const headersTable = buildKVTable(headersInit);
+  headersPane.append(el('div', {class:'kvs'}, headersTable, el('div',{class:'kvHint'},'Request headers')));
+
+  // Authorization
+  const authTypeSel = el('select', {id:'authType'},
+    el('option', {value:'bearer', selected: (auth?.type||'bearer')==='bearer'}, 'Bearer Token')
+  );
+  const authTokenInp = el('input', {id:'authTokenInp', value: auth?.token || '', placeholder:'Token value'});
+  authPane.append(
+    el('div', {class:'authRow'}, el('div', {class:'muted'}, 'Auth type'), authTypeSel),
+    el('div', {class:'authRow'}, el('div', {class:'muted'}, 'Token'), authTokenInp),
+    el('div', {class:'kvHint'}, 'If there is no "Authorization" header, the token will be added automatically (or global token).')
+  );
+
+  // Scripts
+  const sw = el('div', {class:'scriptsSwitcher'},
+    el('button', {id:'btnPre',  class:'active', onclick:()=>switchScript('pre')},  'PRE-Request'),
+    el('button', {id:'btnPost', onclick:()=>switchScript('post')}, 'POST-Request')
+  );
+  const preTA  = el('textarea', {id:'preScript'},  scripts?.pre || '');
+  const postTA = el('textarea', {id:'postScript', style:'display:none'}, scripts?.post || '');
+  const scriptsArea = el('div', {class:'scriptsArea'}, preTA, postTA);
+  const scriptsPaneInfo = el('div', {class:'small muted', style:'padding:0 12px 12px'}, 'Available: ctx.request (method,url,params,headers,body), ctx.response (status, headers, bodyText)');
+  scriptsPane.append(sw, scriptsArea, scriptsPaneInfo);
+
+  // Body
+  const bodyWrap = el('div', {class:'reqBodyWrap'});
+  const bodyToolbar = el('div', {class:'reqBodyToolbar'},
+    el('span', {}, 'Request body'),
+    el('button', {class:'beautify', id:'beautifyBtn'}, 'Beautify JSON'),
+    el('button', {class:'clear', onclick:()=>{ bodyArea.value=''; saveReqState(CURRENT_REQ_ID,{body:''}); }}, 'Clear')
+  );
+  const bodyArea = el('textarea', {id:'bodyRawArea'}, bodyText || '');
+  bodyWrap.append(bodyToolbar, bodyArea);
+
+  // Actions
+  const actions = el('div', {class:'actions'});
+  const sendBtn = el('button', {class:'send', id:'sendBtn'}, 'Send');
+  const curlBtn = el('button', {id:'curlBtn'}, 'Copy cURL');
+  const resetBtn= el('button', {id:'resetBtn', class:'reset', title:'Reset local changes for this request'}, 'Reset to defaults');
+  actions.append(sendBtn, curlBtn, resetBtn);
+
+  card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
+  pane.append(card);
+
+  // Tabs switching
+  function activateTab(name){
+    ['Params','Headers','Auth','Scripts'].forEach(t=>{
+      $('#tab'+t).classList.toggle('active', t===name);
+      $('#pane'+t).classList.toggle('active', t===name);
+    });
+  }
+  $('#tabParams').onclick = ()=>activateTab('Params');
+  $('#tabHeaders').onclick= ()=>activateTab('Headers');
+  $('#tabAuth').onclick   = ()=>activateTab('Auth');
+  $('#tabScripts').onclick= ()=>activateTab('Scripts');
+
+  function switchScript(which){
+    $('#btnPre').classList.toggle('active', which==='pre');
+    $('#btnPost').classList.toggle('active', which==='post');
+    preTA.style.display  = which==='pre' ? '' : 'none';
+    postTA.style.display = which==='post'? '' : 'none';
+  }
+
+  // Beautify JSON
+  $('#beautifyBtn').onclick = ()=>{
+    const src = bodyArea.value.trim();
+    try{
+      const obj = JSON.parse(src);
+      bodyArea.value = JSON.stringify(obj, null, 2);
+      saveReqState(CURRENT_REQ_ID, { body: bodyArea.value });
+    }catch{ alert('Body is not valid JSON'); }
+  };
+
+  // Autosave
+  const debSave = debounce(()=> {
+    const params = tableToSimpleArray(paramsTable.tBodies[0]);
+    const headers= tableToSimpleArray(headersTable.tBodies[0]);
+    const scriptsNew = { pre: preTA.value, post: postTA.value };
+    const authNew = { type: $('#authType').value, token: $('#authTokenInp').value };
+    const patch = {
+      method: $('#methodSel').value,
+      url: $('#urlInp').value,
+      params, headers,
+      body: $('#bodyRawArea').value,
+      scripts: scriptsNew,
+      auth: authNew
+    };
+    saveReqState(CURRENT_REQ_ID, patch);
+  }, 180);
+
+  ['input','change','keyup'].forEach(ev=>{
+    header.addEventListener(ev, debSave);
+    paramsPane.addEventListener(ev, debSave);
+    headersPane.addEventListener(ev, debSave);
+    scriptsPane.addEventListener(ev, debSave);
+    authPane.addEventListener(ev, debSave);
+    bodyWrap.addEventListener(ev, debSave);
+  });
+
+  // Reset only current request
+  $('#resetBtn').onclick = ()=>{
+    clearReqState(CURRENT_REQ_ID);
+    openRequest(item); // reopen from collection defaults
+  };
+
+  // ==== SEND ====
+  $('#sendBtn').onclick = async ()=>{
+    debSave();
+    const params = tableToSimpleArray(paramsTable.tBodies[0]);
+    const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+    let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
+    let method = $('#methodSel').value;
+    let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+    let body = resolveVars($('#bodyRawArea').value || '');
+    const authType = $('#authType').value;
+    const authToken = $('#authTokenInp').value.trim();
+
+    // Inject Authorization if missing
+    if (authType==='bearer' && authToken && !Object.keys(headers).some(h=>h.toLowerCase()==='authorization')){
+      headers['Authorization'] = 'Bearer ' + authToken;
+    } else if (GLOBAL_BEARER && !Object.keys(headers).some(h=>h.toLowerCase()==='authorization')){
+      headers['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
+    }
+
+    // Auto Content-Type (if missing)
+    if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
+      const ct = detectContentType(body);
+      if (ct) headers['Content-Type'] = ct;
+    }
+
+    const proxy = $('#proxyPrefix').value.trim();
+    const targetUrl = proxy ? proxy + finalUrl : finalUrl;
+
+    // PRE
+    const preCode = preTA.value.trim();
+    if (preCode){
+      try{
+        const ctx = makePreCtx({method, url:finalUrl, params, headers, body});
+        runUserScript(preCode, ctx);
+        ({method} = ctx.request);
+        finalUrl = ctx.request.url;
+        headers  = ctx.request.headers;
+        body     = ctx.request.body;
+      }catch(e){ renderResponse(null, 'PRE error: '+e.message, 0, finalUrl); return; }
+    }
+
+    showLoader(true); $('#sendBtn').disabled = true;
+    const started = performance.now();
+    let res, text;
+    try{
+      res = await fetch(targetUrl, { method, headers, body: (method==='GET'||method==='HEAD')?undefined:body });
+      text = await res.text();
+    }catch(e){
+      const ms = performance.now()-started;
+      renderResponse(null, String(e), ms, finalUrl);
+      const postCode = postTA.value.trim();
+      if (postCode){
+        try{ const ctxPost = makePostCtx({request:{method,url:finalUrl,headers,body}, response:null, error:String(e)}); runUserScript(postCode, ctxPost); }catch(_){}
+      }
+      saveReqState(CURRENT_REQ_ID, { response: { status:0, statusText:'Network error', headers:{}, bodyText:String(e), url:finalUrl, timeMs:ms }});
+      showLoader(false); $('#sendBtn').disabled = false;
+      return;
+    }
+
+    // POST
+    const postCode = postTA.value.trim();
+    if (postCode){
+      try{
+        const ctxPost = makePostCtx({
+          request:{method,url:finalUrl,headers,body},
+          response:{ status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
+        });
+        runUserScript(postCode, ctxPost);
+        if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') text = ctxPost.response.bodyText;
+      }catch(e){ /* ignore */ }
+    }
+
+    const ms = performance.now()-started;
+    renderResponse(res, text, ms, finalUrl);
+
+    const respObj = {
+      status: res.status,
+      statusText: res.statusText,
+      headers: Object.fromEntries(res.headers.entries()),
+      bodyText: text,
+      url: finalUrl,
+      timeMs: ms
+    };
+    saveReqState(CURRENT_REQ_ID, { response: respObj });
+
+    showLoader(false); $('#sendBtn').disabled = false;
+  };
+
+  // cURL
+  $('#curlBtn').onclick = ()=>{
+    const m = $('#methodSel').value;
+    const params = tableToSimpleArray(paramsTable.tBodies[0]);
+    const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+    const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+    const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
+    const authType = $('#authType').value;
+    const authToken = $('#authTokenInp').value.trim();
+    if (authType==='bearer' && authToken && !Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
+      hdrs['Authorization']='Bearer '+authToken;
+    } else if (GLOBAL_BEARER && !Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
+      hdrs['Authorization']='Bearer '+GLOBAL_BEARER;
+    }
+    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
+      const ct = detectContentType($('#bodyRawArea').value || '');
+      if (ct) hdrs['Content-Type'] = ct;
+    }
+    const body     = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
+    const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
+    const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
+    const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
+    navigator.clipboard.writeText(cmd); alert('cURL copied');
+  };
+
+  // Show saved response
+  if (response){
+    renderResponseSaved(response);
+  } else {
+    $('#resPane').innerHTML = '';
+  }
+}
+
+/* ==== Content-Type detection ==== */
+function detectContentType(body){
+  const s = (body||'').trim();
+  if (!s) return null;
+  // JSON
+  try{ JSON.parse(s); return 'application/json'; }catch{}
+  // urlencoded (simple heuristic)
+  if (/^[^=\s&]+=[^=&]*(?:&[^=\s&]+=[^=&]*)*$/.test(s)) return 'application/x-www-form-urlencoded';
+  // multipart (very rough; usually should be set by browser when using FormData)
+  if (/^--?[-\w]+/i.test(s) && /content-disposition/i.test(s)) return 'multipart/form-data';
+  return null;
+}
+
+/* ==== scripts sandbox ==== */
+function runUserScript(code, ctx){
+  const fn = new Function('ctx', `"use strict"; const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) }; ${code}`);
+  fn(ctx);
+}
+function makePreCtx({method, url, params, headers, body}){
+  const ctx = {
+    _logs: [], vars: {...VARS}, setVar: (k,v)=>{ VARS[k]=v; },
+    request: { method, url, params: JSON.parse(JSON.stringify(params)), headers: JSON.parse(JSON.stringify(headers)), body },
+    setHeader: (k,v)=>{ ctx.request.headers[k]=v; },
+    setParam: (k,v)=>{ const p=ctx.request.params.find(x=>x.key===k); if(p) p.value=v; else ctx.request.params.push({key:k,value:v}); },
+    setBody: v=>{ ctx.request.body = v; }, setMethod: m=>{ ctx.request.method = String(m||'GET').toUpperCase(); }, setUrl: u=>{ ctx.request.url = String(u||''); },
+    log: (...a)=>ctx._logs.push(a.map(String).join(' '))
+  };
+  return ctx;
+}
+function makePostCtx({request, response, error}){
+  const ctx = {
+    _logs: [], request, response, error: error || null,
+    setResponseBody: (text)=>{ if(ctx.response) ctx.response.bodyText = String(text); },
+    log: (...a)=>ctx._logs.push(a.map(String).join(' '))
+  };
+  return ctx;
+}
+
+/* ========= Response ========= */
+function renderResponse(res, text, ms, url){
+  const pane = $('#resPane'); pane.innerHTML = '';
+  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response'));
+  const head = el('div', {class:'respHeader'});
+  const status = res ? `${res.status} ${res.statusText}` : 'Network error';
+  head.append(el('span', {class:'pill', style:`color:${res ? (res.ok?'#16a34a':'#dc2626'):'#dc2626'}`}, status));
+  head.append(el('span', {class:'pill'}, `Time: ${ms.toFixed(0)} ms`));
+  head.append(el('span', {class:'pill'}, `URL: ${url}`));
+  card.append(head);
+
+  const tools = buildRespTools(text);
+  card.append(tools);
+
+  const bodyWrap = el('div', {class:'respBody'});
+  let formatted = text; try{ formatted = JSON.stringify(JSON.parse(text),null,2);}catch{}
+  bodyWrap.append(el('pre', {id:'respPre'}, formatted || (text || '—')));
+  card.append(bodyWrap);
+
+  if (res){
+    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
+    const tb = el('tbody'); res.headers.forEach((v,k)=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, v))));
+    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
+    pane.append(card, hdrsCard);
+  }else{
+    pane.append(card);
+  }
+}
+function renderResponseSaved(resp){
+  const pane = $('#resPane'); pane.innerHTML = '';
+  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response (last)'));
+  const head = el('div', {class:'respHeader'});
+  head.append(el('span', {class:'pill', style:`color:${resp.status && resp.status>=200 && resp.status<400 ? '#16a34a' : '#dc2626'}`}, `${resp.status||0} ${resp.statusText||''}`));
+  if (resp.timeMs!=null) head.append(el('span', {class:'pill'}, `Time: ${Math.round(resp.timeMs)} ms`));
+  if (resp.url) head.append(el('span', {class:'pill'}, `URL: ${resp.url}`));
+  card.append(head);
+
+  const tools = buildRespTools(resp.bodyText||'');
+  card.append(tools);
+
+  const bodyWrap = el('div', {class:'respBody'});
+  let formatted = resp.bodyText; try{ formatted = JSON.stringify(JSON.parse(resp.bodyText||''),null,2);}catch{}
+  bodyWrap.append(el('pre', {id:'respPre'}, formatted || (resp.bodyText || '—')));
+  card.append(bodyWrap);
+
+  if (resp.headers && Object.keys(resp.headers).length){
+    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
+    const tb = el('tbody'); Object.entries(resp.headers).forEach(([k,v])=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, String(v)))));
+    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
+    pane.append(card, hdrsCard);
+  }else{
+    pane.append(card);
+  }
+}
+function buildRespTools(rawText){
+  const tools = el('div', {class:'respTools'});
+  const input = el('input', {id:'copyField', placeholder:'Field to copy (e.g., access_token or data.token)'});
+  const btn   = el('button', {id:'copyBtn'}, 'Copy field');
+  const btnAll= el('button', {id:'copyAllBtn'}, 'Copy body');
+  tools.append(input, btn, btnAll);
+
+  btn.onclick = ()=>{
+    try{
+      const obj = JSON.parse(rawText||'{}');
+      const path = (input.value||'').trim();
+      const val = path ? getByPath(obj, path) : '';
+      if (val==null) { alert('Field not found'); return; }
+      navigator.clipboard.writeText(String(val));
+      btn.textContent='Copied!'; setTimeout(()=>btn.textContent='Copy field', 1000);
+    }catch{
+      alert('Response is not JSON');
+    }
+  };
+  btnAll.onclick = ()=>{
+    const text = $('#respPre')?.textContent || rawText || '';
+    navigator.clipboard.writeText(text);
+    btnAll.textContent='Copied!'; setTimeout(()=>btnAll.textContent='Copy body', 1000);
+  };
+  return tools;
+}
+function getByPath(obj, path){
+  return path.split('.').reduce((acc, key)=> (acc!=null ? acc[key] : undefined), obj);
+}
+
+/* ========= Authorize (global) ========= */
+function updateAuthUI(){
+  const btn = $('#authBtn');
+  if (GLOBAL_BEARER){
+    btn.textContent = 'Authorized';
+    btn.style.background = '#d1fae5';
+    btn.style.color = '#065f46';
+  }else{
+    btn.textContent = 'Authorize';
+    btn.style.background = '';
+    btn.style.color = '';
+  }
+}
+$('#authBtn').addEventListener('click', ()=>{
+  $('#authModal').hidden = false;
+  $('#authToken').value = GLOBAL_BEARER || '';
+  $('#authState').style.display = GLOBAL_BEARER ? '' : 'none';
+  $('#authState').textContent = GLOBAL_BEARER ? 'Token is set' : '';
+});
+$('#authCancel').addEventListener('click', ()=> $('#authModal').hidden = true);
+$('#authSave').addEventListener('click', ()=>{
+  GLOBAL_BEARER = $('#authToken').value.trim();
+  localStorage.setItem('global_bearer', GLOBAL_BEARER);
+  updateAuthUI();
+  $('#authModal').hidden = true;
+});
+$('#authClear').addEventListener('click', ()=>{
+  GLOBAL_BEARER = '';
+  localStorage.removeItem('global_bearer');
+  updateAuthUI();
+  $('#authState').style.display = 'none';
+  $('#authToken').value = '';
+});
+
+/* ========= Variables modal ========= */
+function buildVarsTableBody(){
+  const tb = $('#varsTable tbody');
+  tb.innerHTML = '';
+  const list = Array.isArray(ENV?.values) ? ENV.values : [];
+  list.forEach((v, i)=>{
+    const tr = document.createElement('tr');
+    const key = v.key ?? v.name ?? '';
+    const val = v.currentValue ?? v.value ?? '';
+    const enabled = v.enabled !== false;
+    tr.append(
+      el('td',{}, el('input',{value:key, 'data-idx':i, 'data-field':'key', type:'text'})),
+      el('td',{}, el('input',{value:val, 'data-idx':i, 'data-field':'value', type:'text'})),
+      el('td',{}, el('input',{type:'checkbox', checked:enabled, 'data-idx':i, 'data-field':'enabled'}))
+    );
+    tb.append(tr);
+  });
+  const trNew = document.createElement('tr');
+  trNew.append(
+    el('td',{}, el('input',{'data-idx':'new','data-field':'key', placeholder:'key', type:'text'})),
+    el('td',{}, el('input',{'data-idx':'new','data-field':'value', placeholder:'value', type:'text'})),
+    el('td',{}, el('input',{type:'checkbox','data-idx':'new','data-field':'enabled', checked:true}))
+  );
+  tb.append(trNew);
+}
+function readVarsTable(){
+  const rows = Array.from($('#varsTable tbody').querySelectorAll('tr'));
+  const out = [];
+  rows.forEach(tr=>{
+    const keyInp = tr.querySelector('input[data-field="key"]');
+    const valInp = tr.querySelector('input[data-field="value"]');
+    const enInp  = tr.querySelector('input[data-field="enabled"]');
+    const key = (keyInp?.value ?? '').trim();
+    const val = valInp?.value ?? '';
+    const enabled = !!(enInp?.checked);
+    if (key || val) out.push({ key, value: val, enabled });
+  });
+  return out;
+}
+$('#varsBtn').addEventListener('click', ()=>{
+  if (!ENV) ENV = { values: [] };
+  if (!Array.isArray(ENV.values)) ENV.values = [];
+  buildVarsTableBody();
+  $('#varsModal').hidden = false;
+});
+$('#varsCancel').addEventListener('click', ()=> $('#varsModal').hidden = true);
+$('#varsSave').addEventListener('click', ()=>{
+  const rows = readVarsTable();
+  ENV.values = rows.map(r=>({ key: r.key, value: r.value, enabled: r.enabled }));
+  try{ localStorage.setItem('pm_env', JSON.stringify(ENV)); }catch{}
+  buildVarMap();
+  renderTree($('#search').value||'');
+  $('#varsModal').hidden = true;
+});
+// Import JSON env (Postman)
+$('#envImportFile').addEventListener('change', async (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  const txt = await f.text();
+  try{
+    const parsed = JSON.parse(txt);
+    if (Array.isArray(parsed?.values)) {
+      ENV = { ...(ENV||{}), ...parsed };
+    } else if (parsed && typeof parsed === 'object') {
+      const values = Object.entries(parsed).map(([k,v])=>({key:k, value:String(v), enabled:true}));
+      ENV = { name: 'Imported', values };
+    } else {
+      throw new Error('Unknown env format');
+    }
+    localStorage.setItem('pm_env', JSON.stringify(ENV));
+    buildVarMap();
+    buildVarsTableBody();
+    alert('Environment imported (local).');
+  }catch(err){ alert('Import error: '+err.message); }
+});
+
+/* ========= Loaders & session ========= */
+$('#collectionFile').addEventListener('change', onCollectionUpload);
+$('#envFile').addEventListener('change', onEnvUpload);
+$('#clearBtn').addEventListener('click', ()=>{
+  localStorage.removeItem('pm_collection');
+  localStorage.removeItem('pm_env');
+  localStorage.removeItem('global_bearer');
+  Object.keys(localStorage).forEach(k=>{
+    if (k.startsWith('pm_req_') || k.startsWith('pm_scripts_')) localStorage.removeItem(k);
+  });
+  COLLECTION=null; ENV=null; VARS={}; ITEMS_FLAT=[]; CURRENT_REQ_ID=null; GLOBAL_BEARER='';
+  $('#tree').innerHTML=''; $('#reqPane').innerHTML=''; $('#resPane').innerHTML='';
+  $('#loadedInfo').textContent = ''; updateAuthUI();
+  $('#colLabel').style.display=''; $('#envLabel').style.display='';
+  alert('Local session cleared');
+});
+$('#search').addEventListener('input', debounce((e)=> renderTree(e.target.value), 200));
+
+async function onCollectionUpload(e){
+  const f = e.target.files[0]; if(!f) return;
+  const txt = await f.text();
+  try{
+    COLLECTION = JSON.parse(txt); localStorage.setItem('pm_collection', txt);
+    ITEMS_FLAT = []; flattenItems(COLLECTION); buildVarMap(); renderTree($('#search').value||'');
+    $('#loadedInfo').textContent = shortInfo();
+    if (AUTO_OPEN_FIRST) autoOpenFirst();
+  }catch(err){ alert('Collection parse error: '+err.message); }
+}
+async function onEnvUpload(e){
+  const f = e.target.files[0]; if(!f) return;
+  const txt = await f.text();
+  try{
+    ENV = JSON.parse(txt); localStorage.setItem('pm_env', txt);
+    buildVarMap(); renderTree($('#search').value||'');
+    $('#loadedInfo').textContent = shortInfo();
+  }catch(err){ alert('Environment parse error: '+err.message); }
+}
+function shortInfo(){
+  const name = COLLECTION?.info?.name || 'Collection';
+  const cnt = ITEMS_FLAT.length;
+  const envName = ENV?.name || ENV?.info?.name || 'env';
+  const hasEnv = ENV ? `, env: ${envName}` : '';
+  return `${name} (${cnt} requests${hasEnv})`;
+}
+function autoOpenFirst(){
+  const first = ITEMS_FLAT[0];
+  if (first){ $('#welcomeCard')?.remove(); openRequest(first); }
+}
+
+/* === Autoload from root (or query paths) === */
+(async function bootstrap(){
+  updateAuthUI();
+  let loadedSomething = false;
+  try{
+    const colRes = await fetch(DEFAULT_COLLECTION_PATH, {cache:'no-cache'});
+    if (colRes.ok){ const txt = await colRes.text(); COLLECTION = JSON.parse(txt); localStorage.setItem('pm_collection', txt); loadedSomething = true; }
+  }catch{}
+  try{
+    const envRes = await fetch(DEFAULT_ENV_PATH, {cache:'no-cache'});
+    if (envRes.ok){ const txt = await envRes.text(); ENV = JSON.parse(txt); localStorage.setItem('pm_env', txt); }
+  }catch{}
+  if (!loadedSomething){
+    const storedCol = localStorage.getItem('pm_collection'); if (storedCol){ try{ COLLECTION = JSON.parse(storedCol); loadedSomething = true; }catch{} }
+    const storedEnv = localStorage.getItem('pm_env'); if (storedEnv){ try{ ENV = JSON.parse(storedEnv); }catch{} }
+  }
+  if (loadedSomething){
+    ITEMS_FLAT = []; flattenItems(COLLECTION); buildVarMap(); renderTree('');
+    $('#loadedInfo').textContent = shortInfo();
+    $('#colLabel').style.display='none'; $('#envLabel').style.display='none';
+    if (AUTO_OPEN_FIRST) autoOpenFirst();
+  }else{
+    renderTree('');
+  }
+})();
+</script>
+</body>
+</html>
