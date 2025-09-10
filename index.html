@@ -479,44 +479,77 @@ function tableToSimpleArray(tbody){
 function getInitialStateForItem(item){
   const id = item.id;
   const saved = loadReqState(id);
+
+  // Метод из коллекции (оригинальный Postman)
   const methodOrig = String(item.request.method || 'GET').toUpperCase();
   const urlRaw     = normalizeUrl(item.request.url);
 
-  // Method: prefer saved; else API method
-  const method = (saved?.method || methodOrig).toUpperCase();
+  // ✅ Теперь берём метод из коллекции, если пользователь ничего не менял
+  const method = saved?.method ? saved.method.toUpperCase() : methodOrig;
   const url    = saved?.url || urlRaw;
 
+  // Query params
   const paramsInit = saved?.params ?? (
-    (typeof item.request.url==='object' && Array.isArray(item.request.url.query))
-      ? item.request.url.query.map(q=>({key:q.key, value: resolveVars(q.value??''), enabled: q.disabled!==true }))
-      : []
-  );
-  let headersInit = saved?.headers ?? (
-    Array.isArray(item.request.header)
-      ? item.request.header.map(h=>({key:h.key, value: resolveVars(h.value??''), enabled: h.disabled!==true }))
+    (typeof item.request.url === 'object' && Array.isArray(item.request.url.query))
+      ? item.request.url.query.map(q => ({
+          key: q.key,
+          value: resolveVars(q.value ?? ''),
+          enabled: q.disabled !== true
+        }))
       : []
   );
 
+  // Headers
+  let headersInit = saved?.headers ?? (
+    Array.isArray(item.request.header)
+      ? item.request.header.map(h => ({
+          key: h.key,
+          value: resolveVars(h.value ?? ''),
+          enabled: h.disabled !== true
+        }))
+      : []
+  );
+
+  // Добавляем Authorization, если он не сохранён
   if (!saved?.headers){
-    if (GLOBAL_BEARER && !headersInit.some(h=>String(h.key||'').toLowerCase()==='authorization')){
-      headersInit.unshift({key:'Authorization', value:'Bearer '+GLOBAL_BEARER, enabled:true});
-    } else if (item.request.auth && item.request.auth.type==='bearer'){
-      const token = (item.request.auth.bearer||[]).find(x=>x.key==='token')?.value || VARS.token || VARS.access_token || '';
-      if (token && !headersInit.some(h=>String(h.key||'').toLowerCase()==='authorization')){
-        headersInit.unshift({key:'Authorization', value:'Bearer '+resolveVars(token), enabled:true});
+    if (GLOBAL_BEARER && !headersInit.some(h => String(h.key || '').toLowerCase() === 'authorization')){
+      headersInit.unshift({ key: 'Authorization', value: 'Bearer ' + GLOBAL_BEARER, enabled: true });
+    } else if (item.request.auth && item.request.auth.type === 'bearer'){
+      const token = (item.request.auth.bearer || []).find(x => x.key === 'token')?.value 
+                    || VARS.token || VARS.access_token || '';
+      if (token && !headersInit.some(h => String(h.key || '').toLowerCase() === 'authorization')){
+        headersInit.unshift({ key: 'Authorization', value: 'Bearer ' + resolveVars(token), enabled: true });
       }
     }
   }
 
+  // Body
   let bodyText = saved?.body;
   if (bodyText == null){
-    bodyText = item.request.body?.raw != null ? (typeof item.request.body.raw === 'string' ? item.request.body.raw : JSON.stringify(item.request.body.raw, null, 2)) : '';
+    bodyText = item.request.body?.raw != null
+      ? (typeof item.request.body.raw === 'string'
+          ? item.request.body.raw
+          : JSON.stringify(item.request.body.raw, null, 2))
+      : '';
   }
 
-  const scripts = saved?.scripts ?? loadScriptsLegacy(id) ?? {pre:'', post:''};
-  const auth = saved?.auth ?? { type:'bearer', token: '' };
+  // Scripts
+  const scripts = saved?.scripts ?? loadScriptsLegacy(id) ?? { pre: '', post: '' };
 
-  return { method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response: saved?.response || null };
+  // Auth tab
+  const auth = saved?.auth ?? { type: 'bearer', token: '' };
+
+  return {
+    method,
+    methodOrig,
+    url,
+    paramsInit,
+    headersInit,
+    bodyText,
+    scripts,
+    auth,
+    response: saved?.response || null
+  };
 }
 
 function openRequest(item){
