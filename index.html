@@ -110,7 +110,10 @@
   .tab.active{ border-color:#cfd7e3; background:#0000000a }
   [data-theme="dark"] .tab.active{ border-color:#334155 }
 
-  /* ... (остальные стили без изменений) ... */
+  /* ---------- Modals (base) ---------- */
+  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; z-index:10000 }
+  .modal[hidden]{ display:none }
+  .modalCard{ width:520px; max-width:90%; max-height:80vh; overflow:auto; background:var(--panel); border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:20px }
 
   /* === Authorize modal === */
   #authModal.modal{
@@ -119,8 +122,14 @@
   }
   html:has(#authModal:not([hidden])){ overflow: hidden; }
   #authModal .modalCard{
-    width: 760px; max-width: 92vw; padding: 24px 28px;
-    border-radius: 14px; border: 1px solid var(--divider);
+    width: 760px;
+    max-width: 92vw;
+    max-height: 80vh;
+    overflow: auto;
+    padding: 24px 28px;
+    border-radius: 14px;
+    border: 1px solid var(--divider);
+    background: var(--panel);
     box-shadow: 0 20px 60px rgba(0,0,0,.18);
     animation: fadeIn .25s ease, scaleIn .25s ease;
   }
@@ -132,52 +141,81 @@
   }
   html:has(#varsModal:not([hidden])){ overflow: hidden; }
   #varsModal .modalCard{
-    width: 760px; max-width: 92vw; max-height: 80vh;
-    display: flex; flex-direction: column;
-    padding: 24px 28px; border-radius: 14px;
+    width: 760px;
+    max-width: 92vw;
+    max-height: 80vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 28px;
+    border-radius: 14px;
     border: 1px solid var(--divider);
-    box-shadow: 0 20px 60px rgba(0,0,0,.18);
     background: var(--panel);
+    box-shadow: 0 20px 60px rgba(0,0,0,.18);
     animation: fadeIn .25s ease, scaleIn .25s ease;
   }
   #varsModal .modalCard h3{
-    position: sticky; top: 0; background: var(--panel);
-    padding-bottom: 10px; margin: 0 0 14px 0;
-    font-size: 20px; font-weight: 800; color: var(--ink);
-    border-bottom: 1px solid var(--divider); z-index: 2;
+    position: sticky;
+    top: 0;
+    background: var(--panel);
+    padding-bottom: 10px;
+    margin: 0 0 14px 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--ink);
+    border-bottom: 1px solid var(--divider);
+    z-index: 2;
   }
   #varsModal .kvs{
-    flex: 1; overflow: auto; border: 1px solid var(--divider);
-    border-radius: 10px; margin-bottom: 18px; padding: 0;
+    flex: 1;
+    overflow: auto;
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    margin-bottom: 18px;
+    padding: 0;
   }
   #varsModal .modalActions{
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 12px; margin-top: 12px; position: sticky; bottom: 0;
-    background: var(--panel); padding-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    position: sticky;
+    bottom: 0;
+    background: var(--panel);
+    padding-top: 12px;
     border-top: 1px solid var(--divider);
   }
   #varsModal .modalActions button,
   #varsModal .modalActions label.file{
-    padding: 10px 18px; border-radius: 10px;
-    font-size: 14px; font-weight: 600; cursor: pointer;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
   }
   #varsModal #varsSave{
-    background: #10b981; color: #fff; border: none;
+    background: #10b981;
+    color: #fff;
+    border: none;
   }
   #varsModal #varsSave:hover{ filter: brightness(1.05); }
   #varsModal #varsCancel{
-    background: var(--panel); color: var(--fg); border: 1px solid var(--divider);
+    background: var(--panel);
+    color: var(--fg);
+    border: 1px solid var(--divider);
   }
   #varsModal #varsCancel:hover{ filter: brightness(1.02); }
   #varsModal label.file{
-    background: var(--soft); color: var(--muted);
+    background: var(--soft);
+    color: var(--muted);
     border: 1px dashed var(--divider);
   }
   #varsModal label.file:hover{ filter: brightness(1.05); }
 
-  /* Animations */
-  @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
-  @keyframes scaleIn { from {transform: scale(.95);} to {transform: scale(1);} }
+  /* ---------- Animations ---------- */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes scaleIn { from { transform: scale(.95); } to { transform: scale(1); } }
 </style>
 </head>
 
