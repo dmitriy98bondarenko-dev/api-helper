@@ -436,96 +436,6 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
 @media (max-width: 720px){
   .methodBtn{ padding:8px 10px; font-size:12px; }
 }
-/* URL input (better readability) */
-#urlInp {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 15px;
-  font-weight: 600;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 2px solid var(--divider);
-  background: #fff;
-  color: var(--fg);
-  letter-spacing: .2px;
-}
-[data-theme="dark"] #urlInp {
-  background: #0d1525;
-  border-color: #2c3a52;
-  color: var(--fg);
-}
-#urlInp:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent + "33");
-}
-
-/* внутри строки — подсветка переменных (readonly через ::placeholder-shown-like эффект) */
-.urlHint {
-  font-weight: 700;
-  color: #0b6cff;
-}
-/* --- Request Header unified line --- */
-.reqHeader {
-  display: grid;
-  grid-template-columns: auto 1fr auto; /* method dropdown + url + send */
-  gap: 0; /* убрать разрывы */
-  align-items: stretch;
-  padding: 0;
-  border-bottom: 1px solid var(--divider);
-  background: #fff7e8;
-}
-[data-theme="dark"] .reqHeader { background:#2a1f0f }
-
-/* метод теперь селект */
-.reqHeader select.methodSelect {
-  border: none;
-  border-right: 1px solid var(--divider);
-  padding: 0 12px;
-  font-weight: 800;
-  font-size: 13px;
-  text-transform: uppercase;
-  background: var(--op-get); /* динамически подкрашивается классом */
-  color: var(--op-get-f);
-  min-width: 90px;
-  border-radius: 0;
-  cursor: pointer;
-}
-.reqHeader select.methodSelect:focus { outline:none }
-
-/* URL поле */
-#urlInp {
-  border: none;
-  padding: 12px 14px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 14px;
-  background:#fff;
-  color: var(--fg);
-  font-weight: 600;
-  min-width: 0; /* чтобы сжималось */
-}
-[data-theme="dark"] #urlInp {
-  background:#0d1525;
-  color: var(--fg);
-}
-#urlInp:focus { outline:none }
-
-/* переменные {{...}} подсвечиваем */
-#urlInp::placeholder { color: var(--muted) }
-.urlVar { color:#0b6cff; font-weight:700 }
-
-/* Send button */
-.reqHeader .sendBtn {
-  background: var(--accent);
-  color: #fff;
-  font-weight: 700;
-  border: none;
-  padding: 0 20px;
-  font-size: 14px;
-  border-radius: 0;
-  border-left:1px solid var(--divider);
-  cursor:pointer;
-}
-.reqHeader .sendBtn:hover { filter:brightness(1.05) }
 
 </style>
 </head>
@@ -566,25 +476,9 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
 
       <div id="reqPane"></div>
       <div id="resPane"></div>
-    </div>     
+    </div>
   </main>
-  
-      <!-- Request header -->
-      <div class="reqHeader">
-        <select class="methodSelect GET">
-          <option>GET</option>
-          <option>POST</option>
-          <option>PUT</option>
-          <option>PATCH</option>
-          <option>DELETE</option>
-          <option>HEAD</option>
-          <option>OPTIONS</option>
-        </select>
-        <input id="urlInp" value="{{driverGatewayHost}}/api/v1/drivers-me" />
-        <button class="sendBtn">Send</button>
-      </div>
 
-    
   <!-- Authorize modal -->
   <div id="authModal" class="modal" hidden>
     <div class="modalCard">
@@ -1480,7 +1374,6 @@ function autoOpenFirst(){
     renderTree('');
   }
 })();
-  
 </script>
 </body>
 </html>
