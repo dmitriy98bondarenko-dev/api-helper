@@ -211,8 +211,8 @@
 .methodGroup {
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;       /* чтобы кнопки переносились, если не влазят */
-  max-width: 280px;      /* ограничиваем ширину, чтобы не залезали на URL */
+  flex-wrap: wrap;
+  max-width: 280px;
 }
 
 .methodBtn {
@@ -235,10 +235,8 @@
   background: rgba(2, 6, 23, .58);
   backdrop-filter: saturate(1.2) blur(2px);
 }
-/* когда окно открыто — выключаем скролл у страницы */
 html:has(#authModal:not([hidden])){ overflow: hidden; }
 
-/* === Карточка модала: размеры, отступы, тени === */
 #authModal .modalCard{
   width: 760px;             
   max-width: 92vw;
@@ -247,8 +245,6 @@ html:has(#authModal:not([hidden])){ overflow: hidden; }
   border: 1px solid var(--divider);
   box-shadow: 0 20px 60px rgba(0,0,0,.18);
 }
-
-
 #authModal .modalCard h3{
   font-size: 24px;
   line-height: 1.25;
@@ -256,13 +252,7 @@ html:has(#authModal:not([hidden])){ overflow: hidden; }
   margin: 0 0 18px 0;
   color: var(--ink);
 }
-
-
-#authModal .row{
-  display: block;
-  padding: 0;
-  margin: 6px 0 0 0;
-}
+#authModal .row{ display: block; padding: 0; margin: 6px 0 0 0; }
 #authModal .row::before{
   content: "Value:";
   display: block;
@@ -281,67 +271,23 @@ html:has(#authModal:not([hidden])){ overflow: hidden; }
   background: #0000;
   color: var(--fg);
 }
-
-
-#authModal .authState{
-  margin-top: 12px;
-  font-size: 13px;
-  color: #065f46;
-}
+#authModal .authState{ margin-top: 12px; font-size: 13px; color: #065f46; }
 [data-theme="dark"] #authModal .authState{ color:#34d399; }
-
-
 #authModal .modalActions{
-  display: flex;
-  justify-content: flex-end;   /* вправо */
-  align-items: center;
-  gap: 10px;
-  margin-top: 18px;
+  display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 18px;
 }
-#authModal .modalActions > div{
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
+#authModal .modalActions > div{ display: flex; gap: 10px; align-items: center; }
 #authModal .modalActions button{
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
+  padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 700;
 }
-
-/* порядок кнопок */
-#authModal #authSave{   order: 1; }
-#authModal #authCancel{ order: 2; }
-#authModal #authClear{  order: 3; }
-
-/* стили кнопок */
-#authModal #authSave{
-  background: #10b981;
-  color: #fff;
-  border: none;
-}
+#authModal #authSave{   order: 1; background: #10b981; color: #fff; border: none; }
 #authModal #authSave:hover{ filter: brightness(1.05); }
-
-#authModal #authCancel{
-  background: var(--panel);
-  color: var(--fg);
-  border: 1px solid var(--divider);
-}
+#authModal #authCancel{ order: 2; background: var(--panel); color: var(--fg); border: 1px solid var(--divider); }
 #authModal #authCancel:hover{ filter: brightness(1.02); }
-
-#authModal #authClear{
-  background: var(--soft);
-  color: var(--muted);
-  border: 1px solid var(--divider);
-}
+#authModal #authClear{  order: 3; background: var(--soft); color: var(--muted); border: 1px solid var(--divider); }
 [data-theme="dark"] #authModal #authClear{
-  color: var(--muted);
-  background: #121a2a;
-  border-color: #25314a;
+  color: var(--muted); background: #121a2a; border-color: #25314a;
 }
-
 </style>
 </head>
 
@@ -406,14 +352,12 @@ html:has(#authModal:not([hidden])){ overflow: hidden; }
   <div id="varsModal" class="modal" hidden>
     <div class="modalCard">
       <h3>Environment variables</h3>
-
       <div class="kvs" style="max-height:42vh; overflow:auto; border:1px solid var(--divider); border-radius:10px">
         <table id="varsTable" class="varsTable">
           <thead><tr><th style="width:40%">Key</th><th>Value</th><th style="width:80px">On</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
-
       <div class="modalActions">
         <div class="varsHelp">Variables are stored locally (in your browser).</div>
         <div style="display:flex; gap:8px; align-items:center">
@@ -446,7 +390,7 @@ function pathOnly(u){
   if(!u) return '';
   try{
     const full = resolveVars(u);
-    const isAbs = /^https?:\/\//i.test(full);
+    !***const isAbs = /^https?:\/\//i.test(full);
     const urlObj = new URL(isAbs ? full : (location.origin + (full.startsWith('/')?full:'/'+full)));
     return urlObj.pathname || '/';
   }catch{ return String(u).replace(/^https?:\/\/[^/]+/i,'') || '/'; }
@@ -636,7 +580,6 @@ function getInitialStateForItem(item){
   const methodOrig = String(item.request.method || 'GET').toUpperCase();
   const urlRaw     = normalizeUrl(item.request.url);
 
-  // Method: prefer saved; else API method
   const method = (saved?.method || methodOrig).toUpperCase();
   const url    = saved?.url || urlRaw;
 
@@ -676,9 +619,8 @@ function getInitialStateForItem(item){
 function openRequest(item, forceDefaults = false){
   CURRENT_REQ_ID = item.id;
 
-  const {
-    method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response
-  } = getInitialStateForItem(item, forceDefaults);
+  const { method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response } =
+    getInitialStateForItem(item, forceDefaults);
 
   const pane = $('#reqPane'); 
   pane.innerHTML = '';
@@ -694,14 +636,14 @@ function openRequest(item, forceDefaults = false){
         ...methods.map(m =>
           el('button', {
             type: 'button',
-            class: 'methodBtn' + (m === methodOrig ? ' active' : ''),
+            class: 'methodBtn' + (m === method ? ' active' : ''),
             'data-m': m,
             onclick: (e) => {
               document.querySelectorAll('#methodGroup .methodBtn')
                 .forEach(b => b.classList.remove('active'));
               e.currentTarget.classList.add('active');
-              // обновляем бейдж
               $('#apiBadge').textContent = `API: ${m}`;
+              debSave(); // сразу сохраним смену метода
             }
           }, m)
         )
@@ -710,20 +652,11 @@ function openRequest(item, forceDefaults = false){
     })(),
 
     // --- URL input ---
-    el('input', { 
-      id: 'urlInp', 
-      value: url, 
-      placeholder: 'https://api.example.com/path?x=1' 
-    }),
+    el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
 
     // --- API badge ---
-    el('div', { id: 'apiBadge', class: 'apiBadge' }, `API: ${methodOrig}`)
+    el('div', { id: 'apiBadge', class: 'apiBadge' }, `API: ${method}`)
   );
-  card.append(header);
-}
-function getSelectedMethod(){
-  return document.querySelector('#methodGroup .methodBtn.active')?.dataset.m || 'GET';
-}
 
   // Tabs
   const tabs = el('div', {class:'tabs'},
@@ -785,10 +718,14 @@ function getSelectedMethod(){
   const resetBtn= el('button', {id:'resetBtn', class:'reset', title:'Reset local changes for this request'}, 'Reset to defaults');
   actions.append(sendBtn, curlBtn, resetBtn);
 
+  // mount card
   card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
   pane.append(card);
 
-  // Tabs switching
+  // --- helpers & handlers (внутри openRequest) ---
+  function getSelectedMethod(){
+    return document.querySelector('#methodGroup .methodBtn.active')?.dataset.m || 'GET';
+  }
   function activateTab(name){
     ['Params','Headers','Auth','Scripts'].forEach(t=>{
       $('#tab'+t).classList.toggle('active', t===name);
@@ -824,7 +761,7 @@ function getSelectedMethod(){
     const scriptsNew = { pre: preTA.value, post: postTA.value };
     const authNew = { type: $('#authType').value, token: $('#authTokenInp').value };
     const patch = {
-      method: $('#methodSel').value,
+      method: getSelectedMethod(),
       url: $('#urlInp').value,
       params, headers,
       body: $('#bodyRawArea').value,
@@ -847,38 +784,36 @@ function getSelectedMethod(){
   $('#resetBtn').onclick = ()=>{
     clearReqState(CURRENT_REQ_ID);
     openRequest(item); // reopen from collection defaults
-    // keep tree highlight
   };
 
- // ==== SEND ====
-$('#sendBtn').onclick = async ()=>{
-  debSave();
-  const params = tableToSimpleArray(paramsTable.tBodies[0]);
-  const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
-  let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
+  // ==== SEND ====
+  $('#sendBtn').onclick = async ()=>{
+    debSave();
+    const params = tableToSimpleArray(paramsTable.tBodies[0]);
+    const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+    let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
 
-  // ⚡ метод теперь берём из кнопок
-  let method = getSelectedMethod();
-  let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
-  let body = resolveVars($('#bodyRawArea').value || '');
-  const authType = $('#authType').value;
-  const authToken = $('#authTokenInp').value.trim();
+    let method = getSelectedMethod();
+    let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+    let body = resolveVars($('#bodyRawArea').value || '');
+    const authType = $('#authType').value;
+    const authToken = $('#authTokenInp').value.trim();
 
-  // Inject Authorization if missing
-  const hasAuth = Object.keys(headers).some(h=>h.toLowerCase()==='authorization');
-  if (!hasAuth){
-    if (authType==='bearer' && authToken){
-      headers['Authorization'] = 'Bearer ' + authToken;
-    } else if (GLOBAL_BEARER){
-      headers['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
+    // Inject Authorization if missing
+    const hasAuth = Object.keys(headers).some(h=>h.toLowerCase()==='authorization');
+    if (!hasAuth){
+      if (authType==='bearer' && authToken){
+        headers['Authorization'] = 'Bearer ' + authToken;
+      } else if (GLOBAL_BEARER){
+        headers['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
+      }
     }
-  }
 
-  // Auto Content-Type
-  if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
-    const ct = detectContentType(body);
-    if (ct) headers['Content-Type'] = ct;
-  }
+    // Auto Content-Type
+    if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
+      const ct = detectContentType(body);
+      if (ct) headers['Content-Type'] = ct;
+    }
 
     // PRE
     const preCode = preTA.value.trim();
@@ -940,35 +875,33 @@ $('#sendBtn').onclick = async ()=>{
     showLoader(false); $('#sendBtn').disabled = false;
   };
 
-// cURL
-$('#curlBtn').onclick = ()=>{
-  // ⚡ метод из кнопок
-  const m = getSelectedMethod();
+  // cURL
+  $('#curlBtn').onclick = ()=>{
+    const m = getSelectedMethod();
+    const params = tableToSimpleArray(paramsTable.tBodies[0]);
+    const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+    const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+    const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
+    const authType = $('#authType').value;
+    const authToken = $('#authTokenInp').value.trim();
 
-  const params = tableToSimpleArray(paramsTable.tBodies[0]);
-  const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
-  const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
-  const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
-  const authType = $('#authType').value;
-  const authToken = $('#authTokenInp').value.trim();
+    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
+      if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
+      else if (GLOBAL_BEARER) hdrs['Authorization']='Bearer '+GLOBAL_BEARER;
+    }
 
-  if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
-    if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
-    else if (GLOBAL_BEARER) hdrs['Authorization']='Bearer '+GLOBAL_BEARER;
-  }
+    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
+      const ct = detectContentType($('#bodyRawArea').value || '');
+      if (ct) hdrs['Content-Type'] = ct;
+    }
 
-  if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
-    const ct = detectContentType($('#bodyRawArea').value || '');
-    if (ct) hdrs['Content-Type'] = ct;
-  }
-
-  const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
-  const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
-  const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
-  const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
-  navigator.clipboard.writeText(cmd); 
-  alert('cURL copied');
-};
+    const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
+    const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
+    const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
+    const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
+    navigator.clipboard.writeText(cmd); 
+    alert('cURL copied');
+  };
 
   // Show saved response if any
   if (response){
@@ -1013,62 +946,7 @@ function makePostCtx({request, response, error}){
   return ctx;
 }
 
-/* ========= Response ========= */
-function renderResponse(res, text, ms, url){
-  const pane = $('#resPane'); pane.innerHTML = '';
-  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response'));
-  const head = el('div', {class:'respHeader'});
-  const status = res ? `${res.status} ${res.statusText}` : 'Network error';
-  head.append(el('span', {class:'pill', style:`color:${res ? (res.ok?'var(--ok)':'var(--err)'):'var(--err)'}`}, status));
-  head.append(el('span', {class:'pill'}, `Time: ${ms.toFixed(0)} ms`));
-  head.append(el('span', {class:'pill'}, `URL: ${url}`));
-  card.append(head);
-
-  const tools = buildRespTools(text);
-  card.append(tools);
-
-  const bodyWrap = el('div', {class:'respBody'});
-  let formatted = text; try{ formatted = JSON.stringify(JSON.parse(text),null,2);}catch{}
-  bodyWrap.append(el('pre', {id:'respPre'}, formatted || (text || '—')));
-  card.append(bodyWrap);
-
-  if (res){
-    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
-    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
-    const tb = el('tbody'); res.headers.forEach((v,k)=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, v))));
-    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
-    pane.append(card, hdrsCard);
-  }else{
-    pane.append(card);
-  }
-}
-function renderResponseSaved(resp){
-  const pane = $('#resPane'); pane.innerHTML = '';
-  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response (last)'));
-  const head = el('div', {class:'respHeader'});
-  head.append(el('span', {class:'pill', style:`color:${resp.status && resp.status>=200 && resp.status<400 ? 'var(--ok)' : 'var(--err)'}`}, `${resp.status||0} ${resp.statusText||''}`));
-  if (resp.timeMs!=null) head.append(el('span', {class:'pill'}, `Time: ${Math.round(resp.timeMs)} ms`));
-  if (resp.url) head.append(el('span', {class:'pill'}, `URL: ${resp.url}`));
-  card.append(head);
-
-  const tools = buildRespTools(resp.bodyText||'');
-  card.append(tools);
-
-  const bodyWrap = el('div', {class:'respBody'});
-  let formatted = resp.bodyText; try{ formatted = JSON.stringify(JSON.parse(resp.bodyText||''),null,2);}catch{}
-  bodyWrap.append(el('pre', {id:'respPre'}, formatted || (resp.bodyText || '—')));
-  card.append(bodyWrap);
-
-  if (resp.headers && Object.keys(resp.headers).length){
-    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
-    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
-    const tb = el('tbody'); Object.entries(resp.headers).forEach(([k,v])=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, String(v)))));
-    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
-    pane.append(card, hdrsCard);
-  }else{
-    pane.append(card);
-  }
-}
+/* ========= Response (with JSON highlight) ========= */
 function buildRespTools(rawText){
   const tools = el('div', {class:'respTools'});
   const input = el('input', {id:'copyField', placeholder:'Field to copy (e.g., access_token or data.token)'});
@@ -1097,6 +975,85 @@ function buildRespTools(rawText){
 }
 function getByPath(obj, path){
   return path.split('.').reduce((acc, key)=> (acc!=null ? acc[key] : undefined), obj);
+}
+
+function syntaxHighlight(json) {
+  if (typeof json != 'string') { json = JSON.stringify(json, undefined, 2); }
+  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+    if (/^"/.test(match)) {
+      if (/:$/.test(match)) return '<span class="json-key">' + match + '</span>';
+      if (/^"(http|https):/.test(match)) return '<span class="json-url">' + match + '</span>';
+      return '<span class="json-string">' + match + '</span>';
+    }
+    if (/true|false/.test(match)) return '<span class="json-boolean">' + match + '</span>';
+    if (/null/.test(match)) return '<span class="json-null">' + match + '</span>';
+    return '<span class="json-number">' + match + '</span>';
+  });
+}
+
+function renderResponse(res, text, ms, url){
+  const pane = $('#resPane'); pane.innerHTML = '';
+  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response'));
+  const head = el('div', {class:'respHeader'});
+  const status = res ? `${res.status} ${res.statusText}` : 'Network error';
+  head.append(el('span', {class:'pill', style:`color:${res ? (res.ok?'var(--ok)':'var(--err)'):'var(--err)'}`}, status));
+  head.append(el('span', {class:'pill'}, `Time: ${ms.toFixed(0)} ms`));
+  head.append(el('span', {class:'pill'}, `URL: ${url}`));
+  card.append(head);
+
+  const tools = buildRespTools(text);
+  card.append(tools);
+
+  const bodyWrap = el('div', {class:'respBody'});
+  let formatted = text; 
+  try { 
+    formatted = JSON.stringify(JSON.parse(text),null,2); 
+    formatted = syntaxHighlight(formatted);
+  } catch {}
+  bodyWrap.innerHTML = '<pre id="respPre">'+(formatted || (text || '—'))+'</pre>';
+  card.append(bodyWrap);
+
+  if (res){
+    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
+    const tb = el('tbody'); res.headers.forEach((v,k)=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, v))));
+    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
+    pane.append(card, hdrsCard);
+  } else {
+    pane.append(card);
+  }
+}
+function renderResponseSaved(resp){
+  const pane = $('#resPane'); pane.innerHTML = '';
+  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response (last)'));
+  const head = el('div', {class:'respHeader'});
+  head.append(el('span', {class:'pill', style:`color:${resp.status && resp.status>=200 && resp.status<400 ? 'var(--ok)' : 'var(--err)'}`}, `${resp.status||0} ${resp.statusText||''}`));
+  if (resp.timeMs!=null) head.append(el('span', {class:'pill'}, `Time: ${Math.round(resp.timeMs)} ms`));
+  if (resp.url) head.append(el('span', {class:'pill'}, `URL: ${resp.url}`));
+  card.append(head);
+
+  const tools = buildRespTools(resp.bodyText||'');
+  card.append(tools);
+
+  const bodyWrap = el('div', {class:'respBody'});
+  let formatted = resp.bodyText; 
+  try { 
+    formatted = JSON.stringify(JSON.parse(resp.bodyText||''),null,2); 
+    formatted = syntaxHighlight(formatted);
+  } catch {}
+  bodyWrap.innerHTML = '<pre id="respPre">'+(formatted || (resp.bodyText || '—'))+'</pre>';
+  card.append(bodyWrap);
+
+  if (resp.headers && Object.keys(resp.headers).length){
+    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
+    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
+    const tb = el('tbody'); Object.entries(resp.headers).forEach(([k,v])=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, String(v)))));
+    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
+    pane.append(card, hdrsCard);
+  } else {
+    pane.append(card);
+  }
 }
 
 /* ========= Authorize (global) ========= */
@@ -1268,91 +1225,6 @@ function autoOpenFirst(){
     renderTree('');
   }
 })();
-
-  /* ==== Response highlight ==== */
-function syntaxHighlight(json) {
-  if (typeof json != 'string') {
-    json = JSON.stringify(json, undefined, 2);
-  }
-  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-    if (/^"/.test(match)) {
-      if (/:$/.test(match)) return '<span class="json-key">' + match + '</span>';
-      if (/^"(http|https):/.test(match)) return '<span class="json-url">' + match + '</span>';
-      return '<span class="json-string">' + match + '</span>';
-    }
-    if (/true|false/.test(match)) return '<span class="json-boolean">' + match + '</span>';
-    if (/null/.test(match)) return '<span class="json-null">' + match + '</span>';
-    return '<span class="json-number">' + match + '</span>';
-  });
-}
-
-/* перезаписываем вывод ответа */
-function renderResponse(res, text, ms, url){
-  const pane = $('#resPane'); pane.innerHTML = '';
-  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response'));
-  const head = el('div', {class:'respHeader'});
-  const status = res ? `${res.status} ${res.statusText}` : 'Network error';
-  head.append(el('span', {class:'pill', style:`color:${res ? (res.ok?'var(--ok)':'var(--err)'):'var(--err)'}`}, status));
-  head.append(el('span', {class:'pill'}, `Time: ${ms.toFixed(0)} ms`));
-  head.append(el('span', {class:'pill'}, `URL: ${url}`));
-  card.append(head);
-
-  const tools = buildRespTools(text);
-  card.append(tools);
-
-  const bodyWrap = el('div', {class:'respBody'});
-  let formatted = text; 
-  try { 
-    formatted = JSON.stringify(JSON.parse(text),null,2); 
-    formatted = syntaxHighlight(formatted);
-  } catch {}
-  bodyWrap.innerHTML = '<pre id="respPre">'+(formatted || (text || '—'))+'</pre>';
-  card.append(bodyWrap);
-
-  if (res){
-    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
-    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
-    const tb = el('tbody'); res.headers.forEach((v,k)=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, v))));
-    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
-    pane.append(card, hdrsCard);
-  } else {
-    pane.append(card);
-  }
-}
-
-/* тоже самое для сохранённого ответа */
-function renderResponseSaved(resp){
-  const pane = $('#resPane'); pane.innerHTML = '';
-  const card = el('div', {class:'card'}); card.append(el('h3', {}, 'Response (last)'));
-  const head = el('div', {class:'respHeader'});
-  head.append(el('span', {class:'pill', style:`color:${resp.status && resp.status>=200 && resp.status<400 ? 'var(--ok)' : 'var(--err)'}`}, `${resp.status||0} ${resp.statusText||''}`));
-  if (resp.timeMs!=null) head.append(el('span', {class:'pill'}, `Time: ${Math.round(resp.timeMs)} ms`));
-  if (resp.url) head.append(el('span', {class:'pill'}, `URL: ${resp.url}`));
-  card.append(head);
-
-  const tools = buildRespTools(resp.bodyText||'');
-  card.append(tools);
-
-  const bodyWrap = el('div', {class:'respBody'});
-  let formatted = resp.bodyText; 
-  try { 
-    formatted = JSON.stringify(JSON.parse(resp.bodyText||''),null,2); 
-    formatted = syntaxHighlight(formatted);
-  } catch {}
-  bodyWrap.innerHTML = '<pre id="respPre">'+(formatted || (resp.bodyText || '—'))+'</pre>';
-  card.append(bodyWrap);
-
-  if (resp.headers && Object.keys(resp.headers).length){
-    const hdrsCard = el('div', {class:'card'}); hdrsCard.append(el('h3', {}, 'Response headers'));
-    const table = el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, 'Header'), el('th', {}, 'Value'))));
-    const tb = el('tbody'); Object.entries(resp.headers).forEach(([k,v])=> tb.append(el('tr', {}, el('td', {}, k), el('td', {}, String(v)))));
-    table.append(tb); hdrsCard.append(el('div', {class:'kvs'}, table));
-    pane.append(card, hdrsCard);
-  } else {
-    pane.append(card);
-  }
-}
 </script>
 </body>
 </html>
