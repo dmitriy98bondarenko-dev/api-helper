@@ -148,19 +148,13 @@
   .respTools{ display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--divider); background:var(--panel); align-items:center; flex-wrap:wrap }
   .respTools input{ padding:8px 10px; border:1px solid var(--divider); border-radius:8px; min-width:220px; background:#0000; color:var(--fg) }
 
-  /* Modals */
+  /* Modals (base) */
   .modal{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; z-index:10000 }
   .modal[hidden]{ display:none }
   .modalCard{ width:520px; max-width:90%; max-height:80vh; overflow:auto; background:var(--panel); border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:20px }
   .modalCard h3{ margin:0 0 14px 0; font-size:16px; color:var(--ink) }
   .modalCard .row input{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); font-size:14px; background:#0000; color:var(--fg) }
-.modalActions{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  margin-top:16px;
-  align-items:center;
-}
+  .modalActions{ display:flex; justify-content:space-between; gap:10px; margin-top:16px; align-items:center }
   .modalActions button{ min-width:80px; padding:8px 14px; border-radius:8px; font-size:14px }
   .auth-ok{ background:#10b981; color:#fff; border:none }
   .auth-bad{ background:var(--chip-bg); color:var(--fg) }
@@ -171,13 +165,14 @@
   .authRow{ display:grid; grid-template-columns:140px 1fr; gap:12px; padding:8px 0; align-items:center }
   .authRow .muted{ font-size:14px; color:var(--muted) }
   .authRow select, .authRow input{ width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg); font-size:14px }
-/* Vars */
-.varsTable{ width:100%; border-collapse:collapse; font-size:14px; background:#0000 }
-.varsTable th,.varsTable td{ border-bottom:1px solid var(--divider); padding:8px }
-.varsTable th{ position:sticky; top:0; z-index:2; background:var(--soft); color:var(--muted); font-weight:600; text-align:left; box-shadow:0 2px 0 var(--divider); }
-.varsTable td input[type="text"]{ width:100%; padding:6px 8px; border:1px solid var(--divider); border-radius:6px; font-size:13px; background:#0000; color:var(--fg) }
-.varsTable td input[type="checkbox"]{ width:auto; margin:auto; display:block; }
-.varsHelp{ font-size:12px; color:var(--muted); }
+
+  /* Vars */
+  .varsTable{ width:100%; border-collapse:collapse; font-size:14px; background:#0000 }
+  .varsTable th,.varsTable td{ border-bottom:1px solid var(--divider); padding:8px }
+  .varsTable th{ position:sticky; top:0; z-index:2; background:var(--soft); color:var(--muted); font-weight:600; text-align:left; box-shadow:0 2px 0 var(--divider); }
+  .varsTable td input[type="text"]{ width:100%; padding:6px 8px; border:1px solid var(--divider); border-radius:6px; font-size:13px; background:#0000; color:var(--fg) }
+  .varsTable td input[type="checkbox"]{ width:auto; margin:auto; display:block; }
+  .varsHelp{ font-size:12px; color:var(--muted); }
 
   /* loader */
   .loaderOverlay{ position:fixed; inset:56px 0 0 0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.2); z-index:9999; backdrop-filter:saturate(1.2) blur(2px); }
@@ -196,38 +191,153 @@
   .json-boolean { color:#b45309; font-weight:600; }
   .json-null { color:#6b7280; font-style:italic; }
   .json-url { color:#7a3cff; text-decoration:underline; cursor:pointer; }
-/* Method picker */
-.methodGroup{
-  display:flex;
-  gap:6px;
-  align-items:center;
-  flex-wrap:wrap;      /* чтобы кнопки переносились, если не влазят */
-  max-width:280px;     /* чтобы не наезжали на URL */
-}
-.methodBtn{
-  padding:6px 10px;
-  border:1px solid var(--divider);
-  border-radius:6px;
-  cursor:pointer;
-  background:var(--chip-bg);
-  font-weight:600;
-  font-size:12px;
-  min-width:60px;
-  text-align:center;
-}
-.methodBtn.active{ outline:2px solid #2b8cff33; background:var(--pill); }
 
-/* Request header */
-.reqHeader{
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  gap:12px;
-  padding:12px 14px;
-  background:#fff7e8;
-  border-bottom:1px solid var(--divider);
-  align-items:center;
-}
-[data-theme="dark"] .reqHeader{ background:#2a1f0f; }
+  /* Method picker */
+  .methodGroup{
+    display:flex;
+    gap:6px;
+    align-items:center;
+    flex-wrap:wrap;      /* перенос кнопок */
+    max-width:280px;     /* чтобы не наезжали на URL */
+  }
+  .methodBtn{
+    padding:6px 10px;
+    border:1px solid var(--divider);
+    border-radius:6px;
+    cursor:pointer;
+    background:var(--chip-bg);
+    font-weight:600;
+    font-size:12px;
+    min-width:60px;
+    text-align:center;
+  }
+  .methodBtn.active{
+    outline:2px solid #2b8cff33;
+    background:var(--pill);
+  }
+
+  /* Request header */
+  .reqHeader{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:12px;
+    padding:12px 14px;
+    background:#fff7e8;
+    border-bottom:1px solid var(--divider);
+    align-items:center;
+  }
+  [data-theme="dark"] .reqHeader{ background:#2a1f0f; }
+
+  /* === Authorize modal – overlay темнее + блокируем скролл страницы === */
+  #authModal.modal{
+    background:rgba(2, 6, 23, .58);
+    backdrop-filter:saturate(1.2) blur(2px);
+  }
+  /* когда окно открыто — выключаем скролл у страницы */
+  html:has(#authModal:not([hidden])){ overflow:hidden; }
+
+  /* === Карточка модала: размеры, отступы, тени === */
+  #authModal .modalCard{
+    width:760px;
+    max-width:92vw;
+    padding:24px 28px;
+    border-radius:14px;
+    border:1px solid var(--divider);
+    box-shadow:0 20px 60px rgba(0,0,0,.18);
+  }
+
+  /* Заголовок крупнее */
+  #authModal .modalCard h3{
+    font-size:24px;
+    line-height:1.25;
+    font-weight:800;
+    margin:0 0 18px 0;
+    color:var(--ink);
+  }
+
+  /* Поле ввода и подпись Value: */
+  #authModal .row{
+    display:block;
+    padding:0;
+    margin:6px 0 0 0;
+  }
+  #authModal .row::before{
+    content:"Value:";
+    display:block;
+    font-weight:700;
+    color:var(--muted);
+    margin:0 0 6px 0;
+  }
+  #authModal .row input{
+    width:100%;
+    height:48px;
+    padding:10px 12px;
+    font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size:14px;
+    border-radius:10px;
+    border:1px solid var(--divider);
+    background:#0000;
+    color:var(--fg);
+  }
+
+  /* Статус токена */
+  #authModal .authState{
+    margin-top:12px;
+    font-size:13px;
+    color:#065f46;
+  }
+  [data-theme="dark"] #authModal .authState{ color:#34d399; }
+
+  /* Кнопки и панель действий */
+  #authModal .modalActions{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:10px;
+    margin-top:18px;
+  }
+  #authModal .modalActions > div{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  #authModal .modalActions button{
+    padding:10px 18px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:700;
+  }
+
+  /* порядок кнопок */
+  #authModal #authSave{ order:1; }
+  #authModal #authCancel{ order:2; }
+  #authModal #authClear{ order:3; }
+
+  /* стили кнопок */
+  #authModal #authSave{
+    background:#10b981;
+    color:#fff;
+    border:none;
+  }
+  #authModal #authSave:hover{ filter:brightness(1.05); }
+
+  #authModal #authCancel{
+    background:var(--panel);
+    color:var(--fg);
+    border:1px solid var(--divider);
+  }
+  #authModal #authCancel:hover{ filter:brightness(1.02); }
+
+  #authModal #authClear{
+    background:var(--soft);
+    color:var(--muted);
+    border:1px solid var(--divider);
+  }
+  [data-theme="dark"] #authModal #authClear{
+    color:var(--muted);
+    background:#121a2a;
+    border-color:#25314a;
+  }
 </style>
 </head>
 
@@ -322,18 +432,35 @@ const AUTO_OPEN_FIRST         = urlParams.get('autoOpen') !== '0';
 
 /* ========= Utilities ========= */
 const $ = sel => document.querySelector(sel);
-const el = (tag, attrs={}, ...children) => { const n=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{
-  if (k==='class') n.className=v; else if (k==='dataset') Object.assign(n.dataset,v);
-  else if (k.startsWith('on') && typeof v==='function') n.addEventListener(k.slice(2),v); else n.setAttribute(k,v);
-}); children.forEach(c=>n.append(c)); return n; };
+const el = (tag, attrs={}, ...children) => {
+  const n=document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v])=>{
+    if (k==='class') n.className=v;
+    else if (k==='dataset') Object.assign(n.dataset,v);
+    else if (k.startsWith('on') && typeof v==='function') n.addEventListener(k.slice(2),v);
+    else n.setAttribute(k,v);
+  });
+  children.forEach(c=>n.append(c));
+  return n;
+};
 function debounce(fn, ms=250){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 function showLoader(on){ const l = $('#loader'); if (!l) return; l.hidden = !on; }
+
+/* uuid polyfill */
+const uuid = (window.crypto && typeof window.crypto.randomUUID === 'function')
+  ? () => window.crypto.randomUUID()
+  : () => 'id-' + Math.random().toString(36).slice(2) + Date.now();
+
+/* helpers that are safe for file:// */
+function baseForUrls(){
+  return (location.origin && location.origin !== 'null') ? location.origin : 'http://localhost';
+}
 function pathOnly(u){
   if(!u) return '';
   try{
     const full = resolveVars(u);
     const isAbs = /^https?:\/\//i.test(full);
-    const urlObj = new URL(isAbs ? full : (location.origin + (full.startsWith('/')?full:'/'+full)));
+    const urlObj = new URL(isAbs ? full : (baseForUrls() + (full.startsWith('/')?full:'/'+full)));
     return urlObj.pathname || '/';
   }catch{ return String(u).replace(/^https?:\/\/[^/]+/i,'') || '/'; }
 }
@@ -413,12 +540,99 @@ function normalizeUrl(u){
   }
   return raw;
 }
-function flattenItems(node, path=[]){
-  if(!node) return;
-  if(Array.isArray(node)){ node.forEach(n=>flattenItems(n, path)); return; }
-  if(node.item){ const newPath = node.name ? path.concat(stripPrefixFolder(node.name)) : path; node.item.forEach(child=>flattenItems(child, newPath)); return; }
-  if(node.request){ ITEMS_FLAT.push({ id: crypto.randomUUID(), path: path.join(' / '), name: node.name || '(untitled)', request: node.request }); }
+
+/* ===== Helpers for events/auth inheritance from Postman ===== */
+function eventsToScripts(events = []){
+  const srcOf = (ev) => {
+    const scr = ev && ev.script ? ev.script : null;
+    if (!scr) return '';
+    if (Array.isArray(scr.exec)) return scr.exec.join('\n');
+    if (typeof scr.exec === 'string') return scr.exec;
+    if (typeof scr.source === 'string') return scr.source;
+    return '';
+  };
+  const listen = (ev) => String(ev?.listen || '').toLowerCase();
+  const pre  = events.filter(ev => listen(ev) === 'prerequest').map(srcOf).filter(Boolean).join('\n\n');
+  const post = events.filter(ev => listen(ev) === 'test').map(srcOf).filter(Boolean).join('\n\n');
+  return { pre, post };
 }
+function _authGet(arr, key){
+  if (!Array.isArray(arr)) return undefined;
+  return arr.find(x => String(x?.key) === key)?.value;
+}
+function hasHeader(list, key){
+  const k = String(key||'').toLowerCase();
+  return (list||[]).some(h => String(h?.key||'').toLowerCase() === k);
+}
+function hasParam(list, key){
+  const k = String(key||'');
+  return (list||[]).some(p => p?.key === k);
+}
+/* Compute defaults from Postman auth schema:
+   returns { uiAuth, injectHeaders:[{key,value}], extraParams:[{key,value,enabled:true}] } */
+function deriveAuthDefaults(effectiveAuth){
+  let uiAuth = { type: 'bearer', token: '' };
+  const injectHeaders = [];
+  const extraParams = [];
+
+  if (!effectiveAuth || !effectiveAuth.type) return { uiAuth, injectHeaders, extraParams };
+  const type = String(effectiveAuth.type).toLowerCase();
+
+  if (type === 'bearer'){
+    const token = _authGet(effectiveAuth.bearer, 'token') || VARS.token || VARS.access_token || '';
+    uiAuth = { type: 'bearer', token: resolveVars(token || '') };
+    if (uiAuth.token) injectHeaders.push({ key: 'Authorization', value: 'Bearer ' + uiAuth.token });
+  } else if (type === 'basic'){
+    const username = resolveVars(_authGet(effectiveAuth.basic, 'username') || '');
+    const password = resolveVars(_authGet(effectiveAuth.basic, 'password') || '');
+    const b64 = btoa(`${username}:${password}`);
+    injectHeaders.push({ key: 'Authorization', value: 'Basic ' + b64 });
+  } else if (type === 'apikey'){
+    const name  = resolveVars(_authGet(effectiveAuth.apikey, 'key') || _authGet(effectiveAuth.apikey, 'name') || '');
+    const value = resolveVars(_authGet(effectiveAuth.apikey, 'value') || '');
+    const place = String(_authGet(effectiveAuth.apikey, 'in') || 'header').toLowerCase();
+    if (name && value){
+      if (place === 'query') extraParams.push({ key: name, value, enabled: true });
+      else injectHeaders.push({ key: name, value, enabled: true });
+    }
+  }
+  return { uiAuth, injectHeaders, extraParams };
+}
+
+/* ========= Flatten items with events/auth inheritance ========= */
+function flattenItems(node, path=[], inheritedEvents=[], inheritedAuth=null){
+  if(!node) return;
+
+  // current node-level events/auth (collection or folder)
+  const nodeEvents = Array.isArray(node.event) ? node.event : [];
+  const nodeAuth   = node.auth || null;
+
+  const nextEvents = inheritedEvents.concat(nodeEvents);
+  const nextAuth   = nodeAuth || inheritedAuth;
+
+  if (Array.isArray(node.item)){ // collection or folder
+    const newPath = node.name ? path.concat(stripPrefixFolder(node.name)) : path;
+    node.item.forEach(child => flattenItems(child, newPath, nextEvents, nextAuth));
+    return;
+  }
+
+  // leaf request item
+  if (node.request){
+    const reqEvents = Array.isArray(node.request.event) ? node.request.event : [];
+    const finalEvents = nextEvents.concat(reqEvents);
+    const finalAuth   = node.request.auth || nextAuth;
+
+    ITEMS_FLAT.push({
+      id: uuid(),
+      path: path.join(' / '),
+      name: node.name || '(untitled)',
+      request: node.request,
+      events: finalEvents,
+      resolvedAuth: finalAuth
+    });
+  }
+}
+
 function safeBuildUrl(url, queryArr){
   let u = resolveVars(url || '');
   const extra = new URLSearchParams();
@@ -426,8 +640,11 @@ function safeBuildUrl(url, queryArr){
   const glue = u.includes('?') ? (u.endsWith('?') || u.endsWith('&') ? '' : '&') : (extra.toString()? '?' : '');
   const composed = u + (glue ? glue + extra.toString() : '');
   try{
-    const urlObj = new URL(composed, composed.startsWith('http') ? undefined : location.origin);
-    return urlObj.href.replace(location.origin,'') || urlObj.href;
+    const base = /^https?:\/\//i.test(composed) ? undefined : baseForUrls();
+    const urlObj = new URL(composed, base);
+    return (location.origin && location.origin !== 'null')
+      ? (urlObj.href.replace(location.origin,'') || urlObj.href)
+      : urlObj.href;
   }catch{ return composed; }
 }
 
@@ -523,10 +740,11 @@ function getInitialStateForItem(item, forceDefaults=false){
   const methodOrig = String(item.request.method || 'GET').toUpperCase();
   const urlRaw     = normalizeUrl(item.request.url);
 
-  const method = methodOrig; // метод из коллекции по умолчанию
+  const method = methodOrig; // по замовчуванню з колекції
   const url    = saved?.url || urlRaw;
 
-  const paramsInit = saved?.params ?? (
+  // Params из запроса
+  let paramsInit = saved?.params ?? (
     (typeof item.request.url === 'object' && Array.isArray(item.request.url.query))
       ? item.request.url.query.map(q => ({
           key: q.key,
@@ -536,6 +754,7 @@ function getInitialStateForItem(item, forceDefaults=false){
       : []
   );
 
+  // Headers из запроса
   let headersInit = saved?.headers ?? (
     Array.isArray(item.request.header)
       ? item.request.header.map(h => ({
@@ -546,18 +765,39 @@ function getInitialStateForItem(item, forceDefaults=false){
       : []
   );
 
+  // Наследованный/локальный auth из коллекции/папок/запроса
+  const effectiveAuth = item.resolvedAuth;
+
+  // Если нет локально сохранённых хедеров — подмешиваем auth из коллекции
   if (!saved?.headers){
-    if (GLOBAL_BEARER && !headersInit.some(h => String(h.key || '').toLowerCase() === 'authorization')){
-      headersInit.unshift({ key: 'Authorization', value: 'Bearer ' + GLOBAL_BEARER, enabled: true });
-    } else if (item.request.auth && item.request.auth.type === 'bearer'){
-      const token = (item.request.auth.bearer || []).find(x => x.key === 'token')?.value 
-                    || VARS.token || VARS.access_token || '';
-      if (token && !headersInit.some(h => String(h.key || '').toLowerCase() === 'authorization')){
-        headersInit.unshift({ key: 'Authorization', value: 'Bearer ' + resolveVars(token), enabled: true });
+    const { uiAuth, injectHeaders, extraParams } = deriveAuthDefaults(effectiveAuth);
+
+    // query параметры для apiKey
+    (extraParams||[]).forEach(p=>{
+      if (!hasParam(paramsInit, p.key)){
+        paramsInit.unshift({ key:p.key, value:p.value, enabled:true });
       }
+    });
+
+    // заголовки Authorization / apiKey
+    (injectHeaders||[]).forEach(h=>{
+      if (!hasHeader(headersInit, h.key)){
+        headersInit.unshift({ key:h.key, value:h.value, enabled:true });
+      }
+    });
+
+    // если ничего не пришло, но есть глобальный токен — добавим его
+    if (!hasHeader(headersInit, 'Authorization') && GLOBAL_BEARER){
+      headersInit.unshift({ key:'Authorization', value:'Bearer '+GLOBAL_BEARER, enabled:true });
+    }
+
+    // UI-Auth таб по умолчанию (только Bearer отображаем как значение)
+    if (!saved?.auth && uiAuth.type === 'bearer' && uiAuth.token){
+      // заполнится ниже
     }
   }
 
+  // Body
   let bodyText = saved?.body;
   if (bodyText == null){
     bodyText = item.request.body?.raw != null
@@ -567,8 +807,23 @@ function getInitialStateForItem(item, forceDefaults=false){
       : '';
   }
 
-  const scripts = saved?.scripts ?? loadScriptsLegacy(id) ?? { pre: '', post: '' };
-  const auth = saved?.auth ?? { type: 'bearer', token: '' };
+  // Скрипты: сначала локальные, иначе — из Postman events
+  let scripts = saved?.scripts ?? loadScriptsLegacy(id);
+  if (!scripts){
+    const fromEvents = eventsToScripts(item.events || []);
+    scripts = { pre: fromEvents.pre || '', post: fromEvents.post || '' };
+  }
+
+  // UI Auth (только bearer в интерфейсе)
+  let auth = saved?.auth;
+  if (!auth){
+    if (effectiveAuth && String(effectiveAuth.type).toLowerCase() === 'bearer'){
+      const token = _authGet(effectiveAuth.bearer, 'token') || VARS.token || VARS.access_token || '';
+      auth = { type: 'bearer', token: resolveVars(token || '') };
+    }else{
+      auth = { type: 'bearer', token: '' };
+    }
+  }
 
   return {
     method,
@@ -587,17 +842,14 @@ function openRequest(item, forceDefaults = false){
   CURRENT_REQ_ID = item.id;
 
   const {
-const {
-  method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response
-} = getInitialStateForItem(item, forceDefaults);
-
+    method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response
   } = getInitialStateForItem(item, forceDefaults);
 
   const pane = $('#reqPane'); 
   pane.innerHTML = '';
   const card = el('div', { class:'card' });
 
-  // Header: Method + URL + API badge
+  // ===== Header: Method + URL + API badge =====
   const header = el('div', { class: 'reqHeader' },
 
     // --- Method buttons ---
@@ -613,7 +865,6 @@ const {
               document.querySelectorAll('#methodGroup .methodBtn')
                 .forEach(b => b.classList.remove('active'));
               e.currentTarget.classList.add('active');
-
               $('#apiBadge').textContent = `API: ${m}`;
             }
           }, m)
@@ -623,22 +874,13 @@ const {
     })(),
 
     // --- URL input ---
-    el('input', { 
-      id: 'urlInp', 
-      value: url, 
-      placeholder: 'https://api.example.com/path?x=1' 
-    }),
+    el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
 
     // --- API badge ---
     el('div', { id: 'apiBadge', class: 'apiBadge' }, `API: ${methodOrig}`)
   );
-  card.append(header);
-}
-function getSelectedMethod(){
-  return document.querySelector('#methodGroup .methodBtn.active')?.dataset.m || 'GET';
-}
 
-  // Tabs
+  // ===== Tabs =====
   const tabs = el('div', {class:'tabs'},
     el('div', {class:'tab active', id:'tabParams'}, 'Params'),
     el('div', {class:'tab', id:'tabHeaders'}, 'Headers'),
@@ -651,14 +893,14 @@ function getSelectedMethod(){
   const authPane   = el('div', {class:'tabPane',        id:'paneAuth'});
   const scriptsPane= el('div', {class:'tabPane',        id:'paneScripts'});
 
-  // Params/Headers
+  // ===== Params / Headers =====
   const paramsTable = buildKVTable(paramsInit);
   paramsPane.append(el('div', {class:'kvs'}, paramsTable, el('div',{class:'kvHint'},'Add or change query parameters')));
 
   const headersTable = buildKVTable(headersInit);
   headersPane.append(el('div', {class:'kvs'}, headersTable, el('div',{class:'kvHint'},'Request headers')));
 
-  // Authorization tab
+  // ===== Authorization =====
   const authTypeSel = el('select', {id:'authType'},
     el('option', {value:'bearer', selected: (auth?.type||'bearer')==='bearer'}, 'Bearer Token')
   );
@@ -669,7 +911,7 @@ function getSelectedMethod(){
     el('div', {class:'kvHint'}, 'If there is no "Authorization" header, the token will be added automatically (Authorization tab > Global).')
   );
 
-  // Scripts
+  // ===== Scripts =====
   const sw = el('div', {class:'scriptsSwitcher'},
     el('button', {id:'btnPre',  class:'active', onclick:()=>switchScript('pre')},  'PRE-Request'),
     el('button', {id:'btnPost', onclick:()=>switchScript('post')}, 'POST-Request')
@@ -680,7 +922,14 @@ function getSelectedMethod(){
   const scriptsPaneInfo = el('div', {class:'small muted', style:'padding:0 12px 12px'}, 'Available: ctx.request (method,url,params,headers,body), ctx.response (status, headers, bodyText)');
   scriptsPane.append(sw, scriptsArea, scriptsPaneInfo);
 
-  // Body
+  function switchScript(which){
+    $('#btnPre').classList.toggle('active', which==='pre');
+    $('#btnPost').classList.toggle('active', which==='post');
+    preTA.style.display  = which==='pre' ? '' : 'none';
+    postTA.style.display = which==='post'? '' : 'none';
+  }
+
+  // ===== Body =====
   const bodyWrap = el('div', {class:'reqBodyWrap'});
   const bodyToolbar = el('div', {class:'reqBodyToolbar'},
     el('span', {}, 'Request body'),
@@ -690,19 +939,27 @@ function getSelectedMethod(){
   );
   const bodyArea = el('textarea', {id:'bodyRawArea'}, bodyText || '');
   bodyWrap.append(bodyToolbar, bodyArea);
+  $('#beautifyBtn')?.addEventListener?.('click', ()=>{
+    const src = bodyArea.value.trim();
+    try{
+      const obj = JSON.parse(src);
+      bodyArea.value = JSON.stringify(obj, null, 2);
+      saveReqState(CURRENT_REQ_ID, { body: bodyArea.value });
+    }catch{ alert('Body is not valid JSON'); }
+  });
 
-  // Actions
+  // ===== Actions =====
   const actions = el('div', {class:'actions'});
   const sendBtn = el('button', {class:'send', id:'sendBtn'}, 'Send');
   const curlBtn = el('button', {id:'curlBtn'}, 'Copy cURL');
   const resetBtn= el('button', {id:'resetBtn', class:'reset', title:'Reset local changes for this request'}, 'Reset to defaults');
   actions.append(sendBtn, curlBtn, resetBtn);
 
-  // Mount UI
+  // ===== Mount UI =====
   card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
   pane.append(card);
 
-  // Tabs switching
+  // Tabs
   function activateTab(name){
     ['Params','Headers','Auth','Scripts'].forEach(t=>{
       $('#tab'+t).classList.toggle('active', t===name);
@@ -714,24 +971,7 @@ function getSelectedMethod(){
   $('#tabAuth').onclick   = ()=>activateTab('Auth');
   $('#tabScripts').onclick= ()=>activateTab('Scripts');
 
-  function switchScript(which){
-    $('#btnPre').classList.toggle('active', which==='pre');
-    $('#btnPost').classList.toggle('active', which==='post');
-    preTA.style.display  = which==='pre' ? '' : 'none';
-    postTA.style.display = which==='post'? '' : 'none';
-  }
-
-  // Beautify JSON
-  $('#beautifyBtn').onclick = ()=>{
-    const src = bodyArea.value.trim();
-    try{
-      const obj = JSON.parse(src);
-      bodyArea.value = JSON.stringify(obj, null, 2);
-      saveReqState(CURRENT_REQ_ID, { body: bodyArea.value });
-    }catch{ alert('Body is not valid JSON'); }
-  };
-
-  // Autosave (метод не сохраняем!)
+  // ===== Autosave (метод НЕ зберігаємо) =====
   const debSave = debounce(()=> {
     const params = tableToSimpleArray(paramsTable.tBodies[0]);
     const headers= tableToSimpleArray(headersTable.tBodies[0]);
@@ -756,166 +996,96 @@ function getSelectedMethod(){
     bodyWrap.addEventListener(ev, debSave);
   });
 
-  // Reset only current request (возврат к methodOrig)
+  // ===== Reset (повертає method до methodOrig) =====
   $('#resetBtn').onclick = ()=>{
     clearReqState(CURRENT_REQ_ID);
-    openRequest(item, true); // force defaults
+    openRequest(item, true);
   };
 
-// ==== SEND ====
-$('#sendBtn').onclick = async () => {
-  debSave();
-  const params = tableToSimpleArray(paramsTable.tBodies[0]);
-  const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h => h.enabled !== false);
-  let headers = Object.fromEntries(hdrArr.filter(x => x.key).map(x => [x.key, resolveVars(x.value)]));
+  // ===== Helpers =====
+  const getSelectedMethod = () =>
+    document.querySelector('#methodGroup .methodBtn.active')?.dataset.m || 'GET';
 
-  // метод берём из кнопок
-  let method = getSelectedMethod();
-  let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
-  let body = resolveVars($('#bodyRawArea').value || '');
-  const authType = $('#authType').value;
-  const authToken = $('#authTokenInp').value.trim();
+  // ===== SEND =====
+  $('#sendBtn').onclick = async () => {
+    debSave();
+    const params = tableToSimpleArray(paramsTable.tBodies[0]);
+    const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h => h.enabled !== false);
+    let headers = Object.fromEntries(hdrArr.filter(x => x.key).map(x => [x.key, resolveVars(x.value)]));
 
-  // Inject Authorization if missing
-  const hasAuth = Object.keys(headers).some(h => h.toLowerCase() === 'authorization');
-  if (!hasAuth) {
-    if (authType === 'bearer' && authToken) {
-      headers['Authorization'] = 'Bearer ' + authToken;
-    } else if (GLOBAL_BEARER) {
-      headers['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
-    }
-  }
+    let method = getSelectedMethod();
+    let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+    let body = resolveVars($('#bodyRawArea').value || '');
+    const authType = $('#authType').value;
+    const authToken = $('#authTokenInp').value.trim();
 
-  // Auto Content-Type
-  if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
-    const ct = detectContentType(body);
-    if (ct) headers['Content-Type'] = ct;
-  }
-
-  // PRE
-  const preCode = preTA.value.trim();
-  if (preCode) {
-    try {
-      const ctx = makePreCtx({ method, url: finalUrl, params, headers, body });
-      runUserScript(preCode, ctx);
-      ({ method } = ctx.request);
-      finalUrl = ctx.request.url;
-      headers  = ctx.request.headers;
-      body     = ctx.request.body;
-    } catch (e) {
-      renderResponse(null, 'PRE error: ' + e.message, 0, finalUrl);
-      return;
-    }
-  }
-
-  showLoader(true); $('#sendBtn').disabled = true;
-  const started = performance.now();
-  let res, text;
-
-  try {
-    res = await fetch(finalUrl, { method, headers, body: (method === 'GET' || method === 'HEAD') ? undefined : body });
-    text = await res.text();
-  } catch (e) {
-    const ms = performance.now() - started;
-    renderResponse(null, String(e), ms, finalUrl);
-
-    const postCode = postTA.value.trim();
-    if (postCode) {
-      try {
-        const ctxPost = makePostCtx({ request: { method, url: finalUrl, headers, body }, response: null, error: String(e) });
-        runUserScript(postCode, ctxPost);
-      } catch (_) {}
+    // Authorization
+    const hasAuth = Object.keys(headers).some(h => h.toLowerCase() === 'authorization');
+    if (!hasAuth) {
+      if (authType === 'bearer' && authToken) headers['Authorization'] = 'Bearer ' + authToken;
+      else if (GLOBAL_BEARER) headers['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
     }
 
-    saveReqState(CURRENT_REQ_ID, { response: { status: 0, statusText: 'Network error', headers: {}, bodyText: String(e), url: finalUrl, timeMs: ms } });
-    showLoader(false); $('#sendBtn').disabled = false;
-    return;
-  }
-
-  // POST
-  const postCode = postTA.value.trim();
-  if (postCode) {
-    try {
-      const ctxPost = makePostCtx({
-        request: { method, url: finalUrl, headers, body },
-        response: { status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
-      });
-      runUserScript(postCode, ctxPost);
-      if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') text = ctxPost.response.bodyText;
-    } catch (e) { /* ignore */ }
-  }
-
-  const ms = performance.now() - started;
-  renderResponse(res, text, ms, finalUrl);
-
-  const respObj = {
-    status: res.status,
-    statusText: res.statusText,
-    headers: Object.fromEntries(res.headers.entries()),
-    bodyText: text,
-    url: finalUrl,
-    timeMs: ms
-  };
-  saveReqState(CURRENT_REQ_ID, { response: respObj });
-
-  showLoader(false); $('#sendBtn').disabled = false;
-};
-
+    // Content-Type
+    if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
+      const ct = detectContentType(body);
+      if (ct) headers['Content-Type'] = ct;
     }
-  }
-
-// Auto Content-Type
-if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
-  const ct = detectContentType(body);
-  if (ct) headers['Content-Type'] = ct;
-}
-
 
     // PRE
     const preCode = preTA.value.trim();
-    if (preCode){
-      try{
-        const ctx = makePreCtx({method, url:finalUrl, params, headers, body});
+    if (preCode) {
+      try {
+        const ctx = makePreCtx({ method, url: finalUrl, params, headers, body });
         runUserScript(preCode, ctx);
-        ({method} = ctx.request);
+        ({ method } = ctx.request);
         finalUrl = ctx.request.url;
         headers  = ctx.request.headers;
         body     = ctx.request.body;
-      }catch(e){ renderResponse(null, 'PRE error: '+e.message, 0, finalUrl); return; }
+      } catch (e) {
+        renderResponse(null, 'PRE error: ' + e.message, 0, finalUrl);
+        return;
+      }
     }
 
     showLoader(true); $('#sendBtn').disabled = true;
     const started = performance.now();
     let res, text;
-    try{
-      res = await fetch(finalUrl, { method, headers, body: (method==='GET'||method==='HEAD')?undefined:body });
+
+    try {
+      res = await fetch(finalUrl, { method, headers, body: (method === 'GET' || method === 'HEAD') ? undefined : body });
       text = await res.text();
-    }catch(e){
-      const ms = performance.now()-started;
+    } catch (e) {
+      const ms = performance.now() - started;
       renderResponse(null, String(e), ms, finalUrl);
+
       const postCode = postTA.value.trim();
-      if (postCode){
-        try{ const ctxPost = makePostCtx({request:{method,url:finalUrl,headers,body}, response:null, error:String(e)}); runUserScript(postCode, ctxPost); }catch(_){}
+      if (postCode) {
+        try {
+          const ctxPost = makePostCtx({ request: { method, url: finalUrl, headers, body }, response: null, error: String(e) });
+          runUserScript(postCode, ctxPost);
+        } catch (_) {}
       }
-      saveReqState(CURRENT_REQ_ID, { response: { status:0, statusText:'Network error', headers:{}, bodyText:String(e), url:finalUrl, timeMs:ms }});
+
+      saveReqState(CURRENT_REQ_ID, { response: { status: 0, statusText: 'Network error', headers: {}, bodyText: String(e), url: finalUrl, timeMs: ms } });
       showLoader(false); $('#sendBtn').disabled = false;
       return;
     }
 
     // POST
     const postCode = postTA.value.trim();
-    if (postCode){
-      try{
+    if (postCode) {
+      try {
         const ctxPost = makePostCtx({
-          request:{method,url:finalUrl,headers,body},
-          response:{ status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
+          request: { method, url: finalUrl, headers, body },
+          response: { status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
         });
         runUserScript(postCode, ctxPost);
         if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') text = ctxPost.response.bodyText;
-      }catch(e){ /* ignore */ }
+      } catch (e) { /* ignore */ }
     }
 
-    const ms = performance.now()-started;
+    const ms = performance.now() - started;
     renderResponse(res, text, ms, finalUrl);
 
     const respObj = {
@@ -931,48 +1101,44 @@ if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
     showLoader(false); $('#sendBtn').disabled = false;
   };
 
-// cURL
-$('#curlBtn').onclick = () => {
-  const m = getSelectedMethod();
+  // ===== cURL =====
+  $('#curlBtn').onclick = () => {
+    const m = getSelectedMethod();
 
-  const params = tableToSimpleArray(paramsTable.tBodies[0]);
-  const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
-  const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h => h.enabled !== false);
-  const hdrs = Object.fromEntries(hdrsArr.map(p => [p.key, resolveVars(p.value)]));
-  const authType = $('#authType').value;
-  const authToken = $('#authTokenInp').value.trim();
+    const params = tableToSimpleArray(paramsTable.tBodies[0]);
+    const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+    const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h => h.enabled !== false);
+    const hdrs = Object.fromEntries(hdrsArr.map(p => [p.key, resolveVars(p.value)]));
+    const authType = $('#authType').value;
+    const authToken = $('#authTokenInp').value.trim();
 
-  if (!Object.keys(hdrs).some(h => h.toLowerCase() === 'authorization')) {
-    if (authType === 'bearer' && authToken) hdrs['Authorization'] = 'Bearer ' + authToken;
-    else if (GLOBAL_BEARER) hdrs['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
-  }
+    if (!Object.keys(hdrs).some(h => h.toLowerCase() === 'authorization')) {
+      if (authType === 'bearer' && authToken) hdrs['Authorization'] = 'Bearer ' + authToken;
+      else if (GLOBAL_BEARER) hdrs['Authorization'] = 'Bearer ' + GLOBAL_BEARER;
+    }
 
-  if (!Object.keys(hdrs).some(h => h.toLowerCase() === 'content-type')) {
-    const ct = detectContentType($('#bodyRawArea').value || '');
-    if (ct) hdrs['Content-Type'] = ct;
-  }
+    if (!Object.keys(hdrs).some(h => h.toLowerCase() === 'content-type')) {
+      const ct = detectContentType($('#bodyRawArea').value || '');
+      if (ct) hdrs['Content-Type'] = ct;
+    }
 
-  const body = (m === 'GET' || m === 'HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
-  const hdrStr = Object.entries(hdrs)
-    .filter(([k]) => k)
-    .map(([k, v]) => ` -H '${k}: ${String(v).replace(/'/g, "'\\''")}'`)
-    .join('');
-  const bodyStr = body ? ` --data '${String(body).replace(/'/g, "'\\''")}'` : '';
-  const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g, "'\\''")}'`;
-  navigator.clipboard.writeText(cmd);
-  alert('cURL copied');
-};
+    const body = (m === 'GET' || m === 'HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
+    const hdrStr = Object.entries(hdrs)
+      .filter(([k]) => k)
+      .map(([k, v]) => ` -H '${k}: ${String(v).replace(/'/g, "'\\''")}'`)
+      .join('');
+    const bodyStr = body ? ` --data '${String(body).replace(/'/g, "'\\''")}'` : '';
+    const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g, "'\\''")}'`;
+    navigator.clipboard.writeText(cmd);
+    alert('cURL copied');
+  };
 
-  // Show saved response if any
+  // ===== show last response =====
   if (response){
     renderResponseSaved(response);
   } else {
     $('#resPane').innerHTML = '';
   }
-}
-
-function getSelectedMethod(){
-  return document.querySelector('#methodGroup .methodBtn.active')?.dataset.m || 'GET';
 }
 
 /* ==== Content-Type detection ==== */
