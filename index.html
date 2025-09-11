@@ -33,10 +33,15 @@
 
   *{box-sizing:border-box}
   body{
-    margin:0; font-family: ui-sans-serif,system-ui,Segoe UI,Roboto,Arial;
-    background:var(--bg); color:var(--fg);
-    display:grid; grid-template-columns: 460px 1fr; grid-template-rows: 56px calc(100dvh - 56px);
-    grid-template-areas: "top top" "left right";
+  margin: 0;
+  font-family: ui-sans-serif,system-ui,Segoe UI,Roboto,Arial;
+  background: var(--bg);
+  color: var(--fg);
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  grid-template-rows: 56px calc(100dvh - 56px);
+  grid-template-areas: "top top" "left right";
+  overflow-x: hidden;
   }
 
   /* ---------- Header ---------- */
@@ -60,7 +65,12 @@
   .right{grid-area:right; overflow:auto; background:var(--bg)}
   .section{padding:12px}
   .search{width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); background:#fff0; color:var(--fg)}
-  .pane{max-width:1100px; margin:18px auto; padding:0 18px 80px}
+  .pane {
+  max-width: 1100px;
+  margin: 18px auto;
+  padding: 0 18px 80px;
+  overflow-x: hidden;   
+}
 
   /* ---------- Cards ---------- */
   .card{background:var(--panel); border:1px solid var(--divider); border-radius:12px; overflow:hidden; margin-bottom:16px}
