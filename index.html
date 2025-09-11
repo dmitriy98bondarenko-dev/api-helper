@@ -104,23 +104,94 @@
   [data-theme="dark"] .reqHeader{background:#2a1f0f}
   .reqHeader select, .reqHeader input{padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg)}
   .apiBadge{align-self:center; font-weight:800; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(0,0,0,.08); background:var(--chip-bg-2); color:var(--chip-fg); white-space:nowrap}
-
+  /* ---------- Tabs (compact underline style) ---------- */
+  .tabs {
+    display: flex;
+    gap: 18px;
+    padding: 0 12px;
   .tabs{ display:flex; gap:6px; padding:8px 10px; border-bottom:1px solid var(--divider); background:var(--soft) }
+    border-bottom: 1px solid var(--divider);
   .tab{ padding:8px 12px; border:1px solid transparent; border-radius:8px; cursor:pointer; color:var(--ink); background:#0000 }
+    background: var(--panel);
+  }
+  .tab {
+    padding: 10px 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    position: relative;
+    transition: color .15s ease;
+  }
+  .tab:hover { color: var(--ink); }
   .tab.active{ border-color:#cfd7e3; background:#0000000a }
+  .tab.active { color: var(--ink); }
   [data-theme="dark"] .tab.active{ border-color:#334155 }
-
+  .tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 2px 2px 0 0;
+  }
+  .tab.active[data-method="GET"]::after    { background: var(--op-get-f); }
+  .tab.active[data-method="POST"]::after   { background: var(--op-post-f); }
+  .tab.active[data-method="PUT"]::after    { background: var(--op-put-f); }
+  .tab.active[data-method="PATCH"]::after  { background: var(--op-patch-f); }
+  .tab.active[data-method="DELETE"]::after { background: var(--op-del-f); }
+  .tab.active[data-method="HEAD"]::after,
+  .tab.active[data-method="OPTIONS"]::after { background: var(--op-other-f); }
   /* Enhanced KV tables with On/Off */
+  /* ---------- KV Table (compact style) ---------- */
   .kvTable{ width:100%; border-collapse:separate; border-spacing:0; background:#0000; border:1px solid var(--divider); border-radius:10px; overflow:hidden }
+  .kvTable {
   .kvTable thead th{ background:var(--soft); font-size:12px; letter-spacing:.3px; color:var(--muted); text-transform:uppercase; }
+    width: 100%;
   .kvTable tbody tr:not(:last-child) td{ border-bottom:1px solid var(--divider) }
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .kvTable th,
   .kvTable td{ padding:0 }
+  .kvTable td {
   .kvTable td .cell{ display:flex; align-items:center; padding:8px }
+    padding: 6px 8px;
   .kvTable input{ width:100%; padding:9px 10px; border:1px solid transparent; outline:none; background:#0000; color:var(--fg); border-radius:6px }
+    border-bottom: 1px solid var(--divider);
   .kvTable input:focus{ border-color:#d6e2ff; background:#00000008 }
+  }
+  .kvTable th {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    color: var(--muted);
+    background: var(--soft);
+  }
+  .kvTable td .cell {
+    display: flex;
+    align-items: center;
+  }
+  .kvTable input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 6px 4px;
+    font-size: 13px;
+    color: var(--fg);
+    outline: none;
+  }
   [data-theme="dark"] .kvTable input:focus{ border-color:#475569 }
+  .kvTable input:focus {
+    border-bottom: 1px solid var(--accent);
+    background: #0000;
+  }
   .kvOn{ width:64px; text-align:center; }
+  .kvOn { width: 48px; text-align: center; }
   .kvHint{ font-size:12px; color:var(--muted); padding:8px 2px }
+  .kvHint { font-size: 12px; color: var(--muted); padding: 8px 2px }
 
   .scriptsSwitcher{ display:flex; gap:8px; padding:10px 12px; background:var(--soft); border-bottom:1px solid var(--divider) }
   .scriptsSwitcher button{ padding:6px 10px; border-radius:6px; background:#0000; border:1px solid var(--divider); color:var(--fg); cursor:pointer }
@@ -821,13 +892,13 @@ const header = el('div', { class: 'reqHeader' },
 );
 
 
-  // Tabs
-  const tabs = el('div', {class:'tabs'},
-    el('div', {class:'tab active', id:'tabParams'}, 'Params'),
-    el('div', {class:'tab', id:'tabHeaders'}, 'Headers'),
-    el('div', {class:'tab', id:'tabAuth'}, 'Authorization'),
-    el('div', {class:'tab', id:'tabScripts'}, 'Scripts')
-  );
+ // Tabs (с атрибутом data-method для подсветки underline)
+const tabs = el('div', {class:'tabs'},
+  el('div', {class:'tab active', id:'tabParams', dataset:{method}}, 'Params'),
+  el('div', {class:'tab', id:'tabHeaders', dataset:{method}}, 'Headers'),
+  el('div', {class:'tab', id:'tabAuth', dataset:{method}}, 'Authorization'),
+  el('div', {class:'tab', id:'tabScripts', dataset:{method}}, 'Scripts')
+);
 
   const paramsPane = el('div', {class:'tabPane active', id:'paneParams'});
   const headersPane= el('div', {class:'tabPane',        id:'paneHeaders'});
