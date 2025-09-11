@@ -967,48 +967,63 @@ function setActiveRow(elm){
 /* ========= KV tables (with On/Off) ========= */
 function buildKVTable(rows){
   const t = el('table', {class:'kvTable'});
-  t.append(el('thead', {}, 
-    el('tr', {}, 
-      el('th', {class:'kvOn'}, 'On'), 
-      el('th', {}, 'Key'), 
-      el('th', {}, 'Value')
-    )
-  ));
+  t.append(el('thead', {}, el('tr', {}, 
+    el('th', {class:'kvOn'}, 'On'), 
+    el('th', {}, 'Key'), 
+    el('th', {}, 'Value')
+  )));
   const tb = el('tbody');
 
-  // существующие строки
-  (rows||[]).forEach(r => appendRow(tb, r));
+  (rows||[]).forEach(r=>{
+    const hasValue = !!((r.key && r.key.trim()) || (r.value && r.value.trim()));
+    const tr = el('tr');
 
-  // последняя пустая строка
-  appendRow(tb, {key:'', value:'', enabled:true}, true);
+    const cb = el('input',{
+      type:'checkbox',
+      'data-field':'enabled',
+      checked: hasValue   // ← если пусто → выключен
+    });
+
+    const keyInp = el('input',{value: r.key ?? '', 'data-field':'key'});
+    const valInp = el('input',{value: r.value ?? '', 'data-field':'value'});
+
+    [keyInp, valInp].forEach(inp=>{
+      inp.addEventListener('input', ()=>{
+        const has = (keyInp.value.trim() || valInp.value.trim());
+        cb.checked = !!has;
+      });
+    });
+
+    tr.append(
+      el('td', {class:'kvOn'}, el('div',{class:'cell'}, cb)),
+      el('td', {}, el('div',{class:'cell'}, keyInp)),
+      el('td', {}, el('div',{class:'cell'}, valInp))
+    );
+    tb.append(tr);
+  });
+
+  // новая пустая строка
+  const trNew = el('tr');
+  const cbNew = el('input',{type:'checkbox','data-field':'enabled', checked:false});
+  const keyNew = el('input',{'data-field':'key', placeholder:'key'});
+  const valNew = el('input',{'data-field':'value', placeholder:'value'});
+  [keyNew, valNew].forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const has = (keyNew.value.trim() || valNew.value.trim());
+      cbNew.checked = !!has;
+    });
+  });
+  trNew.append(
+    el('td', {class:'kvOn'}, el('div',{class:'cell'}, cbNew)),
+    el('td', {}, el('div',{class:'cell'}, keyNew)),
+    el('td', {}, el('div',{class:'cell'}, valNew))
+  );
+  tb.append(trNew);
 
   t.append(tb);
   return t;
 }
-
-function appendRow(tb, row, isNew=false){
-  const tr = el('tr');
-  tr.append(
-    el('td', {class:'kvOn'}, el('div',{class:'cell'}, 
-      el('input',{type:'checkbox','data-field':'enabled', checked: row.enabled !== false}))),
-    el('td', {}, el('div', {class:'cell'}, 
-      el('input', {value: row.key ?? '', 'data-field':'key', placeholder: isNew?'key':''}))),
-    el('td', {}, el('div', {class:'cell'}, 
-      el('input', {value: row.value ?? '', 'data-field':'value', placeholder: isNew?'value':''})))
-  );
-  tb.append(tr);
-
-  // если это новая строка — слушаем ввод
-  if (isNew){
-    tr.querySelectorAll('input').forEach(inp=>{
-      inp.addEventListener('input', ()=>{
-        if (tr === tb.lastElementChild){
-          appendRow(tb, {key:'', value:'', enabled:true}, true);
-        }
-      });
-    });
-  }
-}
+  
 function tableToSimpleArray(tbody){
   const out = [];
   Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
