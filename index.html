@@ -105,100 +105,130 @@
   .reqHeader select, .reqHeader input{padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg)}
   .apiBadge{align-self:center; font-weight:800; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(0,0,0,.08); background:var(--chip-bg-2); color:var(--chip-fg); white-space:nowrap}
   /* ---------- Tabs (compact underline style) ---------- */
-  .tabs {
-    display: flex;
-    gap: 18px;
-    padding: 0 12px;
-  .tabs{ display:flex; gap:6px; padding:8px 10px; border-bottom:1px solid var(--divider); background:var(--soft) }
-    border-bottom: 1px solid var(--divider);
-  .tab{ padding:8px 12px; border:1px solid transparent; border-radius:8px; cursor:pointer; color:var(--ink); background:#0000 }
-    background: var(--panel);
-  }
-  .tab {
-    padding: 10px 4px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--muted);
-    cursor: pointer;
-    position: relative;
-    transition: color .15s ease;
-  }
-  .tab:hover { color: var(--ink); }
-  .tab.active {
+.tabs {
+  display: flex;
+  gap: 18px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--divider);
+  background: var(--soft);
+}
+
+.tab {
+  padding: 10px 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  transition: color .15s ease;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+}
+
+.tab:hover { 
+  color: var(--ink); 
+}
+
+.tab.active {
   color: var(--ink);
   background: none;
   border: none;
 }
-  .tab.active { color: var(--ink); }
-  [data-theme="dark"] .tab.active {
+
+[data-theme="dark"] .tab.active {
   background: none;
   border: none;
 }
-  .tab.active::after {
-    content: "";
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    border-radius: 2px 2px 0 0;
-  }
-  .tab.active[data-method="GET"]::after    { background: var(--op-get-f); }
-  .tab.active[data-method="POST"]::after   { background: var(--op-post-f); }
-  .tab.active[data-method="PUT"]::after    { background: var(--op-put-f); }
-  .tab.active[data-method="PATCH"]::after  { background: var(--op-patch-f); }
-  .tab.active[data-method="DELETE"]::after { background: var(--op-del-f); }
-  .tab.active[data-method="HEAD"]::after,
-  .tab.active[data-method="OPTIONS"]::after { background: var(--op-other-f); }
+
+.tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 2px 2px 0 0;
+}
+
+.tab.active[data-method="GET"]::after    { background: var(--op-get-f); }
+.tab.active[data-method="POST"]::after   { background: var(--op-post-f); }
+.tab.active[data-method="PUT"]::after    { background: var(--op-put-f); }
+.tab.active[data-method="PATCH"]::after  { background: var(--op-patch-f); }
+.tab.active[data-method="DELETE"]::after { background: var(--op-del-f); }
+.tab.active[data-method="HEAD"]::after,
+.tab.active[data-method="OPTIONS"]::after { background: var(--op-other-f); }
+
   /* Enhanced KV tables with On/Off */
-  /* ---------- KV Table (compact style) ---------- */
-  .kvTable{ width:100%; border-collapse:separate; border-spacing:0; background:#0000; border:1px solid var(--divider); border-radius:10px; overflow:hidden }
-  .kvTable {
-  .kvTable thead th{ background:var(--soft); font-size:12px; letter-spacing:.3px; color:var(--muted); text-transform:uppercase; }
-    width: 100%;
-  .kvTable tbody tr:not(:last-child) td{ border-bottom:1px solid var(--divider) }
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .kvTable th,
-  .kvTable td{ padding:0 }
-  .kvTable td {
-  .kvTable td .cell{ display:flex; align-items:center; padding:8px }
-    padding: 6px 8px;
-  .kvTable input{ width:100%; padding:9px 10px; border:1px solid transparent; outline:none; background:#0000; color:var(--fg); border-radius:6px }
-    border-bottom: 1px solid var(--divider);
-  .kvTable input:focus{ border-color:#d6e2ff; background:#00000008 }
-  }
-  .kvTable th {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .3px;
-    color: var(--muted);
-    background: var(--soft);
-  }
-  .kvTable td .cell {
-    display: flex;
-    align-items: center;
-  }
-  .kvTable input {
-    width: 100%;
-    border: none;
-    background: transparent;
-    padding: 6px 4px;
-    font-size: 13px;
-    color: var(--fg);
-    outline: none;
-  }
-  [data-theme="dark"] .kvTable input:focus{ border-color:#475569 }
-  .kvTable input:focus {
-    border-bottom: 1px solid var(--accent);
-    background: #0000;
-  }
-  .kvOn{ width:64px; text-align:center; }
-  .kvOn { width: 48px; text-align: center; }
-  .kvHint{ font-size:12px; color:var(--muted); padding:8px 2px }
-  .kvHint { font-size: 12px; color: var(--muted); padding: 8px 2px }
+ /* ---------- KV Table (compact style) ---------- */
+.kvTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #0000;
+  border: 1px solid var(--divider);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.kvTable thead th {
+  background: var(--soft);
+  font-size: 12px;
+  letter-spacing: .3px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.kvTable tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--divider);
+}
+
+.kvTable th,
+.kvTable td {
+  padding: 0;
+}
+
+.kvTable td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.kvTable td .cell {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+}
+
+.kvTable input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 6px 4px;
+  font-size: 13px;
+  color: var(--fg);
+  outline: none;
+  border-radius: 6px;
+}
+
+.kvTable input:focus {
+  border-bottom: 1px solid var(--accent);
+  background: #0000;
+}
+
+[data-theme="dark"] .kvTable input:focus {
+  border-color: #475569;
+}
+
+.kvOn {
+  width: 48px;
+  text-align: center;
+}
+
+.kvHint {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 8px 2px;
+}
 
   .scriptsSwitcher{ display:flex; gap:8px; padding:10px 12px; background:var(--soft); border-bottom:1px solid var(--divider) }
   .scriptsSwitcher button{ padding:6px 10px; border-radius:6px; background:#0000; border:1px solid var(--divider); color:var(--fg); cursor:pointer }
@@ -485,7 +515,129 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
 .methodOption:hover {
   filter: brightness(1.1);
 }
+.var-missing {
+  color: #7a1d16 !important;
+  background: #fff0f0 !important;
+  border: 1px solid #ffc0b6 !important;
+  border-radius: 6px;
+}
+[data-theme="dark"] .var-missing {
+  background: #3b1f23 !important;
+  color: #ffd1d6 !important;
+  border-color: #63313a !important;
+}
+.var-token {
+  padding: 1px 3px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.var-token.missing {
+  background: #fff0f0;
+  border: 1px solid #ffc0b6;
+  color: #7a1d16;
+}
+[data-theme="dark"] .var-token.missing {
+  background: #3b1f23;
+  border-color: #63313a;
+  color: #ffd1d6;
+}
+.var-token.filled {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+[data-theme="dark"] .var-token.filled {
+  background: #12291c;
+  border-color: #1d3b2a;
+  color: #4ade80;
+}
+  /* === Fix URL row layout === */
+.reqHeader {
+  display: grid;
+  grid-template-columns: 120px 1fr auto; /* метод | URL | кнопка */
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff7e8;
+  border-bottom: 1px solid var(--divider);
+}
+[data-theme="dark"] .reqHeader { background:#2a1f0f; }
 
+.reqHeader .urlWrap {
+  display: block;
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+  padding: 6px 8px;
+  background: #0000;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  min-height: 30px;
+  line-height: 1.4;
+}
+
+#urlInpDisplay {
+  outline: none;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+/* === Hover fix (только токены) === */
+#urlInpDisplay:hover { background: none; }
+.var-token:hover { filter: brightness(1.15); }
+
+/* === Modal for variable edit === */
+#varEditModal.modal {
+  background: rgba(2, 6, 23, .58);
+  backdrop-filter: saturate(1.2) blur(2px);
+}
+html:has(#varEditModal:not([hidden])) { overflow: hidden; }
+
+#varEditModal .modalCard {
+  width: 420px;
+  max-width: 92vw;
+  padding: 20px 24px;
+  border-radius: 12px;
+  border: 1px solid var(--divider);
+  background: var(--panel);
+  box-shadow: 0 20px 60px rgba(0,0,0,.18);
+}
+
+#varEditModal .modalCard h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 14px 0;
+  color: var(--ink);
+}
+
+#varEditModal .row {
+  display: block;
+  margin: 10px 0;
+}
+#varEditModal .row input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--divider);
+  font-size: 14px;
+  background: #0000;
+  color: var(--fg);
+}
+
+#varEditModal .modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+#varEditModal .modalActions button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+#varEditModal #varEditSave { background:#10b981; color:#fff; border:none; }
+#varEditModal #varEditCancel { background:var(--panel); color:var(--fg); border:1px solid var(--divider); }
 </style>
 </head>
 
@@ -566,6 +718,20 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
       </div>
     </div>
   </div>
+  
+<!-- Variable edit modal -->
+<div id="varEditModal" class="modal" hidden>
+  <div class="modalCard" style="max-width:420px">
+    <h3 id="varEditTitle">Edit variable</h3>
+    <div class="row">
+      <input id="varEditValue" placeholder="Value…" />
+    </div>
+    <div class="modalActions">
+      <button id="varEditCancel">Cancel</button>
+      <button id="varEditSave" class="auth-ok">Save</button>
+    </div>
+  </div>
+</div>
 
   <div id="loader" class="loaderOverlay" hidden><div class="spinner"></div></div>
 
@@ -703,6 +869,33 @@ function safeBuildUrl(url, queryArr){
     const urlObj = new URL(composed, composed.startsWith('http') ? undefined : location.origin);
     return urlObj.href.replace(location.origin,'') || urlObj.href;
   }catch{ return composed; }
+}
+  // highlight Missing Vars in URL
+function highlightMissingVars(rootEl) {
+  const regex = /{{\s*([^}]+)\s*}}/g;
+
+  rootEl.querySelectorAll('input, textarea').forEach(inp => {
+    const val = inp.value || '';
+    let missing = false;
+    val.replace(regex, (_, key) => {
+      const exists = VARS[key] != null && VARS[key] !== '';
+      if (!exists) missing = true;
+    });
+    inp.classList.toggle('var-missing', missing);
+  });
+}
+  function renderUrlWithVars(url) {
+  const regex = /{{\s*([^}]+)\s*}}/g;
+  return url.replace(regex, (_, key) => {
+    const val = VARS[key];
+    const missing = !val;
+    return `<span 
+      class="var-token ${missing ? 'missing' : 'filled'}" 
+      data-var="${key}" 
+      title="${val || '(not set)'}">
+        {{${key}}}
+    </span>`;
+  });
 }
 
 /* ========= Sidebar ========= */
@@ -870,6 +1063,33 @@ const debSave = debounce(()=> {
   };
   saveReqState(CURRENT_REQ_ID, patch);
 }, 180);
+  // --- URL input / editable display ---
+const urlHidden = el('input', { 
+  id: 'urlInp', 
+  value: url, 
+  style:'position:absolute;opacity:0;pointer-events:none;' 
+});
+
+const urlDisp = el('div', { 
+  id:'urlInpDisplay', 
+  class:'urlDisp', 
+  contenteditable:'true' 
+});
+urlDisp.innerHTML = renderUrlWithVars(url);
+
+urlDisp.addEventListener('input', ()=>{
+  urlHidden.value = urlDisp.textContent;
+  urlDisp.innerHTML = renderUrlWithVars(urlHidden.value);
+
+  const sel = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(urlDisp);
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  debSave();
+});
 
   // Header: Method + URL + Send
 
@@ -921,9 +1141,8 @@ const header = el('div', { class: 'reqHeader' },
   return wrap;
 })(),
 
-
-  // --- URL input ---
-  el('input', { id: 'urlInp', value: url, placeholder: 'https://api.example.com/path?x=1' }),
+  // --- URL (editable + hidden) ---
+  el('div', { class: 'urlWrap' }, urlDisp, urlHidden),
 
   // --- Send button ---
   el('button', { id: 'sendBtn', class: 'send' }, 'Send')
@@ -993,6 +1212,11 @@ const tabs = el('div', {class:'tabs'},
   // mount card
   card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
   pane.append(card);
+
+  // подсветка переменных
+  highlightMissingVars(card);
+  card.addEventListener('input', () => highlightMissingVars(card));
+
   //  подписки на изменения
 ['input','change','keyup'].forEach(ev=>{
   header.addEventListener(ev, debSave);
@@ -1214,40 +1438,6 @@ function makePostCtx({request, response, error}){
   };
   return ctx;
 }
-
-  function makePmAdapter(ctx) {
-  return {
-    environment: {
-      set: (key, value) => {
-        ctx.vars[key] = value;
-
-        // Save to localStorage 
-        try {
-          const ENV = JSON.parse(localStorage.getItem('pm_env') || '{"values":[]}');
-          let entry = ENV.values.find(v => v.key === key);
-          if (entry) {
-            entry.value = value;
-            entry.enabled = true;
-          } else {
-            ENV.values.push({ key, value, enabled: true });
-          }
-          localStorage.setItem('pm_env', JSON.stringify(ENV));
-        } catch {}
-      },
-      get: (key) => ctx.vars[key]
-    },
-    response: {
-      json: () => {
-        try { return JSON.parse(ctx.response?.bodyText || '{}'); }
-        catch { return {}; }
-      }
-    },
-    request: ctx.request,
-    responseRaw: ctx.response
-  };
-}
-
-
 /* ========= Response (with JSON highlight) ========= */
 function buildRespTools(rawText){
   const tools = el('div', {class:'respTools'});
@@ -1613,7 +1803,52 @@ document.addEventListener('click', (e) => {
     }
   });
 });
+/* === Variable edit modal === */
+let editingVarKey = null;
 
+// клик по токену → открываем модалку
+  document.addEventListener('click', (e) => {
+  const span = e.target.closest('.var-token');
+  if (!span) return;
+
+  e.stopPropagation(); 
+  editingVarKey = span.dataset.var;
+  const current = VARS[editingVarKey] || '';
+  $('#varEditValue').value = current;
+  $('#varEditTitle').textContent = `Edit variable: ${editingVarKey}`;
+  $('#varEditModal').hidden = false;
+});
+
+// закрыть
+$('#varEditCancel').onclick = () => {
+  $('#varEditModal').hidden = true;
+  editingVarKey = null;
+};
+
+// сохранить
+$('#varEditSave').onclick = () => {
+  const newVal = $('#varEditValue').value;
+  if (editingVarKey) {
+    if (!ENV) ENV = { values: [] };
+    if (!Array.isArray(ENV.values)) ENV.values = [];
+
+    const row = ENV.values.find(v => v.key === editingVarKey);
+    if (row) row.value = newVal;
+    else ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
+
+    localStorage.setItem('pm_env', JSON.stringify(ENV));
+    buildVarMap();
+
+    // обновляем URL строку
+    const hidden = document.querySelector('#urlInp');
+    const disp = document.querySelector('#urlInpDisplay');
+    if (hidden && disp) {
+      disp.innerHTML = renderUrlWithVars(hidden.value);
+    }
+  }
+  $('#varEditModal').hidden = true;
+  editingVarKey = null;
+};
 </script>
 </body>
 </html>
