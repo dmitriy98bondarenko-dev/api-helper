@@ -988,7 +988,7 @@ function buildKVTable(rows){
     const cb = el('input',{
   type:'checkbox',
   'data-field':'enabled',
-  checked: !!(r.key?.trim() || r.value?.trim())   // только если реально есть данные
+  checked: r.enabled === true   // только если реально есть данные
 });
 
     const keyInp = el('input',{value: r.key ?? '', 'data-field':'key'});
@@ -1023,7 +1023,7 @@ function appendRow(tb, row, isNew=false){
   const cb = el('input',{
     type:'checkbox',
     'data-field':'enabled',
-    checked: !!(row.key?.trim() || row.value?.trim()) 
+    checked: row.enabled === true
   });
 
   const keyInp = el('input',{value: row.key ?? '', 'data-field':'key', placeholder:isNew?'key':''});
@@ -1274,12 +1274,15 @@ const tabs = el('div', {class:'tabs'},
   const headersTable = buildKVTable(headersInit);
   headersPane.append(el('div', {class:'kvs'}, headersTable, el('div',{class:'kvHint'},'Request headers')));
 // update URL
-   paramsPane.addEventListener('input', () => {
+  ['input','change'].forEach(ev=>{
+  paramsPane.addEventListener(ev, () => {
     const params = tableToSimpleArray(paramsTable.tBodies[0]);
     $('#urlInpDisplay').innerHTML = renderUrlWithVars(
       safeBuildUrl($('#urlInp').value.trim(), params)
     );
   });
+});
+
 
   // Authorization tab
   const authTypeSel = el('select', {id:'authType'},
