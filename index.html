@@ -1054,9 +1054,23 @@ const urlDisp = el('div', {
 urlDisp.innerHTML = renderUrlWithVars(url);
 
 urlDisp.addEventListener('input', ()=>{
-  urlHidden.value = urlDisp.textContent; // синхронизируем ввод
+  // сохраняем сырой текст без разметки
+  urlHidden.value = urlDisp.textContent;
+
+  // перерисовываем подсветку
+  urlDisp.innerHTML = renderUrlWithVars(urlHidden.value);
+
+  // курсор переносим в конец (иначе прыгает в начало)
+  const sel = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(urlDisp);
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
+
   debSave();
 });
+
 
 header.append(urlDisp, urlHidden);
 
@@ -1355,40 +1369,6 @@ function makePostCtx({request, response, error}){
   };
   return ctx;
 }
-
-  function makePmAdapter(ctx) {
-  return {
-    environment: {
-      set: (key, value) => {
-        ctx.vars[key] = value;
-
-        // Save to localStorage 
-        try {
-          const ENV = JSON.parse(localStorage.getItem('pm_env') || '{"values":[]}');
-          let entry = ENV.values.find(v => v.key === key);
-          if (entry) {
-            entry.value = value;
-            entry.enabled = true;
-          } else {
-            ENV.values.push({ key, value, enabled: true });
-          }
-          localStorage.setItem('pm_env', JSON.stringify(ENV));
-        } catch {}
-      },
-      get: (key) => ctx.vars[key]
-    },
-    response: {
-      json: () => {
-        try { return JSON.parse(ctx.response?.bodyText || '{}'); }
-        catch { return {}; }
-      }
-    },
-    request: ctx.request,
-    responseRaw: ctx.response
-  };
-}
-
-
 /* ========= Response (with JSON highlight) ========= */
 function buildRespTools(rawText){
   const tools = el('div', {class:'respTools'});
