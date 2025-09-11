@@ -884,7 +884,9 @@ function flattenItems(node, path=[]){
 function safeBuildUrl(url, queryArr){
   let u = resolveVars(url || '');
   const extra = new URLSearchParams();
-  (queryArr||[]).filter(x=>x.key && x.enabled!==false).forEach(p=> extra.set(p.key, resolveVars(String(p.value??''))));
+(queryArr||[])
+  .filter(x => x.key && x.enabled)  
+  .forEach(p => extra.set(p.key, resolveVars(String(p.value ?? ''))));
   const glue = u.includes('?') ? (u.endsWith('?') || u.endsWith('&') ? '' : '&') : (extra.toString()? '?' : '');
   const composed = u + (glue ? glue + extra.toString() : '');
   try{
@@ -985,10 +987,10 @@ function buildKVTable(rows){
     const tr = el('tr');
 
     const cb = el('input',{
-      type:'checkbox',
-      'data-field':'enabled',
-      checked: hasValue   // включён только если key или value есть
-    });
+  type:'checkbox',
+  'data-field':'enabled',
+  checked: !!(r.key?.trim() || r.value?.trim())   // только если реально есть данные
+});
 
     const keyInp = el('input',{value: r.key ?? '', 'data-field':'key'});
     const valInp = el('input',{value: r.value ?? '', 'data-field':'value'});
