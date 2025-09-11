@@ -552,6 +552,92 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
   border-color: #1d3b2a;
   color: #4ade80;
 }
+  /* === Fix URL row layout === */
+.reqHeader {
+  display: grid;
+  grid-template-columns: 120px 1fr auto; /* метод | URL | кнопка */
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff7e8;
+  border-bottom: 1px solid var(--divider);
+}
+[data-theme="dark"] .reqHeader { background:#2a1f0f; }
+
+.reqHeader .urlWrap {
+  display: block;
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+  padding: 6px 8px;
+  background: #0000;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  min-height: 30px;
+  line-height: 1.4;
+}
+
+#urlInpDisplay {
+  outline: none;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+/* === Hover fix (только токены) === */
+#urlInpDisplay:hover { background: none; }
+.var-token:hover { filter: brightness(1.15); }
+
+/* === Modal for variable edit === */
+#varEditModal.modal {
+  background: rgba(2, 6, 23, .58);
+  backdrop-filter: saturate(1.2) blur(2px);
+}
+html:has(#varEditModal:not([hidden])) { overflow: hidden; }
+
+#varEditModal .modalCard {
+  width: 420px;
+  max-width: 92vw;
+  padding: 20px 24px;
+  border-radius: 12px;
+  border: 1px solid var(--divider);
+  background: var(--panel);
+  box-shadow: 0 20px 60px rgba(0,0,0,.18);
+}
+
+#varEditModal .modalCard h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 14px 0;
+  color: var(--ink);
+}
+
+#varEditModal .row {
+  display: block;
+  margin: 10px 0;
+}
+#varEditModal .row input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--divider);
+  font-size: 14px;
+  background: #0000;
+  color: var(--fg);
+}
+
+#varEditModal .modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+#varEditModal .modalActions button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+#varEditModal #varEditSave { background:#10b981; color:#fff; border:none; }
+#varEditModal #varEditCancel { background:var(--panel); color:var(--fg); border:1px solid var(--divider); }
 </style>
 </head>
 
@@ -632,6 +718,21 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
       </div>
     </div>
   </div>
+
+  <!-- Variable edit modal -->
+<div id="varEditModal" class="modal" hidden>
+  <div class="modalCard" style="max-width:420px">
+    <h3 id="varEditTitle">Edit variable</h3>
+    <div class="row">
+      <input id="varEditValue" placeholder="Value…" />
+    </div>
+    <div class="modalActions">
+      <button id="varEditCancel">Cancel</button>
+      <button id="varEditSave" class="auth-ok">Save</button>
+    </div>
+  </div>
+</div>
+
 
   <div id="loader" class="loaderOverlay" hidden><div class="spinner"></div></div>
 
@@ -1726,7 +1827,64 @@ document.addEventListener('click', (e) => {
     }
   });
 });
+/* === Variable edit modal === */
+const varEditModal = document.createElement('div');
+varEditModal.id = 'varEditModal';
+varEditModal.className = 'modal';
+varEditModal.hidden = true;
+varEditModal.innerHTML = `
+  <div class="modalCard">
+    <h3>Edit variable</h3>
+    <div class="row">
+      <input id="varEditValue" placeholder="Enter value" />
+    </div>
+    <div class="modalActions">
+      <button id="varEditCancel">Cancel</button>
+      <button id="varEditSave">Save</button>
+    </div>
+  </div>
+`;
+document.body.appendChild(varEditModal);
 
+let editingVarKey = null;
+
+// клик по токену → открываем модалку
+document.addEventListener('click', (e) => {
+  const span = e.target.closest('.var-token');
+  if (!span) return;
+
+  editingVarKey = span.dataset.var;
+  const current = VARS[editingVarKey] || '';
+  $('#varEditValue').value = current;
+  $('#varEditModal').hidden = false;
+});
+
+// закрыть
+$('#varEditCancel').onclick = () => {
+  $('#varEditModal').hidden = true;
+  editingVarKey = null;
+};
+
+// сохранить
+$('#varEditSave').onclick = () => {
+  const newVal = $('#varEditValue').value;
+  if (editingVarKey) {
+    if (!ENV) ENV = { values: [] };
+    const row = ENV.values.find(v => v.key === editingVarKey);
+    if (row) row.value = newVal;
+    else ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
+
+    localStorage.setItem('pm_env', JSON.stringify(ENV));
+    buildVarMap();
+
+    // обновляем URL строку
+    const hidden = document.querySelector('#urlInp');
+    const disp = document.querySelector('#urlInpDisplay');
+    disp.innerHTML = renderUrlWithVars(hidden.value);
+  }
+  $('#varEditModal').hidden = true;
+  editingVarKey = null;
+};
 </script>
 </body>
 </html>
