@@ -982,7 +982,7 @@ function buildKVTable(rows){
     const cb = el('input',{
       type:'checkbox',
       'data-field':'enabled',
-      checked: hasValue   // ← если пусто → выключен
+      checked: hasValue   // включён только если key или value есть
     });
 
     const keyInp = el('input',{value: r.key ?? '', 'data-field':'key'});
@@ -1003,11 +1003,37 @@ function buildKVTable(rows){
     tb.append(tr);
   });
 
-  // пустая строка (всегда последняя)
+  // пустая строка в конце
   addNewRow(tb);
 
   t.append(tb);
   return t;
+}
+
+function addNewRow(tb){
+  const trNew = el('tr');
+  const cbNew = el('input',{type:'checkbox','data-field':'enabled', checked:false}); // всегда выключен
+  const keyNew = el('input',{'data-field':'key', placeholder:'key'});
+  const valNew = el('input',{'data-field':'value', placeholder:'value'});
+
+  [keyNew, valNew].forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const has = (keyNew.value.trim() || valNew.value.trim());
+      cbNew.checked = !!has;
+
+      // если начали вводить в последней строке → добавить новую пустую
+      if (has && trNew === tb.lastElementChild){
+        addNewRow(tb);
+      }
+    });
+  });
+
+  trNew.append(
+    el('td', {class:'kvOn'}, el('div',{class:'cell'}, cbNew)),
+    el('td', {}, el('div',{class:'cell'}, keyNew)),
+    el('td', {}, el('div',{class:'cell'}, valNew))
+  );
+  tb.append(trNew);
 }
 
 function addNewRow(tb){
