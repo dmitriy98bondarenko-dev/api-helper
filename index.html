@@ -485,6 +485,17 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
 .methodOption:hover {
   filter: brightness(1.1);
 }
+.var-missing {
+  color: #7a1d16 !important;
+  background: #fff0f0 !important;
+  border: 1px solid #ffc0b6 !important;
+  border-radius: 6px;
+}
+[data-theme="dark"] .var-missing {
+  background: #3b1f23 !important;
+  color: #ffd1d6 !important;
+  border-color: #63313a !important;
+}
 
 </style>
 </head>
@@ -704,7 +715,20 @@ function safeBuildUrl(url, queryArr){
     return urlObj.href.replace(location.origin,'') || urlObj.href;
   }catch{ return composed; }
 }
+  // highlight Missing Vars in URL
+function highlightMissingVars(rootEl) {
+  const regex = /{{\s*([^}]+)\s*}}/g;
 
+  rootEl.querySelectorAll('input, textarea').forEach(inp => {
+    const val = inp.value || '';
+    let missing = false;
+    val.replace(regex, (_, key) => {
+      const exists = VARS[key] != null && VARS[key] !== '';
+      if (!exists) missing = true;
+    });
+    inp.classList.toggle('var-missing', missing);
+  });
+}
 /* ========= Sidebar ========= */
 function renderTree(filter = '') {
   const tree = $('#tree');
@@ -993,6 +1017,11 @@ const tabs = el('div', {class:'tabs'},
   // mount card
   card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
   pane.append(card);
+
+  // подсветка переменных
+  highlightMissingVars(card);
+  card.addEventListener('input', () => highlightMissingVars(card));
+
   //  подписки на изменения
 ['input','change','keyup'].forEach(ev=>{
   header.addEventListener(ev, debSave);
