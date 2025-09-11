@@ -1173,9 +1173,15 @@ function detectContentType(body){
 
 /* ==== scripts sandbox ==== */
 function runUserScript(code, ctx){
-  const fn = new Function('ctx', `"use strict"; const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) }; ${code}`);
-  fn(ctx);
+  const pm = makePmAdapter(ctx);
+  const fn = new Function('ctx', 'pm', `
+    "use strict";
+    const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) };
+    ${code}
+  `);
+  fn(ctx, pm);
 }
+
 function makePreCtx({method, url, params, headers, body}){
   const ctx = {
     _logs: [], vars: {...VARS}, setVar: (k,v)=>{ VARS[k]=v; },
@@ -1195,6 +1201,38 @@ function makePostCtx({request, response, error}){
   };
   return ctx;
 }
+  function makePmAdapter(ctx) {
+  return {
+    environment: {
+      set: (key, value) => {
+        ctx.vars[key] = value;
+
+        // Save to localStorage 
+        try {
+          const ENV = JSON.parse(localStorage.getItem('pm_env') || '{"values":[]}');
+          let entry = ENV.values.find(v => v.key === key);
+          if (entry) {
+            entry.value = value;
+            entry.enabled = true;
+          } else {
+            ENV.values.push({ key, value, enabled: true });
+          }
+          localStorage.setItem('pm_env', JSON.stringify(ENV));
+        } catch {}
+      },
+      get: (key) => ctx.vars[key]
+    },
+    response: {
+      json: () => {
+        try { return JSON.parse(ctx.response?.bodyText || '{}'); }
+        catch { return {}; }
+      }
+    },
+    request: ctx.request,
+    responseRaw: ctx.response
+  };
+}
+
 
 /* ========= Response (with JSON highlight) ========= */
 function buildRespTools(rawText){
