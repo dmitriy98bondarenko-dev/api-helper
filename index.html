@@ -1023,7 +1023,7 @@ function appendRow(tb, row, isNew=false){
   const cb = el('input',{
     type:'checkbox',
     'data-field':'enabled',
-    checked: hasValue   // включаем только если есть содержимое
+    checked: !!(row.key?.trim() || row.value?.trim()) 
   });
 
   const keyInp = el('input',{value: row.key ?? '', 'data-field':'key', placeholder:isNew?'key':''});
