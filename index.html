@@ -718,8 +718,8 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
       </div>
     </div>
   </div>
-
-  <!-- Variable edit modal -->
+  
+<!-- Variable edit modal -->
 <div id="varEditModal" class="modal" hidden>
   <div class="modalCard" style="max-width:420px">
     <h3 id="varEditTitle">Edit variable</h3>
@@ -732,7 +732,6 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     </div>
   </div>
 </div>
-
 
   <div id="loader" class="loaderOverlay" hidden><div class="spinner"></div></div>
 
@@ -898,29 +897,6 @@ function highlightMissingVars(rootEl) {
     </span>`;
   });
 }
-
-// обработчик клика по переменной
-document.addEventListener('click', (e) => {
-  const span = e.target.closest('.var-token');
-  if (!span) return;
-  const key = span.dataset.var;
-  const current = VARS[key] || '';
-  const newVal = prompt(`Enter value for ${key}:`, current);
-  if (newVal !== null) {
-    if (!ENV) ENV = { values: [] };
-    const row = ENV.values.find(v => v.key === key);
-    if (row) row.value = newVal;
-    else ENV.values.push({ key, value: newVal, enabled: true });
-    localStorage.setItem('pm_env', JSON.stringify(ENV));
-    buildVarMap();
-
-    // перерендерим URL
-    const hidden = document.querySelector('#urlInp');
-    const disp = document.querySelector('#urlInpDisplay');
-    hidden.value = hidden.value; // остаётся тот же текст
-    disp.innerHTML = renderUrlWithVars(hidden.value);
-  }
-});
 
 /* ========= Sidebar ========= */
 function renderTree(filter = '') {
@@ -1828,34 +1804,18 @@ document.addEventListener('click', (e) => {
   });
 });
 /* === Variable edit modal === */
-const varEditModal = document.createElement('div');
-varEditModal.id = 'varEditModal';
-varEditModal.className = 'modal';
-varEditModal.hidden = true;
-varEditModal.innerHTML = `
-  <div class="modalCard">
-    <h3>Edit variable</h3>
-    <div class="row">
-      <input id="varEditValue" placeholder="Enter value" />
-    </div>
-    <div class="modalActions">
-      <button id="varEditCancel">Cancel</button>
-      <button id="varEditSave">Save</button>
-    </div>
-  </div>
-`;
-document.body.appendChild(varEditModal);
-
 let editingVarKey = null;
 
 // клик по токену → открываем модалку
-document.addEventListener('click', (e) => {
+  document.addEventListener('click', (e) => {
   const span = e.target.closest('.var-token');
   if (!span) return;
 
+  e.stopPropagation(); 
   editingVarKey = span.dataset.var;
   const current = VARS[editingVarKey] || '';
   $('#varEditValue').value = current;
+  $('#varEditTitle').textContent = `Edit variable: ${editingVarKey}`;
   $('#varEditModal').hidden = false;
 });
 
@@ -1870,6 +1830,8 @@ $('#varEditSave').onclick = () => {
   const newVal = $('#varEditValue').value;
   if (editingVarKey) {
     if (!ENV) ENV = { values: [] };
+    if (!Array.isArray(ENV.values)) ENV.values = [];
+
     const row = ENV.values.find(v => v.key === editingVarKey);
     if (row) row.value = newVal;
     else ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
@@ -1880,7 +1842,9 @@ $('#varEditSave').onclick = () => {
     // обновляем URL строку
     const hidden = document.querySelector('#urlInp');
     const disp = document.querySelector('#urlInpDisplay');
-    disp.innerHTML = renderUrlWithVars(hidden.value);
+    if (hidden && disp) {
+      disp.innerHTML = renderUrlWithVars(hidden.value);
+    }
   }
   $('#varEditModal').hidden = true;
   editingVarKey = null;
