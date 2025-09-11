@@ -761,10 +761,32 @@ const AUTO_OPEN_FIRST         = urlParams.get('autoOpen') !== '0';
 
 /* ========= Utilities ========= */
 const $ = sel => document.querySelector(sel);
-const el = (tag, attrs={}, ...children) => { const n=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{
-  if (k==='class') n.className=v; else if (k==='dataset') Object.assign(n.dataset,v);
-  else if (k.startsWith('on') && typeof v==='function') n.addEventListener(k.slice(2),v); else n.setAttribute(k,v);
-}); children.forEach(c=>n.append(c)); return n; };
+const el = (tag, attrs={}, ...children) => {
+  const n = document.createElement(tag);
+  const boolAttrs = new Set([
+    'checked','disabled','readonly','required','selected','multiple','hidden','open'
+  ]);
+
+  Object.entries(attrs).forEach(([k,v])=>{
+    if (k === 'class') {
+      n.className = v;
+    } else if (k === 'dataset') {
+      Object.assign(n.dataset, v);
+    } else if (k.startsWith('on') && typeof v === 'function') {
+      n.addEventListener(k.slice(2), v);
+    } else if (boolAttrs.has(k)) {
+      n[k] = !!v;                     
+      if (v) n.setAttribute(k,'');      
+      else n.removeAttribute(k);       
+    } else {
+      n.setAttribute(k, v);
+    }
+  });
+
+  children.forEach(c => n.append(c));
+  return n;
+};
+
 function debounce(fn, ms=250){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 function showLoader(on){ const l = $('#loader'); if (!l) return; l.hidden = !on; }
 function pathOnly(u){
@@ -882,16 +904,24 @@ function flattenItems(node, path=[]){
 
 }
 function safeBuildUrl(url, queryArr){
-  let u = url || '';
-  const extra = new URLSearchParams();
-  (queryArr||[])
-    .filter(x => x.key && x.enabled)
-    .forEach(p => extra.set(p.key, resolveVars(String(p.value ?? ''))));
-  const glue = u.includes('?')
-    ? (u.endsWith('?') || u.endsWith('&') ? '' : '&')
-    : (extra.toString() ? '?' : '');
-  return u + (glue ? glue + extra.toString() : '');
+  const raw = url || '';
+  const [preHash, hashPart=''] = raw.split('#');
+  const [base, qStr=''] = preHash.split('?');
+  const params = new URLSearchParams(qStr);
+  (queryArr||[]).forEach(p => {
+    const key = (p.key||'').trim();
+    if (!key) return;
+    if (p.enabled) {
+      params.set(key, resolveVars(String(p.value ?? '')));
+    } else {
+      params.delete(key);
+    }
+  });
+
+  const qs = params.toString();
+  return base + (qs ? '?' + qs : '') + (hashPart ? '#' + hashPart : '');
 }
+
 
   // highlight Missing Vars in URL
 function highlightMissingVars(rootEl) {
