@@ -882,18 +882,17 @@ function flattenItems(node, path=[]){
 
 }
 function safeBuildUrl(url, queryArr){
-  let u = resolveVars(url || '');
+  let u = url || '';
   const extra = new URLSearchParams();
-(queryArr||[])
-  .filter(x => x.key && x.enabled)  
-  .forEach(p => extra.set(p.key, resolveVars(String(p.value ?? ''))));
-  const glue = u.includes('?') ? (u.endsWith('?') || u.endsWith('&') ? '' : '&') : (extra.toString()? '?' : '');
-  const composed = u + (glue ? glue + extra.toString() : '');
-  try{
-    const urlObj = new URL(composed, composed.startsWith('http') ? undefined : location.origin);
-    return urlObj.href.replace(location.origin,'') || urlObj.href;
-  }catch{ return composed; }
+  (queryArr||[])
+    .filter(x => x.key && x.enabled)
+    .forEach(p => extra.set(p.key, resolveVars(String(p.value ?? ''))));
+  const glue = u.includes('?')
+    ? (u.endsWith('?') || u.endsWith('&') ? '' : '&')
+    : (extra.toString() ? '?' : '');
+  return u + (glue ? glue + extra.toString() : '');
 }
+
   // highlight Missing Vars in URL
 function highlightMissingVars(rootEl) {
   const regex = /{{\s*([^}]+)\s*}}/g;
