@@ -967,38 +967,55 @@ function setActiveRow(elm){
 /* ========= KV tables (with On/Off) ========= */
 function buildKVTable(rows){
   const t = el('table', {class:'kvTable'});
-
-  // Заголовок с master-checkbox
-  const masterCb = el('input',{type:'checkbox', id:'masterToggle'});
-  const thead = el('thead', {}, el('tr', {}, 
-    el('th', {class:'kvOn'}, el('div',{class:'cell'}, masterCb)),
+  t.append(el('thead', {}, el('tr', {}, 
+    el('th', {class:'kvOn'}, 'On'), 
     el('th', {}, 'Key'), 
     el('th', {}, 'Value')
-  ));
-  t.append(thead);
-
+  )));
   const tb = el('tbody');
 
   // существующие строки
   (rows||[]).forEach(r => appendRow(tb, r, false));
 
-  // последняя пустая строка
+  // последняя пустая строка всегда с выключенным чекбоксом
   appendRow(tb, {key:'', value:'', enabled:false}, true);
 
   t.append(tb);
+  return t;
+}
 
-  // обработчик для master-checkbox
-  masterCb.addEventListener('change', ()=>{
-    const checked = masterCb.checked;
-    tb.querySelectorAll('tr').forEach(tr=>{
-      const key = tr.querySelector('input[data-field="key"]')?.value?.trim();
-      const val = tr.querySelector('input[data-field="value"]')?.value?.trim();
-      const cb  = tr.querySelector('input[data-field="enabled"]');
-      if (cb && (key || val)) cb.checked = checked;
+function appendRow(tb, row, isNew=false){
+  const tr = el('tr');
+
+  const hasValue = !!((row.key && row.key.trim()) || (row.value && row.value.trim()));
+  const cb = el('input',{
+    type:'checkbox',
+    'data-field':'enabled',
+    checked: hasValue   // включаем только если есть содержимое
+  });
+
+  const keyInp = el('input',{value: row.key ?? '', 'data-field':'key', placeholder:isNew?'key':''});
+  const valInp = el('input',{value: row.value ?? '', 'data-field':'value', placeholder:isNew?'value':''});
+
+  [keyInp, valInp].forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const has = (keyInp.value.trim() || valInp.value.trim());
+      cb.checked = !!has;
+
+      // если ввели текст в новой строке → добавить ещё одну пустую
+      if (isNew && has && tr === tb.lastElementChild){
+        appendRow(tb, {key:'', value:'', enabled:false}, true);
+      }
     });
   });
 
-  return t;
+  tr.append(
+    el('td', {class:'kvOn'}, el('div',{class:'cell'}, cb)),
+    el('td', {}, el('div',{class:'cell'}, keyInp)),
+    el('td', {}, el('div',{class:'cell'}, valInp))
+  );
+
+  tb.append(tr);
 }
 
 function appendRow(tb, row, isNew=false){
