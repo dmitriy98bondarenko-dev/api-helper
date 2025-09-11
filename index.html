@@ -673,7 +673,16 @@ function flattenItems(node, path=[]){
   if(!node) return;
   if(Array.isArray(node)){ node.forEach(n=>flattenItems(n, path)); return; }
   if(node.item){ const newPath = node.name ? path.concat(stripPrefixFolder(node.name)) : path; node.item.forEach(child=>flattenItems(child, newPath)); return; }
-  if(node.request){ ITEMS_FLAT.push({ id: crypto.randomUUID(), path: path.join(' / '), name: node.name || '(untitled)', request: node.request }); }
+  if(node.request){
+  ITEMS_FLAT.push({
+    id: crypto.randomUUID(),
+    path: path.join(' / '),
+    name: node.name || '(untitled)',
+    request: node.request,
+    event: node.event || []  
+  });
+}
+
 }
 function safeBuildUrl(url, queryArr){
   let u = resolveVars(url || '');
