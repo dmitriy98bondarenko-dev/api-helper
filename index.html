@@ -99,12 +99,7 @@
   .op.DELETE{background:var(--op-del)} .op.DELETE .op-method{background:var(--op-del-b); color:var(--op-del-f)}
   .op.HEAD,.op.OPTIONS,.op.TRACE{background:var(--op-other)} .op.HEAD .op-method,.op.OPTIONS .op-method,.op.TRACE .op-method{background:var(--op-other-b); color:var(--op-other-f)}
 
-  /* ---------- Request editor ---------- */
-  .reqHeader{display:grid; grid-template-columns: 140px 1fr auto; gap:12px; padding:12px 14px; background:#fff7e8; border-bottom:1px solid var(--divider)}
-  [data-theme="dark"] .reqHeader{background:#2a1f0f}
-  .reqHeader select, .reqHeader input{padding:9px 10px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg)}
-  .apiBadge{align-self:center; font-weight:800; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(0,0,0,.08); background:var(--chip-bg-2); color:var(--chip-fg); white-space:nowrap}
-  /* ---------- Tabs (compact underline style) ---------- */
+ /* ---------- Tabs (compact underline style) ---------- */
 .tabs {
   display: flex;
   gap: 18px;
@@ -446,26 +441,6 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scaleIn { from { transform: scale(.95); } to { transform: scale(1); } }
 
-
-
-.reqHeader {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-  border-bottom: 1px solid var(--divider);
-  background: #fff7e8;
-}
-[data-theme="dark"] .reqHeader { background: #2a1f0f }
-
-.reqHeader select,
-.reqHeader input {
-  border: none;
-  outline: none;
-  padding: 10px 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 14px;
-}
-
 .reqHeader select {
   background: var(--chip-bg);
   font-weight: 700;
@@ -552,18 +527,6 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
   border-color: #1d3b2a;
   color: #4ade80;
 }
-  /* === Fix URL row layout === */
-.reqHeader {
-  display: grid;
-  grid-template-columns: 120px 1fr auto; /* метод | URL | кнопка */
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: #fff7e8;
-  border-bottom: 1px solid var(--divider);
-}
-[data-theme="dark"] .reqHeader { background:#2a1f0f; }
-
 .reqHeader .urlWrap {
   display: block;
   width: 100%;
@@ -575,12 +538,12 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
   border-radius: 6px;
   min-height: 30px;
   line-height: 1.4;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
 #urlInpDisplay {
   outline: none;
-  white-space: nowrap;
-  overflow-x: auto;
 }
 
 /* === Hover fix (только токены) === */
@@ -638,6 +601,50 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 }
 #varEditModal #varEditSave { background:#10b981; color:#fff; border:none; }
 #varEditModal #varEditCancel { background:var(--panel); color:var(--fg); border:1px solid var(--divider); }
+/* === Fix URL row layout === */
+.reqHeader {
+  display: grid;
+  grid-template-columns: 120px 1fr 120px; /* метод | URL | кнопка */
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff7e8;
+  border-bottom: 1px solid var(--divider);
+}
+[data-theme="dark"] .reqHeader { background:#2a1f0f; }
+
+.reqHeader .urlWrap {
+  display: block;
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+  padding: 6px 8px;
+  background: #0000;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  min-height: 30px;
+  line-height: 1.4;
+  overflow-x: auto;       /* ← горизонтальный скролл */
+  white-space: nowrap;    /* ← без переносов */
+}
+
+#urlInpDisplay {
+  outline: none;
+  display: inline-block;
+}
+
+.reqHeader .send {
+  width: 100%;            /* растягивается в своей 120px ячейке */
+  height: 100%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+
 </style>
 </head>
 
