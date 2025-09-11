@@ -124,9 +124,16 @@
     transition: color .15s ease;
   }
   .tab:hover { color: var(--ink); }
-  .tab.active{ border-color:#cfd7e3; background:#0000000a }
+  .tab.active {
+  color: var(--ink);
+  background: none;
+  border: none;
+}
   .tab.active { color: var(--ink); }
-  [data-theme="dark"] .tab.active{ border-color:#334155 }
+  [data-theme="dark"] .tab.active {
+  background: none;
+  border: none;
+}
   .tab.active::after {
     content: "";
     position: absolute;
