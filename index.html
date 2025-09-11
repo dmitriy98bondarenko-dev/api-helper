@@ -848,7 +848,12 @@ function buildVarMap(){
 } catch {}
 
 }
-function resolveVars(str, extra={}){ if(typeof str!=='string') return str; return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=> String((extra && extra[k]!=null)?extra[k]:(VARS[k]!=null?VARS[k]:''))); }
+function resolveVars(str, extra={}){ 
+  if(typeof str!=='string') return str; 
+  return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=> 
+    (extra && extra[k]!=null) ? extra[k] : (VARS[k]!=null ? VARS[k] : `{{${k}}}`)
+  ); 
+}
 function normalizeUrl(u){
   if(!u) return ''; if(typeof u==='string') return u;
   let raw = u.raw || '';
@@ -877,16 +882,17 @@ function flattenItems(node, path=[]){
 
 }
 function safeBuildUrl(url, queryArr){
-  let u = resolveVars(url || '');
+  let u = url || '';
   const extra = new URLSearchParams();
-  (queryArr||[]).filter(x=>x.key && x.enabled!==false).forEach(p=> extra.set(p.key, resolveVars(String(p.value??''))));
-  const glue = u.includes('?') ? (u.endsWith('?') || u.endsWith('&') ? '' : '&') : (extra.toString()? '?' : '');
-  const composed = u + (glue ? glue + extra.toString() : '');
-  try{
-    const urlObj = new URL(composed, composed.startsWith('http') ? undefined : location.origin);
-    return urlObj.href.replace(location.origin,'') || urlObj.href;
-  }catch{ return composed; }
+  (queryArr||[])
+    .filter(x => x.key && x.enabled)
+    .forEach(p => extra.set(p.key, resolveVars(String(p.value ?? ''))));
+  const glue = u.includes('?')
+    ? (u.endsWith('?') || u.endsWith('&') ? '' : '&')
+    : (extra.toString() ? '?' : '');
+  return u + (glue ? glue + extra.toString() : '');
 }
+
   // highlight Missing Vars in URL
 function highlightMissingVars(rootEl) {
   const regex = /{{\s*([^}]+)\s*}}/g;
@@ -967,27 +973,109 @@ function setActiveRow(elm){
 /* ========= KV tables (with On/Off) ========= */
 function buildKVTable(rows){
   const t = el('table', {class:'kvTable'});
-  t.append(el('thead', {}, el('tr', {}, el('th', {class:'kvOn'}, 'On'), el('th', {}, 'Key'), el('th', {}, 'Value'))));
+  t.append(el('thead', {}, el('tr', {}, 
+    el('th', {class:'kvOn'}, 'On'), 
+    el('th', {}, 'Key'), 
+    el('th', {}, 'Value')
+  )));
   const tb = el('tbody');
+
+  // строки из данных
   (rows||[]).forEach(r=>{
+    const hasValue = !!((r.key && r.key.trim()) || (r.value && r.value.trim()));
     const tr = el('tr');
+
+    const cb = el('input',{
+  type:'checkbox',
+  'data-field':'enabled',
+  checked: !!(r.key?.trim() || r.value?.trim())   // только если реально есть данные
+});
+
+    const keyInp = el('input',{value: r.key ?? '', 'data-field':'key'});
+    const valInp = el('input',{value: r.value ?? '', 'data-field':'value'});
+
+    [keyInp, valInp].forEach(inp=>{
+      inp.addEventListener('input', ()=>{
+        const has = (keyInp.value.trim() || valInp.value.trim());
+        cb.checked = !!has;
+      });
+    });
+
     tr.append(
-      el('td', {class:'kvOn'}, el('div',{class:'cell'}, el('input',{type:'checkbox','data-field':'enabled', checked: r.enabled !== false}))),
-      el('td', {}, el('div', {class:'cell'}, el('input', {value: r.key ?? '', 'data-field':'key'}))),
-      el('td', {}, el('div', {class:'cell'}, el('input', {value: r.value ?? '', 'data-field':'value'})))
+      el('td', {class:'kvOn'}, el('div',{class:'cell'}, cb)),
+      el('td', {}, el('div',{class:'cell'}, keyInp)),
+      el('td', {}, el('div',{class:'cell'}, valInp))
     );
     tb.append(tr);
   });
-  const trNew = el('tr');
-  trNew.append(
-    el('td', {class:'kvOn'}, el('div',{class:'cell'}, el('input',{type:'checkbox','data-field':'enabled', checked:true}))),
-    el('td', {}, el('div', {class:'cell'}, el('input', {'data-field':'key', placeholder:'key'}))),
-    el('td', {}, el('div', {class:'cell'}, el('input', {'data-field':'value', placeholder:'value'})))
-  );
-  tb.append(trNew);
+
+  // пустая строка в конце
+  addNewRow(tb);
+
   t.append(tb);
   return t;
 }
+
+function appendRow(tb, row, isNew=false){
+  const tr = el('tr');
+
+  const hasValue = !!((row.key && row.key.trim()) || (row.value && row.value.trim()));
+  const cb = el('input',{
+    type:'checkbox',
+    'data-field':'enabled',
+    checked: !!(row.key?.trim() || row.value?.trim()) 
+  });
+
+  const keyInp = el('input',{value: row.key ?? '', 'data-field':'key', placeholder:isNew?'key':''});
+  const valInp = el('input',{value: row.value ?? '', 'data-field':'value', placeholder:isNew?'value':''});
+
+  [keyInp, valInp].forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const has = (keyInp.value.trim() || valInp.value.trim());
+      cb.checked = !!has;
+
+      // если ввели текст в новой строке → добавить ещё одну пустую
+      if (isNew && has && tr === tb.lastElementChild){
+        appendRow(tb, {key:'', value:'', enabled:false}, true);
+      }
+    });
+  });
+
+  tr.append(
+    el('td', {class:'kvOn'}, el('div',{class:'cell'}, cb)),
+    el('td', {}, el('div',{class:'cell'}, keyInp)),
+    el('td', {}, el('div',{class:'cell'}, valInp))
+  );
+
+  tb.append(tr);
+}
+
+function addNewRow(tb){
+  const trNew = el('tr');
+  const cbNew = el('input',{type:'checkbox','data-field':'enabled', checked:false});
+  const keyNew = el('input',{'data-field':'key', placeholder:'key'});
+  const valNew = el('input',{'data-field':'value', placeholder:'value'});
+
+  [keyNew, valNew].forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const has = (keyNew.value.trim() || valNew.value.trim());
+      cbNew.checked = !!has;
+
+      // если ввели что-то в пустую строку → добавить новую пустую в конец
+      if (has && trNew === tb.lastElementChild){
+        addNewRow(tb);
+      }
+    });
+  });
+
+  trNew.append(
+    el('td', {class:'kvOn'}, el('div',{class:'cell'}, cbNew)),
+    el('td', {}, el('div',{class:'cell'}, keyNew)),
+    el('td', {}, el('div',{class:'cell'}, valNew))
+  );
+  tb.append(trNew);
+}
+  
 function tableToSimpleArray(tbody){
   const out = [];
   Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
@@ -1185,6 +1273,13 @@ const tabs = el('div', {class:'tabs'},
 
   const headersTable = buildKVTable(headersInit);
   headersPane.append(el('div', {class:'kvs'}, headersTable, el('div',{class:'kvHint'},'Request headers')));
+// update URL
+   paramsPane.addEventListener('input', () => {
+    const params = tableToSimpleArray(paramsTable.tBodies[0]);
+    $('#urlInpDisplay').innerHTML = renderUrlWithVars(
+      safeBuildUrl($('#urlInp').value.trim(), params)
+    );
+  });
 
   // Authorization tab
   const authTypeSel = el('select', {id:'authType'},
