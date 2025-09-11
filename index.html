@@ -1420,7 +1420,9 @@ const tabs = el('div', {class:'tabs'},
     let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
 
     let method = getSelectedMethod();
-    let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+    let finalUrl = resolveVars(
+      safeBuildUrl($('#urlInp').value.trim(), params)
+    );
     let body = resolveVars($('#bodyRawArea').value || '');
     const authType = $('#authType').value;
     const authToken = $('#authTokenInp').value.trim();
@@ -1505,7 +1507,9 @@ const tabs = el('div', {class:'tabs'},
   $('#curlBtn').onclick = ()=>{
     const m = getSelectedMethod();
     const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+    const finalUrl = resolveVars(
+      safeBuildUrl($('#urlInp').value.trim(), params)
+    );
     const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
     const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
     const authType = $('#authType').value;
