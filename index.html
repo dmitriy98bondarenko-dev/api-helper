@@ -655,6 +655,15 @@ function buildVarMap(){
     });
   }
   VARS = map;
+  try {
+  const stored = JSON.parse(localStorage.getItem('pm_env') || '{"values":[]}');
+  if (Array.isArray(stored.values)) {
+    stored.values.forEach(v=>{
+      if (v && v.enabled !== false) VARS[v.key] = v.value;
+    });
+  }
+} catch {}
+
 }
 function resolveVars(str, extra={}){ if(typeof str!=='string') return str; return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=> String((extra && extra[k]!=null)?extra[k]:(VARS[k]!=null?VARS[k]:''))); }
 function normalizeUrl(u){
@@ -673,7 +682,16 @@ function flattenItems(node, path=[]){
   if(!node) return;
   if(Array.isArray(node)){ node.forEach(n=>flattenItems(n, path)); return; }
   if(node.item){ const newPath = node.name ? path.concat(stripPrefixFolder(node.name)) : path; node.item.forEach(child=>flattenItems(child, newPath)); return; }
-  if(node.request){ ITEMS_FLAT.push({ id: crypto.randomUUID(), path: path.join(' / '), name: node.name || '(untitled)', request: node.request }); }
+  if(node.request){
+  ITEMS_FLAT.push({
+    id: crypto.randomUUID(),
+    path: path.join(' / '),
+    name: node.name || '(untitled)',
+    request: node.request,
+    event: node.event || []  
+  });
+}
+
 }
 function safeBuildUrl(url, queryArr){
   let u = resolveVars(url || '');
@@ -807,8 +825,21 @@ function getInitialStateForItem(item){
   if (bodyText == null){
     bodyText = item.request.body?.raw != null ? (typeof item.request.body.raw === 'string' ? item.request.body.raw : JSON.stringify(item.request.body.raw, null, 2)) : '';
   }
+let scripts = saved?.scripts ?? loadScriptsLegacy(id);
 
-  const scripts = saved?.scripts ?? loadScriptsLegacy(id) ?? {pre:'', post:''};
+if (!scripts || (!scripts.pre && !scripts.post)) {
+  scripts = { pre:'', post:'' };
+  if (Array.isArray(item.event)) {
+    item.event.forEach(ev => {
+      if (ev.listen === 'prerequest') {
+        scripts.pre = (ev.script?.exec || []).join('\n');
+      } else if (ev.listen === 'test') {
+        scripts.post = (ev.script?.exec || []).join('\n');
+      }
+    });
+  }
+}
+
   const auth = saved?.auth ?? { type:'bearer', token: '' };
 
   return { method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response: saved?.response || null };
@@ -1135,6 +1166,9 @@ const tabs = el('div', {class:'tabs'},
   } else {
     $('#resPane').innerHTML = '';
   }
+   // logs DELETE
+  console.log("Events for", item.name, item.event);
+
 }
 /* ==== Content-Type detection ==== */
 function detectContentType(body){
@@ -1148,9 +1182,15 @@ function detectContentType(body){
 
 /* ==== scripts sandbox ==== */
 function runUserScript(code, ctx){
-  const fn = new Function('ctx', `"use strict"; const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) }; ${code}`);
-  fn(ctx);
+  const pm = makePmAdapter(ctx);
+  const fn = new Function('ctx', 'pm', `
+    "use strict";
+    const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) };
+    ${code}
+  `);
+  fn(ctx, pm);
 }
+
 function makePreCtx({method, url, params, headers, body}){
   const ctx = {
     _logs: [], vars: {...VARS}, setVar: (k,v)=>{ VARS[k]=v; },
@@ -1164,12 +1204,49 @@ function makePreCtx({method, url, params, headers, body}){
 }
 function makePostCtx({request, response, error}){
   const ctx = {
-    _logs: [], request, response, error: error || null,
+    _logs: [],
+    vars: { ...VARS }, 
+    request,
+    response,
+    error: error || null,
     setResponseBody: (text)=>{ if(ctx.response) ctx.response.bodyText = String(text); },
     log: (...a)=>ctx._logs.push(a.map(String).join(' '))
   };
   return ctx;
 }
+
+  function makePmAdapter(ctx) {
+  return {
+    environment: {
+      set: (key, value) => {
+        ctx.vars[key] = value;
+
+        // Save to localStorage 
+        try {
+          const ENV = JSON.parse(localStorage.getItem('pm_env') || '{"values":[]}');
+          let entry = ENV.values.find(v => v.key === key);
+          if (entry) {
+            entry.value = value;
+            entry.enabled = true;
+          } else {
+            ENV.values.push({ key, value, enabled: true });
+          }
+          localStorage.setItem('pm_env', JSON.stringify(ENV));
+        } catch {}
+      },
+      get: (key) => ctx.vars[key]
+    },
+    response: {
+      json: () => {
+        try { return JSON.parse(ctx.response?.bodyText || '{}'); }
+        catch { return {}; }
+      }
+    },
+    request: ctx.request,
+    responseRaw: ctx.response
+  };
+}
+
 
 /* ========= Response (with JSON highlight) ========= */
 function buildRespTools(rawText){
@@ -1423,6 +1500,82 @@ function shortInfo(){
 function autoOpenFirst(){
   const first = ITEMS_FLAT[0];
   if (first){ $('#welcomeCard')?.remove(); openRequest(first); }
+}
+
+  function makePmAdapter(ctx){
+  // гарантируем наличие ctx.vars
+  if (!ctx.vars) ctx.vars = { ...VARS };
+
+  const persistEnv = () => {
+    try { localStorage.setItem('pm_env', JSON.stringify(ENV)); } catch {}
+    if (typeof buildVarMap === 'function') buildVarMap();
+  };
+
+  const setEnv = (key, value) => {
+    // обновляем runtime
+    ctx.vars[key] = value;
+
+    // синхронизируем in-memory ENV
+    if (!window.ENV) window.ENV = { values: [] };
+    if (!Array.isArray(ENV.values)) ENV.values = [];
+
+    const row = ENV.values.find(v => v.key === key);
+    if (row) {
+      row.value = value; row.enabled = true;
+    } else {
+      ENV.values.push({ key, value, enabled: true });
+    }
+
+    persistEnv();
+
+    // если открыт модал, обновим таблицу
+    const modal = document.querySelector('#varsModal');
+    if (modal && !modal.hidden && typeof buildVarsTableBody === 'function') {
+      try { buildVarsTableBody(); } catch {}
+    }
+  };
+
+  const getEnv = (key) => {
+    // читаем приоритетно из in-memory ENV
+    if (Array.isArray(ENV?.values)) {
+      const row = ENV.values.find(v => v.key === key && v.enabled !== false);
+      if (row) return row.value;
+    }
+    // fallback на текущие vars
+    return ctx.vars[key];
+  };
+
+  const response = {
+    code: ctx.response?.status ?? 0,
+    text: () => ctx.response?.bodyText ?? '',
+    json: () => {
+      try {
+        return JSON.parse(ctx.response?.bodyText ?? '');
+      } catch(e) {
+        throw new Error('pm.response.json() parse error: ' + e.message);
+      }
+    }
+  };
+
+  return {
+    // совместимость с Postman
+    environment: {
+      set: setEnv,
+      get: getEnv,
+      unset: (key) => {
+        if (!Array.isArray(ENV?.values)) ENV.values = [];
+        const idx = ENV.values.findIndex(v => v.key === key);
+        if (idx >= 0) ENV.values.splice(idx, 1);
+        delete ctx.vars[key];
+        persistEnv();
+      }
+    },
+    variables: { get: getEnv, set: setEnv },         // алиасы
+    globals: { get: getEnv, set: setEnv },
+    collectionVariables: { get: getEnv, set: setEnv },
+    request: ctx.request,
+    response
+  };
 }
 
 /* === Autoload from root (or query paths) === */
