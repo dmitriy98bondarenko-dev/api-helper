@@ -986,6 +986,33 @@ const debSave = debounce(()=> {
   };
   saveReqState(CURRENT_REQ_ID, patch);
 }, 180);
+  // --- URL input / editable display ---
+const urlHidden = el('input', { 
+  id: 'urlInp', 
+  value: url, 
+  style:'position:absolute;opacity:0;pointer-events:none;' 
+});
+
+const urlDisp = el('div', { 
+  id:'urlInpDisplay', 
+  class:'urlDisp', 
+  contenteditable:'true' 
+});
+urlDisp.innerHTML = renderUrlWithVars(url);
+
+urlDisp.addEventListener('input', ()=>{
+  urlHidden.value = urlDisp.textContent;
+  urlDisp.innerHTML = renderUrlWithVars(urlHidden.value);
+
+  const sel = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(urlDisp);
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  debSave();
+});
 
   // Header: Method + URL + Send
 
@@ -1037,43 +1064,8 @@ const header = el('div', { class: 'reqHeader' },
   return wrap;
 })(),
 
-
-  // --- URL input ---
- // --- URL editable display ---
-const urlHidden = el('input', { 
-  id: 'urlInp', 
-  value: url, 
-  style:'position:absolute;opacity:0;pointer-events:none;' 
-});
-
-const urlDisp = el('div', { 
-  id:'urlInpDisplay', 
-  class:'urlDisp', 
-  contenteditable:'true' 
-});
-urlDisp.innerHTML = renderUrlWithVars(url);
-
-urlDisp.addEventListener('input', ()=>{
-  // сохраняем сырой текст без разметки
-  urlHidden.value = urlDisp.textContent;
-
-  // перерисовываем подсветку
-  urlDisp.innerHTML = renderUrlWithVars(urlHidden.value);
-
-  // курсор переносим в конец (иначе прыгает в начало)
-  const sel = window.getSelection();
-  const range = document.createRange();
-  range.selectNodeContents(urlDisp);
-  range.collapse(false);
-  sel.removeAllRanges();
-  sel.addRange(range);
-
-  debSave();
-});
-
-
-header.append(urlDisp, urlHidden);
-
+  // --- URL (editable + hidden) ---
+  el('div', { class: 'urlWrap' }, urlDisp, urlHidden),
 
   // --- Send button ---
   el('button', { id: 'sendBtn', class: 'send' }, 'Send')
