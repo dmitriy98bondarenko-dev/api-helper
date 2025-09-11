@@ -816,10 +816,9 @@ function getInitialStateForItem(item){
   if (bodyText == null){
     bodyText = item.request.body?.raw != null ? (typeof item.request.body.raw === 'string' ? item.request.body.raw : JSON.stringify(item.request.body.raw, null, 2)) : '';
   }
+let scripts = saved?.scripts ?? loadScriptsLegacy(id);
 
-  let scripts = saved?.scripts ?? loadScriptsLegacy(id);
-
-if (!scripts) {
+if (!scripts || (!scripts.pre && !scripts.post)) {
   scripts = { pre:'', post:'' };
   if (Array.isArray(item.event)) {
     item.event.forEach(ev => {
@@ -831,6 +830,7 @@ if (!scripts) {
     });
   }
 }
+
   const auth = saved?.auth ?? { type:'bearer', token: '' };
 
   return { method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response: saved?.response || null };
