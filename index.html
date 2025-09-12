@@ -761,10 +761,32 @@ const AUTO_OPEN_FIRST         = urlParams.get('autoOpen') !== '0';
 
 /* ========= Utilities ========= */
 const $ = sel => document.querySelector(sel);
-const el = (tag, attrs={}, ...children) => { const n=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{
-  if (k==='class') n.className=v; else if (k==='dataset') Object.assign(n.dataset,v);
-  else if (k.startsWith('on') && typeof v==='function') n.addEventListener(k.slice(2),v); else n.setAttribute(k,v);
-}); children.forEach(c=>n.append(c)); return n; };
+const el = (tag, attrs={}, ...children) => {
+  const n = document.createElement(tag);
+  const boolAttrs = new Set([
+    'checked','disabled','readonly','required','selected','multiple','hidden','open'
+  ]);
+
+  Object.entries(attrs).forEach(([k,v])=>{
+    if (k === 'class') {
+      n.className = v;
+    } else if (k === 'dataset') {
+      Object.assign(n.dataset, v);
+    } else if (k.startsWith('on') && typeof v === 'function') {
+      n.addEventListener(k.slice(2), v);
+    } else if (boolAttrs.has(k)) {
+      n[k] = !!v;                     
+      if (v) n.setAttribute(k,'');      
+      else n.removeAttribute(k);       
+    } else {
+      n.setAttribute(k, v);
+    }
+  });
+
+  children.forEach(c => n.append(c));
+  return n;
+};
+
 function debounce(fn, ms=250){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 function showLoader(on){ const l = $('#loader'); if (!l) return; l.hidden = !on; }
 function pathOnly(u){
@@ -882,16 +904,24 @@ function flattenItems(node, path=[]){
 
 }
 function safeBuildUrl(url, queryArr){
-  let u = url || '';
-  const extra = new URLSearchParams();
-  (queryArr||[])
-    .filter(x => x.key && x.enabled)
-    .forEach(p => extra.set(p.key, resolveVars(String(p.value ?? ''))));
-  const glue = u.includes('?')
-    ? (u.endsWith('?') || u.endsWith('&') ? '' : '&')
-    : (extra.toString() ? '?' : '');
-  return u + (glue ? glue + extra.toString() : '');
+  const raw = url || '';
+  const [preHash, hashPart=''] = raw.split('#');
+  const [base, qStr=''] = preHash.split('?');
+  const params = new URLSearchParams(qStr);
+  (queryArr||[]).forEach(p => {
+    const key = (p.key||'').trim();
+    if (!key) return;
+    if (p.enabled) {
+      params.set(key, resolveVars(String(p.value ?? '')));
+    } else {
+      params.delete(key);
+    }
+  });
+
+  const qs = params.toString();
+  return base + (qs ? '?' + qs : '') + (hashPart ? '#' + hashPart : '');
 }
+
 
   // highlight Missing Vars in URL
 function highlightMissingVars(rootEl) {
@@ -988,7 +1018,7 @@ function buildKVTable(rows){
     const cb = el('input',{
   type:'checkbox',
   'data-field':'enabled',
-  checked: !!(r.key?.trim() || r.value?.trim())   // только если реально есть данные
+  checked: r.enabled === true   // только если реально есть данные
 });
 
     const keyInp = el('input',{value: r.key ?? '', 'data-field':'key'});
@@ -1023,7 +1053,7 @@ function appendRow(tb, row, isNew=false){
   const cb = el('input',{
     type:'checkbox',
     'data-field':'enabled',
-    checked: !!(row.key?.trim() || row.value?.trim()) 
+    checked: row.enabled === true
   });
 
   const keyInp = el('input',{value: row.key ?? '', 'data-field':'key', placeholder:isNew?'key':''});
@@ -1274,12 +1304,15 @@ const tabs = el('div', {class:'tabs'},
   const headersTable = buildKVTable(headersInit);
   headersPane.append(el('div', {class:'kvs'}, headersTable, el('div',{class:'kvHint'},'Request headers')));
 // update URL
-   paramsPane.addEventListener('input', () => {
+  ['input','change'].forEach(ev=>{
+  paramsPane.addEventListener(ev, () => {
     const params = tableToSimpleArray(paramsTable.tBodies[0]);
     $('#urlInpDisplay').innerHTML = renderUrlWithVars(
       safeBuildUrl($('#urlInp').value.trim(), params)
     );
   });
+});
+
 
   // Authorization tab
   const authTypeSel = el('select', {id:'authType'},
@@ -1387,7 +1420,9 @@ const tabs = el('div', {class:'tabs'},
     let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
 
     let method = getSelectedMethod();
-    let finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+    let finalUrl = resolveVars(
+      safeBuildUrl($('#urlInp').value.trim(), params)
+    );
     let body = resolveVars($('#bodyRawArea').value || '');
     const authType = $('#authType').value;
     const authToken = $('#authTokenInp').value.trim();
@@ -1472,7 +1507,9 @@ const tabs = el('div', {class:'tabs'},
   $('#curlBtn').onclick = ()=>{
     const m = getSelectedMethod();
     const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    const finalUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+    const finalUrl = resolveVars(
+      safeBuildUrl($('#urlInp').value.trim(), params)
+    );
     const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
     const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
     const authType = $('#authType').value;
