@@ -1089,16 +1089,29 @@ $('#envImportFile').addEventListener('change', async (e)=>{
   }catch(err){ alert('Import error: '+err.message); }
 });
 
-/* ========= Env Selector ========= */
+/* ========= Env Dropdown ========= */
 const ENV_PATHS = {
   dev: './data/dev_environment.json',
   staging: './data/staging_environment.json',
   prod: './data/prod_environment.json'
 };
 
-const envSelect = document.getElementById('envSelect');
+const envDropdown = document.getElementById('envDropdown');
+const envCurrent = envDropdown.querySelector('.envCurrent');
+const envList = envDropdown.querySelector('.envList');
+const envOptions = envDropdown.querySelectorAll('.envOption');
+
 const savedEnv = localStorage.getItem('selected_env') || 'dev';
-envSelect.value = savedEnv;
+setEnvUI(savedEnv);
+loadEnv(savedEnv);
+
+function setEnvUI(envKey) {
+  const opt = envDropdown.querySelector(`.envOption.${envKey}`);
+  if (opt) {
+    envCurrent.textContent = opt.textContent;
+    envCurrent.className = `envCurrent ${envKey}`;
+  }
+}
 
 async function loadEnv(envKey) {
   try {
@@ -1111,19 +1124,29 @@ async function loadEnv(envKey) {
     renderTree($('#search').value || '');
     $('#loadedInfo').textContent = shortInfo();
   } catch (err) {
-    alert(`Ошибка загрузки env: ${err.message}`);
+    showError('Ошибка загрузки окружения', `Не удалось загрузить env (${envKey}).`);
   }
 }
 
-// загрузить сохранённое окружение при старте
-loadEnv(savedEnv);
+envCurrent.onclick = () => {
+  envList.style.display = envList.style.display === 'none' ? 'block' : 'none';
+};
 
-// при смене окружения
-envSelect.addEventListener('change', e => {
-  const envKey = e.target.value;
-  localStorage.setItem('selected_env', envKey);
-  loadEnv(envKey);
+envOptions.forEach(opt => {
+  opt.onclick = () => {
+    const envKey = opt.dataset.value;
+    localStorage.setItem('selected_env', envKey);
+    setEnvUI(envKey);
+    loadEnv(envKey);
+    envList.style.display = 'none';
+  };
 });
+
+// закрытие при клике вне dropdown
+document.addEventListener('click', (e) => {
+  if (!envDropdown.contains(e.target)) envList.style.display = 'none';
+});
+
 
 /* ========= Loaders & session ========= */
 $('#collectionFile').addEventListener('change', onCollectionUpload);
@@ -1272,6 +1295,17 @@ document.addEventListener('click', (e) => {
     }
   });
 });
+/* ========= Error Modal ========= */
+function showError(title, msg) {
+  $('#errorTitle').textContent = title;
+  $('#errorMessage').textContent = msg;
+  $('#errorModal').hidden = false;
+}
+
+$('#errorClose').onclick = () => {
+  $('#errorModal').hidden = true;
+};
+
 /* === Variable edit modal === */
 let editingVarKey = null;
 
