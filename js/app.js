@@ -1,7 +1,7 @@
 /* ========= Config ========= */
 const urlParams = new URLSearchParams(location.search);
-const DEFAULT_COLLECTION_PATH = urlParams.get('collection') || './postman_collection.json';
-const DEFAULT_ENV_PATH        = urlParams.get('env')        || './postman_environment.json';
+const DEFAULT_COLLECTION_PATH = urlParams.get('collection') || './data/postman_collection.json';
+const DEFAULT_ENV_PATH        = urlParams.get('env')        || './data/dev_environment.json';
 const AUTO_OPEN_FIRST         = urlParams.get('autoOpen') !== '0';
 
 /* ========= Utilities ========= */
