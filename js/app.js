@@ -1124,7 +1124,7 @@ async function loadEnv(envKey) {
     renderTree($('#search').value || '');
     $('#loadedInfo').textContent = shortInfo();
   } catch (err) {
-    showError('Ошибка загрузки окружения', `Не удалось загрузить env (${envKey}).`);
+    showError('Environment Load Error', `Failed to load environment (${envKey}).`);
   }
 }
 
