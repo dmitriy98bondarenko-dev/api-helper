@@ -283,28 +283,6 @@
   border-top: 2px solid #374151;
 }
 
-/* Request body textarea */
-.reqBodyWrap textarea {
-  display:block;
-  width:100%;
-  min-height:260px;
-  resize:vertical;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size:14px;
-  border:1px solid var(--divider);
-  border-radius:8px;
-  padding:12px;
-  background:#0000;
-  color:var(--fg);
-  box-sizing:border-box;
-}
-
-[data-theme="dark"] .reqBodyWrap textarea {
-  background:#111827;
-  color:#f3f4f6;
-  border:1px solid #374151;
-}
-
   .reqBodyToolbar{ display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap }
   .reqBodyToolbar .clear{ background:#ffd7cf; color:#7a1d16; border:1px solid #ffc0b6 }
   .reqBodyToolbar .beautify{ background:#e8f7ff; color:#084c7f; border:1px solid #bfe2ff }
@@ -780,27 +758,34 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   white-space: pre-wrap;
   word-break: break-word;
 }
-/* === JSON highlight overlay для Request Body === */
-.reqBodyWrap {
-  position: relative;
+/* === Request body editor (новый <pre><code contenteditable>) === */
+.reqBodyWrap pre.code-editor {
+  display: block;
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--panel);
+  color: var(--fg);
+  box-sizing: border-box;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
-.reqBodyWrap textarea {
-  background: transparent;
-  color: transparent;       
-  caret-color: var(--fg);   
-  position: relative;
-  z-index: 2;               
-}
-
-.reqBodyWrap .highlight {
-  position: absolute;
-  inset: 12px;              
-  pointer-events: none;     
+.reqBodyWrap pre.code-editor code {
+  display: block;
   white-space: pre-wrap;
   word-wrap: break-word;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13px;         
-  line-height: 1.45;
-  z-index: 1;
+  outline: none;
+}
+
+/* Dark theme */
+[data-theme="dark"] .reqBodyWrap pre.code-editor {
+  background: #111827;
+  color: #f3f4f6;
+  border: 1px solid #374151;
 }
