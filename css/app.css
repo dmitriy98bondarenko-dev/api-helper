@@ -848,33 +848,40 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 }
 .envOption:hover { background: var(--soft); }
 
-.envOption.dev, .envCurrent.dev { color: #16a34a; }   /* зеленый */
-.envOption.staging, .envCurrent.staging { color: #ca8a04; } /* желтый */
-.envOption.prod, .envCurrent.prod { color: #dc2626; } /* красный */
+.envOption.dev, .envCurrent.dev { color: #16a34a; }   
+.envOption.staging, .envCurrent.staging { color: #ca8a04; }
+.envOption.prod, .envCurrent.prod { color: #dc2626; } 
+/* ==== Reset button ==== */
 #clearStorageBtn.danger-clear {
-  margin-left: auto;
-  background: #dc2626;
-  color: #fff;
-  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 8px 14px;
-  border-radius: 8px;
-  font-weight: 700;
+  font-size: 14px;
+  background-color: transparent;   
+  border: 2px solid #dc2626;      
+  border-radius: 6px;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 300ms;
+  font-weight: 700;
+  color: #dc2626;                 
 }
+
 
 #clearStorageBtn.danger-clear:hover {
-  background: #b91c1c;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+  background-color: #dc2626;
+  color: #fff;
 }
 
+/* ==== Dark theme ==== */
 [data-theme="dark"] #clearStorageBtn.danger-clear {
-  background: #7f1d1d;
-  color: #fca5a5;
+  border-color: #f87171;   
+  color: #f87171;          
 }
 
 [data-theme="dark"] #clearStorageBtn.danger-clear:hover {
-  background: #991b1b;
+  background-color: #dc2626;  
+  border-color: #dc2626;
   color: #fff;
 }
+
