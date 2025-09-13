@@ -362,13 +362,28 @@
   .tabPane { display:none; }
   .tabPane.active { display:block; }
 
- /* JSON highlight */
-.json-key    { color:#2563eb; font-weight:600; }   
-.json-string { color:#b91c1c; }                    
-.json-number { color:#dc2626; }                    
-.json-boolean{ color:#0369a1; font-weight:600; }   
-.json-null   { color:#6b7280; font-style:italic; } 
-.json-url    { color:#1d4ed8; text-decoration:underline; cursor:pointer; } 
+/* JSON highlight */
+.json-key    { color:#1e40af; font-weight:600; }      /* тёмно-синий для ключей */
+.json-string { color:#be123c; }                       /* бордовый для строк */
+.json-number { color:#b45309; }                       /* оранжево-коричневый для чисел */
+.json-boolean{ color:#0369a1; font-weight:600; }      /* сине-зелёный для true/false */
+.json-null   { color:#6b7280; font-style:italic; }    /* серый курсив для null */
+.json-url    { color:#2563eb; text-decoration:underline; cursor:pointer; } /* синие ссылки */
+
+/* {{var}} в JSON (как в URL) */
+.json-var {
+  color:#7a1d16;
+  background:#fff0f0;
+  border:1px solid #ffc0b6;
+  border-radius:4px;
+  padding:1px 3px;
+  font-style:italic;
+}
+[data-theme="dark"] .json-var {
+  color:#ffd1d6;
+  background:#3b1f23;
+  border-color:#63313a;
+}
 
 /* === Authorize modal – overlay темнее + блокируем скролл страницы === */
 #authModal.modal{
