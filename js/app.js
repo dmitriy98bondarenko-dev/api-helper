@@ -586,14 +586,16 @@ const bodyWrap = el('div', {class:'reqBodyWrap'});
 const bodyToolbar = el('div', {class:'reqBodyToolbar'},
   el('span', {}, 'Request body'),
   el('button', {class:'beautify', id:'beautifyBtn'}, 'Beautify JSON'),
-  el('button', {
-    class:'clear', 
-    onclick:()=>{
-      bodyEditor.textContent='';
-      bodyEditor.innerHTML='';
-      saveReqState(CURRENT_REQ_ID,{body:''});
-    }
-  }, 'Clear'),
+ el('button', {
+  class:'clear', 
+  onclick:()=>{
+    const sel = saveSelection(bodyEditor);
+    bodyEditor.textContent = '';
+    bodyEditor.innerHTML = '';
+    restoreSelection(bodyEditor, 0);
+    saveReqState(CURRENT_REQ_ID,{body:''});
+  }
+}, 'Clear'),
   el('span', {class:'small muted'}, '(Content-Type will be set automatically if missing)')
 );
 
@@ -613,11 +615,12 @@ const bodyEditor = bodyCode.querySelector('#bodyRawArea');
 bodyEditor.innerHTML = highlightJSON(bodyText || '');
 
 // при вводе — обновляем подсветку
-bodyEditor.addEventListener('input', (e)=>{
+bodyEditor.addEventListener('input', (e) => {
+  const sel = saveSelection(e.currentTarget);   // запоминаем позицию
   const text = e.currentTarget.textContent;
   e.currentTarget.innerHTML = highlightJSON(text);
-  placeCaretAtEnd(e.currentTarget);   // курсор не прыгал
-  debSave();                          // сохранить изменения
+  restoreSelection(e.currentTarget, sel);       // восстанавливаем каретку
+  debSave();
 });
 
   // Actions
@@ -669,16 +672,19 @@ bodyEditor.addEventListener('input', (e)=>{
   }
 
   // Beautify JSON
- $('#beautifyBtn').onclick = ()=>{
+$('#beautifyBtn').onclick = ()=>{
   const src = bodyEditor.textContent.trim();
   try{
     const obj = JSON.parse(src);
-    bodyEditor.textContent = JSON.stringify(obj, null, 2);
-    bodyEditor.innerHTML = highlightJSON(bodyEditor.textContent);
-    placeCaretAtEnd(bodyEditor);
-    saveReqState(CURRENT_REQ_ID, { body: bodyEditor.textContent });
+    const sel = saveSelection(bodyEditor);
+    const beautified = JSON.stringify(obj, null, 2);
+    bodyEditor.textContent = beautified;
+    bodyEditor.innerHTML = highlightJSON(beautified);
+    restoreSelection(bodyEditor, sel);
+    saveReqState(CURRENT_REQ_ID, { body: beautified });
   }catch{ alert('Body is not valid JSON'); }
 };
+
 
 
   // Reset only current request
@@ -1328,4 +1334,43 @@ function placeCaretAtEnd(el) {
     sel.removeAllRanges();
     sel.addRange(range);
   }
+}
+function saveSelection(containerEl) {
+  const selection = window.getSelection();
+  if (selection.rangeCount === 0) return null;
+  const range = selection.getRangeAt(0);
+  const preCaretRange = range.cloneRange();
+  preCaretRange.selectNodeContents(containerEl);
+  preCaretRange.setEnd(range.endContainer, range.endOffset);
+  const caretOffset = preCaretRange.toString().length;
+  return caretOffset;
+}
+
+function restoreSelection(containerEl, offset) {
+  if (offset == null) return;
+  let charIndex = 0;
+  const range = document.createRange();
+  range.setStart(containerEl, 0);
+  range.collapse(true);
+  const nodeStack = [containerEl];
+  let node, foundStart = false;
+
+  while (!foundStart && (node = nodeStack.pop())) {
+    if (node.nodeType === 3) { // text node
+      const nextCharIndex = charIndex + node.length;
+      if (offset >= charIndex && offset <= nextCharIndex) {
+        range.setStart(node, offset - charIndex);
+        range.collapse(true);
+        foundStart = true;
+      }
+      charIndex = nextCharIndex;
+    } else {
+      let i = node.childNodes.length;
+      while (i--) nodeStack.push(node.childNodes[i]);
+    }
+  }
+
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
 }
