@@ -1,4 +1,3 @@
-<script>
 /* ========= Config ========= */
 const urlParams = new URLSearchParams(location.search);
 const DEFAULT_COLLECTION_PATH = urlParams.get('collection') || './postman_collection.json';
@@ -1244,4 +1243,3 @@ $('#varEditSave').onclick = () => {
   $('#varEditModal').hidden = true;
   editingVarKey = null;
 };
-</script>
