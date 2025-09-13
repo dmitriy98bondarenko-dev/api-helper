@@ -853,35 +853,32 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 .envOption.prod, .envCurrent.prod { color: #dc2626; } 
 /* ==== Reset button ==== */
 #clearStorageBtn.danger-clear {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 8px 14px;
+  padding: 6px 14px;
   font-size: 14px;
-  background-color: transparent;   
-  border: 2px solid #dc2626;      
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 300ms;
   font-weight: 700;
-  color: #dc2626;                 
+  border: 2px solid #dc2626;
+  border-radius: 6px;
+  background: transparent;
+  color: #dc2626;
+  cursor: pointer;
+  transition: 0.25s;
 }
 
-
+/* Hover (светлая тема) */
 #clearStorageBtn.danger-clear:hover {
-  background-color: #dc2626;
+  background: #dc2626;
   color: #fff;
 }
 
-/* ==== Dark theme ==== */
+/* ==== Темная тема ==== */
 [data-theme="dark"] #clearStorageBtn.danger-clear {
-  border-color: #f87171;   
-  color: #f87171;          
+  background: #dc2626;   /* сразу красная заливка */
+  color: #fff;
+  border-color: #dc2626;
 }
+
 
 [data-theme="dark"] #clearStorageBtn.danger-clear:hover {
-  background-color: #dc2626;  
-  border-color: #dc2626;
-  color: #fff;
+  background: #b91c1c;
+  border-color: #b91c1c;
 }
-
