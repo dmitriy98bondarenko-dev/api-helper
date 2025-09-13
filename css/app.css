@@ -1,5 +1,4 @@
-<style>
-  /* ---------- Theme tokens ---------- */
+/* ---------- Theme tokens ---------- */
   :root{
     --bg:#f6f8fb; --panel:#ffffff; --muted:#6b7280; --fg:#0a0d14; --accent:#0b6cff;
     --ok:#16a34a; --warn:#b45309; --err:#dc2626; --divider:#e5e7eb; --code:#0f172a;
@@ -652,4 +651,3 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   width: auto;     
   margin-right: 8px;
 }
-</style>
