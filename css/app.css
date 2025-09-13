@@ -49,18 +49,31 @@
   }
 
   /* ---------- Header ---------- */
-  header{
-    grid-area:top; display:flex; gap:12px; align-items:center; padding:8px 12px;
-    background:var(--panel); border-bottom:1px solid var(--divider);
-  }
-  header h1 {
-  font-size:20px;
-  margin:0;
-  letter-spacing:.3px;
-  font-weight:700;
-  color:var(--ink);
+ header {
+  grid-area: top;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--divider);
+  justify-content: space-between; 
 }
-  .bar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  header h1 {
+  font-size: 20px;
+  margin: 0;
+  letter-spacing: .3px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: 1;
+}
   .btn, button{
     background:var(--chip-bg); color:var(--fg); border:1px solid var(--divider);
     padding:8px 10px; border-radius:8px; cursor:pointer
@@ -838,12 +851,30 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 .envOption.dev, .envCurrent.dev { color: #16a34a; }   /* зеленый */
 .envOption.staging, .envCurrent.staging { color: #ca8a04; } /* желтый */
 .envOption.prod, .envCurrent.prod { color: #dc2626; } /* красный */
-button.danger {
+#clearStorageBtn.danger-clear {
+  margin-left: auto;
   background: #dc2626;
   color: #fff;
-  font-weight: 700;
   border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
-button.danger:hover {
-  filter: brightness(1.1);
+
+#clearStorageBtn.danger-clear:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+}
+
+[data-theme="dark"] #clearStorageBtn.danger-clear {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] #clearStorageBtn.danger-clear:hover {
+  background: #991b1b;
+  color: #fff;
 }
