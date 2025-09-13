@@ -269,11 +269,26 @@
   .scriptsArea{ padding:12px; background:#0000 }
   .scriptsArea textarea{ width:100%; min-height:160px; border:1px solid var(--divider); border-radius:8px; background:#0000; color:var(--fg); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding:10px }
 
- .reqBodyWrap textarea {
+/* Request body wrapper */
+.reqBodyWrap {
+  margin-top: 12px;                
+  padding: 14px;
+  background: var(--soft);
+  border-top: 2px solid var(--divider);
+  border-radius: 8px;
+}
+
+[data-theme="dark"] .reqBodyWrap {
+  background: #1f2937;
+  border-top: 2px solid #374151;
+}
+
+/* Request body textarea */
+.reqBodyWrap textarea {
   display:block;
-  width:100%;              
-  min-height:260px;        
-  resize:vertical;        
+  width:100%;
+  min-height:260px;
+  resize:vertical;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size:14px;
   border:1px solid var(--divider);
@@ -281,13 +296,15 @@
   padding:12px;
   background:#0000;
   color:var(--fg);
-  box-sizing:border-box;   
+  box-sizing:border-box;
 }
+
 [data-theme="dark"] .reqBodyWrap textarea {
   background:#111827;
   color:#f3f4f6;
   border:1px solid #374151;
 }
+
   .reqBodyToolbar{ display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap }
   .reqBodyToolbar .clear{ background:#ffd7cf; color:#7a1d16; border:1px solid #ffc0b6 }
   .reqBodyToolbar .beautify{ background:#e8f7ff; color:#084c7f; border:1px solid #bfe2ff }
@@ -345,13 +362,13 @@
   .tabPane { display:none; }
   .tabPane.active { display:block; }
 
-  /* JSON highlight */
-  .json-key { color:#0b6cff; font-weight:600; }
-  .json-string { color:#16a34a; }
-  .json-number { color:#dc2626; }
-  .json-boolean { color:#b45309; font-weight:600; }
-  .json-null { color:#6b7280; font-style:italic; }
-  .json-url { color:#7a3cff; text-decoration:underline; cursor:pointer; }
+ /* JSON highlight */
+.json-key    { color:#2563eb; font-weight:600; }   
+.json-string { color:#b91c1c; }                    
+.json-number { color:#dc2626; }                    
+.json-boolean{ color:#0369a1; font-weight:600; }   
+.json-null   { color:#6b7280; font-style:italic; } 
+.json-url    { color:#1d4ed8; text-decoration:underline; cursor:pointer; } 
 
 /* === Authorize modal – overlay темнее + блокируем скролл страницы === */
 #authModal.modal{
