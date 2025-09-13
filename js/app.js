@@ -1272,22 +1272,46 @@ $('#varEditSave').onclick = () => {
 };
 function highlightJSON(text) {
   if (!text) return "";
-  // Экраним спецсимволы
-  text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  // {{var}}
-  text = text.replace(/(\{\{.*?\}\})/g, '<span class="json-var">$1</span>');
-  // Ключи
-  text = text.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(?=\s*:))/g, '<span class="json-key">$1</span>');
-  // Строки
-  text = text.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(?!\s*:))/g, '<span class="json-string">$1</span>');
-  // Числа
-  text = text.replace(/\b(-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?)\b/g, '<span class="json-number">$1</span>');
-  // true/false
-  text = text.replace(/\b(true|false)\b/g, '<span class="json-boolean">$1</span>');
+  // symbols
+  let html = String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // string
+  html = html.replace(
+    /("(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\"]*)")(?!\s*:)/g,
+    '<span class="json-string">$1</span>'
+  );
+
+  // keys
+  html = html.replace(
+    /(^|[\{\[,]\s*)("(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\"]*)")(\s*:)/g,
+    '$1<span class="json-key">$2</span>$3'
+  );
+  // numbers
+  html = html.replace(
+    /\b(-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?)\b/g,
+    '<span class="json-number">$1</span>'
+  );
+  // boolean
+  html = html.replace(/\b(true|false)\b/g, '<span class="json-boolean">$1</span>');
   // null
-  text = text.replace(/\b(null)\b/g, '<span class="json-null">$1</span>');
-  return text;
+  html = html.replace(/\b(null)\b/g, '<span class="json-null">$1</span>');
+  // URL 
+  html = html.replace(
+    /"(https?:\/\/[^"]+)"/g,
+    '"<span class="json-url">$1</span>"'
+  );
+  // {{vars}} 
+  html = html.replace(
+    /(\{\{\s*[^}]+\s*\}\})/g,
+    '<span class="json-var">$1</span>'
+  );
+
+  return html;
 }
+
 
 function placeCaretAtEnd(el) {
   el.focus();
