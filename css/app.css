@@ -362,27 +362,25 @@
   .tabPane { display:none; }
   .tabPane.active { display:block; }
 
-/* JSON highlight */
-.json-key    { color:#1e40af; font-weight:600; }      /* тёмно-синий для ключей */
-.json-string { color:#be123c; }                       /* бордовый для строк */
-.json-number { color:#b45309; }                       /* оранжево-коричневый для чисел */
-.json-boolean{ color:#0369a1; font-weight:600; }      /* сине-зелёный для true/false */
-.json-null   { color:#6b7280; font-style:italic; }    /* серый курсив для null */
-.json-url    { color:#2563eb; text-decoration:underline; cursor:pointer; } /* синие ссылки */
+/* JSON highlight – мягкие цвета и меньший размер */
+.json-key    { color:#569CD6; font-weight:500; }     /* ключи – мягкий синий */
+.json-string { color:#CE9178; }                      /* строки – мягкий оранжево-розовый */
+.json-number { color:#B5CEA8; }                      /* числа – светло-зелёный */
+.json-boolean{ color:#4EC9B0; font-weight:500; }     /* true/false – бирюзовый */
+.json-null   { color:#9CA3AF; font-style:italic; }   /* null – серый курсив */
+.json-url    { color:#D7BA7D; text-decoration:underline; cursor:pointer; } /* ссылки – золотистые */
 
-/* {{var}} в JSON (как в URL) */
+/* Переменные {{var}} внутри JSON */
 .json-var {
-  color:#7a1d16;
-  background:#fff0f0;
-  border:1px solid #ffc0b6;
-  border-radius:4px;
-  padding:1px 3px;
+  color:#D7BA7D;
+  background:#fff0;
+  border-radius:3px;
+  padding:0 2px;
   font-style:italic;
 }
 [data-theme="dark"] .json-var {
-  color:#ffd1d6;
-  background:#3b1f23;
-  border-color:#63313a;
+  color:#FFD580;
+  background:#0000;
 }
 
 /* === Authorize modal – overlay темнее + блокируем скролл страницы === */
@@ -767,4 +765,18 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   color:#6b7280 !important;
   border:1px solid #374151 !important;
   opacity:0.7;
+}
+/* Унифицируем JSON-редакторы */
+.reqBodyWrap pre,
+.reqBodyWrap code,
+.reqBodyWrap textarea,
+.respBody pre,
+.respBody code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;   /* чуть меньше, как в VS Code */
+  line-height: 1.45;
+  background: transparent;
+  color: var(--fg);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
