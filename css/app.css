@@ -780,3 +780,27 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   white-space: pre-wrap;
   word-break: break-word;
 }
+/* === JSON highlight overlay для Request Body === */
+.reqBodyWrap {
+  position: relative;
+}
+
+.reqBodyWrap textarea {
+  background: transparent;
+  color: transparent;       
+  caret-color: var(--fg);   
+  position: relative;
+  z-index: 2;               
+}
+
+.reqBodyWrap .highlight {
+  position: absolute;
+  inset: 12px;              
+  pointer-events: none;     
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;         
+  line-height: 1.45;
+  z-index: 1;
+}
