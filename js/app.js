@@ -105,8 +105,9 @@ function buildVarMap(){
     });
   }
   VARS = map;
-  try {
-  const stored = JSON.parse(localStorage.getItem('pm_env') || '{"values":[]}');
+ try {
+  const currentEnv = localStorage.getItem('selected_env') || 'dev';
+  const stored = JSON.parse(localStorage.getItem(`pm_env_${currentEnv}`) || '{"values":[]}');
   if (Array.isArray(stored.values)) {
     stored.values.forEach(v=>{
       if (v && v.enabled !== false) VARS[v.key] = v.value;
@@ -1069,11 +1070,16 @@ $('#varsCancel').addEventListener('click', ()=> $('#varsModal').hidden = true);
 $('#varsSave').addEventListener('click', ()=>{
   const rows = readVarsTable();
   ENV.values = rows.map(r=>({ key: r.key, value: r.value, enabled: r.enabled }));
-  try{ localStorage.setItem('pm_env', JSON.stringify(ENV)); }catch{}
+
+  const currentEnv = localStorage.getItem('selected_env') || 'dev';
+  try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
+
   buildVarMap();
   renderTree($('#search').value||'');
   $('#varsModal').hidden = true;
 });
+
+
 $('#envImportFile').addEventListener('change', async (e)=>{
   const f = e.target.files[0]; 
   if (!f) return;
@@ -1094,11 +1100,15 @@ $('#envImportFile').addEventListener('change', async (e)=>{
 
     buildVarMap();
     buildVarsTableBody();
+    renderTree($('#search').value || '');
+    $('#loadedInfo').textContent = shortInfo();
+
     alert(`Environment imported for ${currentEnv.toUpperCase()}.`);
   } catch(err){ 
-    alert('Import error: '+err.message); 
+    showError('Import Error', 'Could not import environment: ' + err.message);
   }
 });
+
 
 
 /* ========= Env Dropdown ========= */
@@ -1127,7 +1137,6 @@ function setEnvUI(envKey) {
 
 async function loadEnv(envKey) {
   try {
-    // пробуем достать из localStorage
     const stored = localStorage.getItem(`pm_env_${envKey}`);
     if (stored) {
       ENV = JSON.parse(stored);
@@ -1136,28 +1145,24 @@ async function loadEnv(envKey) {
       if (!res.ok) throw new Error('Failed to load env');
       const txt = await res.text();
       ENV = JSON.parse(txt);
-      localStorage.setItem(`pm_env_${envKey}`, txt);
+      localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
     }
-
-    buildVarMap();
-    renderTree($('#search').value || '');
-    $('#loadedInfo').textContent = shortInfo();
   } catch (err) {
+    console.error('Env load failed', envKey, err);
+
     showError(
       'Environment Load Error',
-      'Failed to load environment file. Please try importing your own JSON.'
+      `Failed to load environment (${envKey}). Please try importing your own JSON.`
     );
-
-    ENV = { values: [] };
-    for (let i = 0; i < 10; i++) {
-      ENV.values.push({ key: '', value: '', enabled: false });
-    }
+    ENV = { name: envKey, values: Array.from({ length: 10 }, () => ({ key: '', value: '', enabled: false })) };
     localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
-    buildVarMap();
-    renderTree($('#search').value || '');
-    $('#loadedInfo').textContent = shortInfo();
   }
+
+  buildVarMap();
+  renderTree($('#search').value || '');
+  $('#loadedInfo').textContent = shortInfo();
 }
+
 
 
 envCurrent.onclick = () => {
@@ -1199,7 +1204,9 @@ async function onEnvUpload(e){
   const f = e.target.files[0]; if(!f) return;
   const txt = await f.text();
   try{
-    ENV = JSON.parse(txt); localStorage.setItem('pm_env', txt);
+    ENV = JSON.parse(txt);
+    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
     buildVarMap(); renderTree($('#search').value||'');
     $('#loadedInfo').textContent = shortInfo();
   }catch(err){ alert('Environment parse error: '+err.message); }
@@ -1221,8 +1228,9 @@ function autoOpenFirst(){
   if (!ctx.vars) ctx.vars = { ...VARS };
 
   const persistEnv = () => {
-    try { localStorage.setItem('pm_env', JSON.stringify(ENV)); } catch {}
-    if (typeof buildVarMap === 'function') buildVarMap();
+  const currentEnv = localStorage.getItem('selected_env') || 'dev';
+  try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
+  if (typeof buildVarMap === 'function') buildVarMap();
   };
 
   const setEnv = (key, value) => {
@@ -1302,11 +1310,19 @@ function autoOpenFirst(){
   }catch{}
   try{
     const envRes = await fetch(DEFAULT_ENV_PATH, {cache:'no-cache'});
-    if (envRes.ok){ const txt = await envRes.text(); ENV = JSON.parse(txt); localStorage.setItem('pm_env', txt); }
+  if (envRes.ok){
+    const txt = await envRes.text();
+    ENV = JSON.parse(txt);
+    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+  }
   }catch{}
   if (!loadedSomething){
     const storedCol = localStorage.getItem('pm_collection'); if (storedCol){ try{ COLLECTION = JSON.parse(storedCol); loadedSomething = true; }catch{} }
-    const storedEnv = localStorage.getItem('pm_env'); if (storedEnv){ try{ ENV = JSON.parse(storedEnv); }catch{} }
+    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+    const storedEnv = localStorage.getItem(`pm_env_${currentEnv}`);
+    if (storedEnv){ try{ ENV = JSON.parse(storedEnv); }catch{} }
+
   }
   if (loadedSomething){
     ITEMS_FLAT = []; flattenItems(COLLECTION); buildVarMap(); renderTree('');
@@ -1371,7 +1387,9 @@ $('#varEditSave').onclick = () => {
     if (row) row.value = newVal;
     else ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
 
-    localStorage.setItem('pm_env', JSON.stringify(ENV));
+    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+
     buildVarMap();
 
     // обновляем URL строку
