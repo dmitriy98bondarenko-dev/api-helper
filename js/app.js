@@ -1497,14 +1497,3 @@ function restoreSelection(containerEl, offset) {
   sel.removeAllRanges();
   sel.addRange(range);
 }
-export default defineConfig({
-  server: {
-    proxy: {
-      '/api': {
-        target: 'https://driver.dev.uklon.com.ua',
-        changeOrigin: true,
-        secure: false
-      }
-    }
-  }
-});
