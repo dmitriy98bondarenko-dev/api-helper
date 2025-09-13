@@ -1243,3 +1243,47 @@ $('#varEditSave').onclick = () => {
   $('#varEditModal').hidden = true;
   editingVarKey = null;
 };
+function highlightJSON(text) {
+  if (!text) return "";
+  // Экраним спецсимволы
+  text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  // {{var}}
+  text = text.replace(/(\{\{.*?\}\})/g, '<span class="json-var">$1</span>');
+  // Ключи
+  text = text.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(?=\s*:))/g, '<span class="json-key">$1</span>');
+  // Строки
+  text = text.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(?!\s*:))/g, '<span class="json-string">$1</span>');
+  // Числа
+  text = text.replace(/\b(-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?)\b/g, '<span class="json-number">$1</span>');
+  // true/false
+  text = text.replace(/\b(true|false)\b/g, '<span class="json-boolean">$1</span>');
+  // null
+  text = text.replace(/\b(null)\b/g, '<span class="json-null">$1</span>');
+  return text;
+}
+
+function renderHighlightedJSON() {
+  const textarea = document.querySelector('.reqBodyWrap textarea');
+  const highlightEl = document.querySelector('.reqBodyWrap .highlight');
+  if (!textarea || !highlightEl) return;
+  highlightEl.innerHTML = highlightJSON(textarea.value);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const textarea = document.querySelector('.reqBodyWrap textarea');
+  if (!textarea) return;
+
+  // Вставляем слой подсветки
+  const wrapper = textarea.parentElement;
+  const highlight = document.createElement('pre');
+  highlight.className = 'highlight';
+  wrapper.appendChild(highlight);
+
+  textarea.addEventListener('input', renderHighlightedJSON);
+  textarea.addEventListener('scroll', () => {
+    highlight.scrollTop = textarea.scrollTop;
+    highlight.scrollLeft = textarea.scrollLeft;
+  });
+
+  renderHighlightedJSON();
+});
