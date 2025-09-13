@@ -23,6 +23,11 @@
       </label>
       <button id="authBtn" title="Global Bearer token">Authorize</button>
       <button id="varsBtn" title="Postman environment">Environment Variables</button>
+      <select id="envSelect" class="env-select">
+        <option value="dev">Dev</option>
+        <option value="staging">Staging</option>
+        <option value="prod">Prod</option>
+      </select>
       <button id="themeBtn" class="themeToggle" title="Toggle theme">🌙</button>
       <span id="loadedInfo" class="rightInfo"></span>
     </div>
@@ -88,6 +93,7 @@
       </div>
     </div>
   </div>
+
   
 <!-- Variable edit modal -->
 <div id="varEditModal" class="modal" hidden>
