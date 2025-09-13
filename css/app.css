@@ -65,6 +65,23 @@
     background:var(--chip-bg); color:var(--fg); border:1px solid var(--divider);
     padding:8px 10px; border-radius:8px; cursor:pointer
   }
+/* Верхняя панель */
+[data-theme="dark"] #authBtn {
+  background:#14532d;         /* зелёный */
+  border-color:#166534;
+  color:#4ade80;
+  font-weight:600;
+}
+[data-theme="dark"] #varsBtn {
+  background:#1e3a8a;         /* синий */
+  border-color:#1d4ed8;
+  color:#93c5fd;
+}
+[data-theme="dark"] #themeBtn {
+  background:#1f2937;
+  color:#facc15;              /* смена темы */
+  border:none;
+}
   .btn:hover, button:hover{filter:brightness(1.05)}
   input[type="file"]{display:none}
   label.file{padding:8px 10px; border:1px dashed var(--divider); border-radius:8px; cursor:pointer; background:var(--soft)}
@@ -257,9 +274,16 @@
   .reqBodyToolbar{ display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap }
   .reqBodyToolbar .clear{ background:#ffd7cf; color:#7a1d16; border:1px solid #ffc0b6 }
   .reqBodyToolbar .beautify{ background:#e8f7ff; color:#084c7f; border:1px solid #bfe2ff }
-  [data-theme="dark"] .reqBodyToolbar .beautify{ background:#0d2a3a; color:#a8d2ff; border-color:#1c3a52 }
-  .reqBodyWrap textarea{ width:100%; min-height:220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:14px; border:1px solid #e6d7c8; border-radius:8px; padding:10px; background:#0000; color:inherit }
-  [data-theme="dark"] .reqBodyWrap textarea{ border-color:#3a2f24 }
+  [data-theme="dark"] .reqBodyToolbar .beautify {
+  background:#1e3a8a;
+  border:1px solid #1d4ed8;
+  color:#93c5fd;
+}
+[data-theme="dark"] .reqBodyToolbar .clear {
+  background:#3f1d1d;
+  border:1px solid #7f1d1d;
+  color:#fca5a5;
+}
 
   /* Response */
   .respHeader{display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px; border-bottom:1px solid var(--divider); background:var(--soft)}
