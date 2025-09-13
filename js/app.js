@@ -1373,7 +1373,7 @@ $('#errorClose').onclick = () => {
 let editingVarKey = null;
 
 // клик по токену → открываем модалку
-  document.addEventListener('click', (e) => {
+document.addEventListener('click', (e) => {
   const span = e.target.closest('.var-token');
   if (!span) return;
 
@@ -1383,6 +1383,10 @@ let editingVarKey = null;
   $('#varEditValue').value = current;
   $('#varEditTitle').textContent = `Edit variable: ${editingVarKey}`;
   $('#varEditModal').hidden = false;
+
+  const sel = window.getSelection();
+  if (sel) sel.removeAllRanges();
+  $('#urlInpDisplay').blur();
 });
 
 // закрыть
