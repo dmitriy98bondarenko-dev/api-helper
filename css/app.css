@@ -789,3 +789,16 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   color: #f3f4f6;
   border: 1px solid #374151;
 }
+.env-select {
+  margin-left: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--panel);
+  border: 1px solid var(--divider);
+  cursor: pointer;
+}
+.env-select option {
+  font-weight: 500;
+}
