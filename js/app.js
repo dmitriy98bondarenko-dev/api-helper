@@ -1019,7 +1019,12 @@ $('#authClear').addEventListener('click', ()=>{
 function buildVarsTableBody(){
   const tb = $('#varsTable tbody');
   tb.innerHTML = '';
-  const list = Array.isArray(ENV?.values) ? ENV.values : [];
+  let list = Array.isArray(ENV?.values) ? ENV.values : [];
+  if (list.length < 10) {
+    list = list.concat(
+      Array.from({length: 10 - list.length}, ()=>({key:'', value:'', enabled:false}))
+    );
+  }
   list.forEach((v, i)=>{
     const tr = document.createElement('tr');
     const key = v.key ?? v.name ?? '';
@@ -1070,24 +1075,31 @@ $('#varsSave').addEventListener('click', ()=>{
   $('#varsModal').hidden = true;
 });
 $('#envImportFile').addEventListener('change', async (e)=>{
-  const f = e.target.files[0]; if(!f) return;
+  const f = e.target.files[0]; 
+  if (!f) return;
   const txt = await f.text();
-  try{
-    const parsed = JSON.parse(txt);
+  try {
+    let parsed = JSON.parse(txt);
     if (Array.isArray(parsed?.values)) {
-      ENV = { ...(ENV||{}), ...parsed };
+      ENV = parsed;
     } else if (parsed && typeof parsed === 'object') {
       const values = Object.entries(parsed).map(([k,v])=>({key:k, value:String(v), enabled:true}));
       ENV = { name: 'Imported', values };
     } else {
       throw new Error('Unknown env format');
     }
-    localStorage.setItem('pm_env', JSON.stringify(ENV));
+
+    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+
     buildVarMap();
     buildVarsTableBody();
-    alert('Environment imported (local).');
-  }catch(err){ alert('Import error: '+err.message); }
+    alert(`Environment imported for ${currentEnv.toUpperCase()}.`);
+  } catch(err){ 
+    alert('Import error: '+err.message); 
+  }
 });
+
 
 /* ========= Env Dropdown ========= */
 const ENV_PATHS = {
@@ -1115,18 +1127,38 @@ function setEnvUI(envKey) {
 
 async function loadEnv(envKey) {
   try {
-    const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
-    if (!res.ok) throw new Error('Failed to load env');
-    const txt = await res.text();
-    ENV = JSON.parse(txt);
-    localStorage.setItem('pm_env', txt);
+    // пробуем достать из localStorage
+    const stored = localStorage.getItem(`pm_env_${envKey}`);
+    if (stored) {
+      ENV = JSON.parse(stored);
+    } else {
+      const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
+      if (!res.ok) throw new Error('Failed to load env');
+      const txt = await res.text();
+      ENV = JSON.parse(txt);
+      localStorage.setItem(`pm_env_${envKey}`, txt);
+    }
+
     buildVarMap();
     renderTree($('#search').value || '');
     $('#loadedInfo').textContent = shortInfo();
   } catch (err) {
-    showError('Environment Load Error', `Failed to load environment (${envKey}).`);
+    showError(
+      'Environment Load Error',
+      'Failed to load environment file. Please try importing your own JSON.'
+    );
+
+    ENV = { values: [] };
+    for (let i = 0; i < 10; i++) {
+      ENV.values.push({ key: '', value: '', enabled: false });
+    }
+    localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
+    buildVarMap();
+    renderTree($('#search').value || '');
+    $('#loadedInfo').textContent = shortInfo();
   }
 }
+
 
 envCurrent.onclick = () => {
   envList.style.display = envList.style.display === 'none' ? 'block' : 'none';
