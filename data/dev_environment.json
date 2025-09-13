@@ -1,1 +1,297 @@
-
+{
+	"id": "c1a85d18-27fd-4dbc-aad9-7ea537e5b3c8",
+	"name": "Bondarenko_dev",
+	"values": [
+		{
+			"key": "adminUsername",
+			"value": "vlprivate@uklon.com.ua",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "adminPassword",
+			"value": "q",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "driverPhone",
+			"value": "380989089898",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "driverPassword",
+			"value": "76-94-F4-A6-63-16-E5-3C-8C-DD-9D-99-54-BD-61-1D",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "riderUserName",
+			"value": "380989089898",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "riderPassword",
+			"value": "q",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "corporateRiderUserName",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "corporatePassword",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "adminAuthToken",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "driverAuthToken",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "riderAuthToken",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "corporateRiderAuthToken",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "lat",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "lng",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "currentUnixTime",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "activeOrderId",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "historyOrderId",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "driverId",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "walletId",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "randomGuid",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "driverWalletIdAmonut0",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "adminTokenDev",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "appUid",
+			"value": "8a51ef4027d444f7bee746e1e4fb6f51",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "clientId",
+			"value": "6289de851fc726f887af8d5d7a56c635",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "changeRequestFareId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "promoCodeName",
+			"value": "DRIVER",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "driverGatewayHost",
+			"value": "https://driver.dev.uklon.com.ua",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "partnersIdentityHost",
+			"value": "https://partnersidentity.dev.uklon.net",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "chatServiceHost",
+			"value": "https://chatservice.dev.uklon.net",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "paymentProcessorHost",
+			"value": "https://paymentprocessor.dev.uklon.net",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "driverOrderingHost",
+			"value": "https://driverordering.dev.uklon.net",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "partnersHost",
+			"value": "https://partners.dev.uklon.net",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "notificationServiceHost",
+			"value": "https://notificationservice.dev.uklon.net",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "riderGatewayHost",
+			"value": "https://rider.staging.uklon.com.ua",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "adminGatewayHost",
+			"value": "https://ag.staging.uklon.com.ua",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "internalIdentityHost",
+			"value": "https://internalidentity.staging.uklon.net",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "filter_id",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "searchHost",
+			"value": "https://search.dev.uklon.net",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "riderGatewayHostDev",
+			"value": "https://rider.dev.uklon.com.ua",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "participantId",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "startAt",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "driverBonusHost",
+			"value": "https://driverbonus.dev.uklon.net",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "vehicleId",
+			"value": "604ca7b4-6df4-4f5b-baac-490447441719",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "fleetId",
+			"value": "a9e6f102-a8c4-458e-ac3c-7ce761e137f3",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "brandBonusId",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "generated_guid_filter",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2025-09-09T20:06:04.637Z",
+	"_postman_exported_using": "Postman/11.55.5"
+}
