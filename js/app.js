@@ -600,8 +600,11 @@ const bodyToolbar = el('div', {class:'reqBodyToolbar'},
 // === Request Body (JSON editor with highlight) ===
 const bodyCode = el('pre', { class: 'code-editor reqBody' },
   el('code', { 
-    id: 'bodyRawArea', 
-    contenteditable: 'true' 
+    id: 'bodyRawArea',
+    contenteditable: 'true',
+    spellcheck: 'false',
+    autocapitalize: 'off',
+    autocorrect: 'off'
   }, bodyText || '')
 );
 bodyWrap.append(bodyToolbar, bodyCode);
