@@ -1105,7 +1105,7 @@ $('#envImportFile').addEventListener('change', async (e)=>{
     renderTree($('#search').value || '');
     $('#loadedInfo').textContent = shortInfo();
 
-    // 🔥 обновляем URL + подсветку переменных
+    // update URL
     document.querySelectorAll('#urlInpDisplay').forEach(disp => {
       const hidden = document.querySelector('#urlInp');
       if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
@@ -1116,7 +1116,6 @@ $('#envImportFile').addEventListener('change', async (e)=>{
   } catch(err){ 
     showError('Import Error', 'Could not import environment: ' + err.message);
   } finally {
-    // 🔥 сбрасываем value, чтобы повторный импорт того же файла сработал
     e.target.value = '';
   }
 });
