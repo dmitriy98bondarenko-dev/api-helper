@@ -1142,10 +1142,16 @@ async function loadEnv(envKey) {
   try {
     const stored = localStorage.getItem(`pm_env_${envKey}`);
     if (stored) {
-      ENV = JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed.values) && parsed.values.length > 0) {
+        ENV = parsed;
+      } else {
+        throw new Error('Empty env in localStorage');
+      }
     } else {
+      // load file
       const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
-      if (!res.ok) throw new Error('Failed to load env');
+      if (!res.ok) throw new Error('Failed to load env file');
       const txt = await res.text();
       ENV = JSON.parse(txt);
       localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
@@ -1164,16 +1170,14 @@ async function loadEnv(envKey) {
   buildVarMap();
   renderTree($('#search').value || '');
   $('#loadedInfo').textContent = shortInfo();
-  // update url 
+
+  // updatee url
   document.querySelectorAll('#urlInpDisplay').forEach(disp => {
     const hidden = document.querySelector('#urlInp');
-    if (hidden) {
-      disp.innerHTML = renderUrlWithVars(hidden.value);
-    }
+    if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
   });
   highlightMissingVars(document);
 }
-
 
 
 envCurrent.onclick = () => {
