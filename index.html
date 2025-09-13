@@ -23,11 +23,14 @@
       </label>
       <button id="authBtn" title="Global Bearer token">Authorize</button>
       <button id="varsBtn" title="Postman environment">Environment Variables</button>
-      <select id="envSelect" class="env-select">
-        <option value="dev">Dev</option>
-        <option value="staging">Staging</option>
-        <option value="prod">Prod</option>
-      </select>
+      <div id="envDropdown" class="envDropdown">
+      <div class="envCurrent">DEV</div>
+        <div class="envList" style="display:none;">
+          <div class="envOption dev" data-value="dev">DEV</div>
+          <div class="envOption staging" data-value="staging">STAGING</div>
+          <div class="envOption prod" data-value="prod">PROD</div>
+        </div>
+      </div>
       <button id="themeBtn" class="themeToggle" title="Toggle theme">🌙</button>
       <span id="loadedInfo" class="rightInfo"></span>
     </div>
