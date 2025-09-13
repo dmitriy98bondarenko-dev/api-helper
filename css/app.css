@@ -647,4 +647,9 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   cursor: pointer;
   border-radius: 6px;
 }
+.logo-icon {
+  height: 28px;     
+  width: auto;     
+  margin-right: 8px;
+}
 </style>
