@@ -1512,3 +1512,27 @@ function restoreSelection(containerEl, offset) {
   sel.removeAllRanges();
   sel.addRange(range);
 }
+$('#clearStorageBtn').addEventListener('click', () => {
+  $('#clearConfirmModal').hidden = false;
+});
+
+$('#clearCancel').addEventListener('click', () => {
+  $('#clearConfirmModal').hidden = true;
+});
+
+$('#clearConfirm').addEventListener('click', () => {
+  // Удаляем env и selected_env
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('pm_env_') || key === 'selected_env') {
+      localStorage.removeItem(key);
+    }
+  });
+
+  $('#clearConfirmModal').hidden = true;
+  alert('Environments cleared. Default environment (DEV) will be used.');
+  
+  // сброс UI на dev
+  localStorage.setItem('selected_env', 'dev');
+  setEnvUI('dev');
+  loadEnv('dev');
+});
