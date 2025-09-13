@@ -437,7 +437,7 @@ const debSave = debounce(()=> {
     method: getSelectedMethod(),
     url: $('#urlInp').value,
     params, headers,
-    body: $('#bodyRawArea').value,
+    body: $('#bodyRawArea').textContent,
     scripts: scriptsNew,
     auth: authNew
   };
@@ -581,16 +581,41 @@ const tabs = el('div', {class:'tabs'},
   const scriptsPaneInfo = el('div', {class:'small muted', style:'padding:0 12px 12px'}, 'Available: ctx.request (method,url,params,headers,body), ctx.response (status, headers, bodyText)');
   scriptsPane.append(sw, scriptsArea, scriptsPaneInfo);
 
-  // Body
-  const bodyWrap = el('div', {class:'reqBodyWrap'});
-  const bodyToolbar = el('div', {class:'reqBodyToolbar'},
-    el('span', {}, 'Request body'),
-    el('button', {class:'beautify', id:'beautifyBtn'}, 'Beautify JSON'),
-    el('button', {class:'clear', onclick:()=>{ bodyArea.value=''; saveReqState(CURRENT_REQ_ID,{body:''}); }}, 'Clear'),
-    el('span', {class:'small muted'}, '(Content-Type will be set automatically if missing)')
-  );
-  const bodyArea = el('textarea', {id:'bodyRawArea'}, bodyText || '');
-  bodyWrap.append(bodyToolbar, bodyArea);
+ // Body
+const bodyWrap = el('div', {class:'reqBodyWrap'});
+const bodyToolbar = el('div', {class:'reqBodyToolbar'},
+  el('span', {}, 'Request body'),
+  el('button', {class:'beautify', id:'beautifyBtn'}, 'Beautify JSON'),
+  el('button', {
+    class:'clear', 
+    onclick:()=>{
+      bodyEditor.textContent='';
+      bodyEditor.innerHTML='';
+      saveReqState(CURRENT_REQ_ID,{body:''});
+    }
+  }, 'Clear'),
+  el('span', {class:'small muted'}, '(Content-Type will be set automatically if missing)')
+);
+
+// === Request Body (JSON editor with highlight) ===
+const bodyCode = el('pre', { class: 'code-editor reqBody' },
+  el('code', { 
+    id: 'bodyRawArea', 
+    contenteditable: 'true' 
+  }, bodyText || '')
+);
+bodyWrap.append(bodyToolbar, bodyCode);
+
+const bodyEditor = bodyCode.querySelector('#bodyRawArea');
+bodyEditor.innerHTML = highlightJSON(bodyText || '');
+
+// при вводе — обновляем подсветку
+bodyEditor.addEventListener('input', (e)=>{
+  const text = e.currentTarget.textContent;
+  e.currentTarget.innerHTML = highlightJSON(text);
+  placeCaretAtEnd(e.currentTarget);   // курсор не прыгал
+  debSave();                          // сохранить изменения
+});
 
   // Actions
   const actions = el('div', {class:'actions'});
@@ -641,22 +666,24 @@ const tabs = el('div', {class:'tabs'},
   }
 
   // Beautify JSON
-  $('#beautifyBtn').onclick = ()=>{
-    const src = bodyArea.value.trim();
-    try{
-      const obj = JSON.parse(src);
-      bodyArea.value = JSON.stringify(obj, null, 2);
-      saveReqState(CURRENT_REQ_ID, { body: bodyArea.value });
-    }catch{ alert('Body is not valid JSON'); }
-  };
+ $('#beautifyBtn').onclick = ()=>{
+  const src = bodyEditor.textContent.trim();
+  try{
+    const obj = JSON.parse(src);
+    bodyEditor.textContent = JSON.stringify(obj, null, 2);
+    bodyEditor.innerHTML = highlightJSON(bodyEditor.textContent);
+    placeCaretAtEnd(bodyEditor);
+    saveReqState(CURRENT_REQ_ID, { body: bodyEditor.textContent });
+  }catch{ alert('Body is not valid JSON'); }
+};
 
 
   // Reset only current request
-  $('#resetBtn').onclick = ()=>{
-    clearReqState(CURRENT_REQ_ID);
-    openRequest(item); // reopen from collection defaults
-  };
-
+ $('#resetBtn').onclick = ()=>{
+  clearReqState(CURRENT_REQ_ID);
+  openRequest(item); // откроет заново и заново создаст подсветку
+};
+  
   // ==== SEND ====
   $('#sendBtn').onclick = async ()=>{
     debSave();
@@ -668,7 +695,7 @@ const tabs = el('div', {class:'tabs'},
     let finalUrl = resolveVars(
       safeBuildUrl($('#urlInp').value.trim(), params)
     );
-    let body = resolveVars($('#bodyRawArea').value || '');
+    let body = resolveVars($('#bodyRawArea').textContent || '');
     const authType = $('#authType').value;
     const authToken = $('#authTokenInp').value.trim();
 
@@ -766,11 +793,11 @@ const tabs = el('div', {class:'tabs'},
     }
 
     if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
-      const ct = detectContentType($('#bodyRawArea').value || '');
+      const ct = detectContentType($('#bodyRawArea').textContent || '');
       if (ct) hdrs['Content-Type'] = ct;
     }
 
-    const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').value || '');
+    const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').textContent || '');
     const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
     const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
     const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
@@ -1262,28 +1289,15 @@ function highlightJSON(text) {
   return text;
 }
 
-function renderHighlightedJSON() {
-  const textarea = document.querySelector('.reqBodyWrap textarea');
-  const highlightEl = document.querySelector('.reqBodyWrap .highlight');
-  if (!textarea || !highlightEl) return;
-  highlightEl.innerHTML = highlightJSON(textarea.value);
+function placeCaretAtEnd(el) {
+  el.focus();
+  if (typeof window.getSelection != "undefined"
+   && typeof document.createRange != "undefined") {
+    let range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    let sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  const textarea = document.querySelector('.reqBodyWrap textarea');
-  if (!textarea) return;
-
-  // Вставляем слой подсветки
-  const wrapper = textarea.parentElement;
-  const highlight = document.createElement('pre');
-  highlight.className = 'highlight';
-  wrapper.appendChild(highlight);
-
-  textarea.addEventListener('input', renderHighlightedJSON);
-  textarea.addEventListener('scroll', () => {
-    highlight.scrollTop = textarea.scrollTop;
-    highlight.scrollLeft = textarea.scrollLeft;
-  });
-
-  renderHighlightedJSON();
-});
