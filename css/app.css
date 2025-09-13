@@ -12,31 +12,28 @@
     --op-other:#eaf2ff; --op-other-b:#e2ecff; --op-other-f:#0b6cff;
   }
 [data-theme="dark"] {
-  --bg:#0d1117;         /* мягкий фон (GitHub dark style) */
-  --panel:#161b22;      /* панели */
-  --muted:#9ca3af;      /* серый текст */
-  --fg:#e5e7eb;         /* основной текст */
-  --accent:#3b82f6;     /* мягкий синий */
-  --ok:#22c55e;         /* зелёный */
-  --warn:#f59e0b;       /* янтарный */
-  --err:#f87171;        /* мягкий красный */
-  --divider:#1f2937;    /* границы */
-  --code:#d1d5db;       /* цвет кода */
-  --soft:#1e2530;       /* мягкие блоки */
-  --ink:#f3f4f6;        /* тёмный текст на светлом */
-  --pill:#111827;
+  --bg:#0d1117;        /* общий фон */
+  --panel:#161b22;     /* панели (чуть светлее фона) */
+  --soft:#1f2937;      /* ещё светлее, для карточек */
+  --muted:#9ca3af;
+  --fg:#e5e7eb;
+  --ink:#f9fafb;
+  --divider:#2d3748;
+  --accent:#3b82f6;
 
-  --chip-bg:#1f2937;
-  --chip-bg-2:#2b1f0a;
-  --chip-fg:#fcd34d;
+  --ok:#22c55e;
+  --warn:#eab308;
+  --err:#f87171;
 
-  --op-get:#102c1c;   --op-get-b:#1a3d29; --op-get-f:#34d399;
-  --op-post:#1c1a2d;  --op-post-b:#2a2145; --op-post-f:#a78bfa;
-  --op-put:#2b2a14;   --op-put-b:#3b3a1f; --op-put-f:#eab308;
-  --op-patch:#3a2416; --op-patch-b:#4a2d1a; --op-patch-f:#fb923c;
-  --op-del:#3a171a;   --op-del-b:#4a1c21; --op-del-f:#f87171;
-  --op-other:#11223c; --op-other-b:#1a2f55; --op-other-f:#60a5fa;
+  /* API методы */
+  --op-get:#052e16;   --op-get-b:#14532d; --op-get-f:#4ade80;
+  --op-post:#1e1b4b;  --op-post-b:#312e81; --op-post-f:#c4b5fd;
+  --op-put:#422006;   --op-put-b:#713f12; --op-put-f:#facc15;
+  --op-patch:#451a03; --op-patch-b:#9a3412; --op-patch-f:#fb923c;
+  --op-del:#450a0a;   --op-del-b:#7f1d1d; --op-del-f:#fca5a5;
+  --op-other:#172554; --op-other-b:#1e3a8a; --op-other-f:#60a5fa;
 }
+
 
   *{box-sizing:border-box}
   body{
@@ -670,4 +667,23 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   height: 28px;     
   width: auto;     
   margin-right: 8px;
+}
+/* === Dark theme fixes for request/response panels === */
+[data-theme="dark"] .reqHeader {
+  background:#1e293b;  /* тёмно-серый, читаемый */
+}
+
+[data-theme="dark"] .reqBodyWrap {
+  background:#1f2937;  
+  color:#f3f4f6;
+}
+
+[data-theme="dark"] .respHeader {
+  background:#1e293b;
+}
+[data-theme="dark"] .respBody {
+  background:#111827;
+}
+[data-theme="dark"] .respTools {
+  background:#1f2937;
 }
