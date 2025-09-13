@@ -1082,7 +1082,6 @@ $('#varsSave').addEventListener('click', ()=>{
   $('#varsModal').hidden = true;
 });
 
-
 $('#envImportFile').addEventListener('change', async (e)=>{
   const f = e.target.files[0]; 
   if (!f) return;
@@ -1106,13 +1105,21 @@ $('#envImportFile').addEventListener('change', async (e)=>{
     renderTree($('#search').value || '');
     $('#loadedInfo').textContent = shortInfo();
 
+    // 🔥 обновляем URL + подсветку переменных
+    document.querySelectorAll('#urlInpDisplay').forEach(disp => {
+      const hidden = document.querySelector('#urlInp');
+      if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
+    });
+    highlightMissingVars(document);
+
     alert(`Environment imported for ${currentEnv.toUpperCase()}.`);
   } catch(err){ 
     showError('Import Error', 'Could not import environment: ' + err.message);
+  } finally {
+    // 🔥 сбрасываем value, чтобы повторный импорт того же файла сработал
+    e.target.value = '';
   }
 });
-
-
 
 /* ========= Env Dropdown ========= */
 const ENV_PATHS = {
