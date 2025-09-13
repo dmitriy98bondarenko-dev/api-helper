@@ -116,12 +116,15 @@ function buildVarMap(){
 } catch {}
 
 }
-function resolveVars(str, extra={}){ 
-  if(typeof str!=='string') return str; 
-  return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=> 
-    (extra && extra[k]!=null) ? extra[k] : (VARS[k]!=null ? VARS[k] : `{{${k}}}`)
-  ); 
+function resolveVars(str, extra={}) {
+  if(typeof str!=='string') return str;
+  return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=>{
+    if (extra && extra[k]!=null) return extra[k];
+    if (VARS[k]!=null && VARS[k]!=='') return VARS[k];
+    return ''; 
+  });
 }
+
 function normalizeUrl(u){
   if(!u) return ''; if(typeof u==='string') return u;
   let raw = u.raw || '';
@@ -1161,6 +1164,14 @@ async function loadEnv(envKey) {
   buildVarMap();
   renderTree($('#search').value || '');
   $('#loadedInfo').textContent = shortInfo();
+  // update url 
+  document.querySelectorAll('#urlInpDisplay').forEach(disp => {
+    const hidden = document.querySelector('#urlInp');
+    if (hidden) {
+      disp.innerHTML = renderUrlWithVars(hidden.value);
+    }
+  });
+  highlightMissingVars(document);
 }
 
 
