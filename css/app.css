@@ -838,3 +838,12 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 .envOption.dev, .envCurrent.dev { color: #16a34a; }   /* зеленый */
 .envOption.staging, .envCurrent.staging { color: #ca8a04; } /* желтый */
 .envOption.prod, .envCurrent.prod { color: #dc2626; } /* красный */
+button.danger {
+  background: #dc2626;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+}
+button.danger:hover {
+  filter: brightness(1.1);
+}
