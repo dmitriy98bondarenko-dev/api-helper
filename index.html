@@ -23,7 +23,16 @@
       </label>
       <button id="authBtn" title="Global Bearer token">Authorize</button>
       <button id="varsBtn" title="Postman environment">Environment Variables</button>
+      <div id="envDropdown" class="envDropdown">
+      <div class="envCurrent">DEV</div>
+        <div class="envList" style="display:none;">
+          <div class="envOption dev" data-value="dev">DEV</div>
+          <div class="envOption staging" data-value="staging">STAGING</div>
+          <div class="envOption prod" data-value="prod">PROD</div>
+        </div>
+      </div>
       <button id="themeBtn" class="themeToggle" title="Toggle theme">🌙</button>
+      <button id="clearStorageBtn" title="Clear environments and token">🗑️ Clear</button>
       <span id="loadedInfo" class="rightInfo"></span>
     </div>
   </header>
@@ -88,6 +97,7 @@
       </div>
     </div>
   </div>
+
   
 <!-- Variable edit modal -->
 <div id="varEditModal" class="modal" hidden>
@@ -102,6 +112,31 @@
     </div>
   </div>
 </div>
+<!-- error modal -->
+  <div id="errorModal" class="modal" hidden>
+  <div class="modalCard">
+    <h3 id="errorTitle">Environment Load Error</h3>
+    <p id="errorMessage"></p>
+    <div class="modalActions">
+      <button id="errorClose">Close</button>
+    </div>
+  </div>
+</div>
+<!-- Clear confirmation modal -->
+<div id="clearConfirmModal" class="modal" hidden>
+  <div class="modalCard" style="max-width:420px;">
+    <h3>Clear environments</h3>
+    <p style="margin: 12px 0 18px; color:var(--muted);">
+      This will remove all saved environments and reset the selected environment.<br>
+      Are you sure you want to continue?
+    </p>
+    <div class="modalActions">
+      <button id="clearCancel">Cancel</button>
+      <button id="clearConfirm" class="danger">Clear</button>
+    </div>
+  </div>
+</div>
+
 
   <div id="loader" class="loaderOverlay" hidden><div class="spinner"></div></div>
  <script src="./js/app.js"></script>

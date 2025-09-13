@@ -105,8 +105,9 @@ function buildVarMap(){
     });
   }
   VARS = map;
-  try {
-  const stored = JSON.parse(localStorage.getItem('pm_env') || '{"values":[]}');
+ try {
+  const currentEnv = localStorage.getItem('selected_env') || 'dev';
+  const stored = JSON.parse(localStorage.getItem(`pm_env_${currentEnv}`) || '{"values":[]}');
   if (Array.isArray(stored.values)) {
     stored.values.forEach(v=>{
       if (v && v.enabled !== false) VARS[v.key] = v.value;
@@ -115,12 +116,15 @@ function buildVarMap(){
 } catch {}
 
 }
-function resolveVars(str, extra={}){ 
-  if(typeof str!=='string') return str; 
-  return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=> 
-    (extra && extra[k]!=null) ? extra[k] : (VARS[k]!=null ? VARS[k] : `{{${k}}}`)
-  ); 
+function resolveVars(str, extra={}) {
+  if(typeof str!=='string') return str;
+  return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=>{
+    if (extra && extra[k]!=null) return extra[k];
+    if (VARS[k]!=null && VARS[k]!=='') return VARS[k];
+    return ''; 
+  });
 }
+
 function normalizeUrl(u){
   if(!u) return ''; if(typeof u==='string') return u;
   let raw = u.raw || '';
@@ -691,6 +695,9 @@ $('#beautifyBtn').onclick = ()=>{
  $('#resetBtn').onclick = ()=>{
   clearReqState(CURRENT_REQ_ID);
   openRequest(item); // откроет заново и заново создаст подсветку
+   localStorage.setItem('selected_env', 'dev');
+  envSelect.value = 'dev';
+  loadEnv('dev');
 };
   
   // ==== SEND ====
@@ -1016,7 +1023,12 @@ $('#authClear').addEventListener('click', ()=>{
 function buildVarsTableBody(){
   const tb = $('#varsTable tbody');
   tb.innerHTML = '';
-  const list = Array.isArray(ENV?.values) ? ENV.values : [];
+  let list = Array.isArray(ENV?.values) ? ENV.values : [];
+  if (list.length < 10) {
+    list = list.concat(
+      Array.from({length: 10 - list.length}, ()=>({key:'', value:'', enabled:false}))
+    );
+  }
   list.forEach((v, i)=>{
     const tr = document.createElement('tr');
     const key = v.key ?? v.name ?? '';
@@ -1061,30 +1073,132 @@ $('#varsCancel').addEventListener('click', ()=> $('#varsModal').hidden = true);
 $('#varsSave').addEventListener('click', ()=>{
   const rows = readVarsTable();
   ENV.values = rows.map(r=>({ key: r.key, value: r.value, enabled: r.enabled }));
-  try{ localStorage.setItem('pm_env', JSON.stringify(ENV)); }catch{}
+
+  const currentEnv = localStorage.getItem('selected_env') || 'dev';
+  try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
+
   buildVarMap();
   renderTree($('#search').value||'');
   $('#varsModal').hidden = true;
 });
+
+
 $('#envImportFile').addEventListener('change', async (e)=>{
-  const f = e.target.files[0]; if(!f) return;
+  const f = e.target.files[0]; 
+  if (!f) return;
   const txt = await f.text();
-  try{
-    const parsed = JSON.parse(txt);
+  try {
+    let parsed = JSON.parse(txt);
     if (Array.isArray(parsed?.values)) {
-      ENV = { ...(ENV||{}), ...parsed };
+      ENV = parsed;
     } else if (parsed && typeof parsed === 'object') {
       const values = Object.entries(parsed).map(([k,v])=>({key:k, value:String(v), enabled:true}));
       ENV = { name: 'Imported', values };
     } else {
       throw new Error('Unknown env format');
     }
-    localStorage.setItem('pm_env', JSON.stringify(ENV));
+
+    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+
     buildVarMap();
     buildVarsTableBody();
-    alert('Environment imported (local).');
-  }catch(err){ alert('Import error: '+err.message); }
+    renderTree($('#search').value || '');
+    $('#loadedInfo').textContent = shortInfo();
+
+    alert(`Environment imported for ${currentEnv.toUpperCase()}.`);
+  } catch(err){ 
+    showError('Import Error', 'Could not import environment: ' + err.message);
+  }
 });
+
+
+
+/* ========= Env Dropdown ========= */
+const ENV_PATHS = {
+  dev: './data/dev_environment.json',
+  staging: './data/staging_environment.json',
+  prod: './data/prod_environment.json'
+};
+
+const envDropdown = document.getElementById('envDropdown');
+const envCurrent = envDropdown.querySelector('.envCurrent');
+const envList = envDropdown.querySelector('.envList');
+const envOptions = envDropdown.querySelectorAll('.envOption');
+
+const savedEnv = localStorage.getItem('selected_env') || 'dev';
+setEnvUI(savedEnv);
+loadEnv(savedEnv);
+
+function setEnvUI(envKey) {
+  const opt = envDropdown.querySelector(`.envOption.${envKey}`);
+  if (opt) {
+    envCurrent.textContent = opt.textContent;
+    envCurrent.className = `envCurrent ${envKey}`;
+  }
+}
+
+async function loadEnv(envKey) {
+  try {
+    const stored = localStorage.getItem(`pm_env_${envKey}`);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed.values) && parsed.values.length > 0) {
+        ENV = parsed;
+      } else {
+        throw new Error('Empty env in localStorage');
+      }
+    } else {
+      // load file
+      const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
+      if (!res.ok) throw new Error('Failed to load env file');
+      const txt = await res.text();
+      ENV = JSON.parse(txt);
+      localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
+    }
+  } catch (err) {
+    console.error('Env load failed', envKey, err);
+
+    showError(
+      'Environment Load Error',
+      `Failed to load environment (${envKey}). Please try importing your own JSON.`
+    );
+    ENV = { name: envKey, values: Array.from({ length: 10 }, () => ({ key: '', value: '', enabled: false })) };
+    localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
+  }
+
+  buildVarMap();
+  renderTree($('#search').value || '');
+  $('#loadedInfo').textContent = shortInfo();
+
+  // updatee url
+  document.querySelectorAll('#urlInpDisplay').forEach(disp => {
+    const hidden = document.querySelector('#urlInp');
+    if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
+  });
+  highlightMissingVars(document);
+}
+
+
+envCurrent.onclick = () => {
+  envList.style.display = envList.style.display === 'none' ? 'block' : 'none';
+};
+
+envOptions.forEach(opt => {
+  opt.onclick = () => {
+    const envKey = opt.dataset.value;
+    localStorage.setItem('selected_env', envKey);
+    setEnvUI(envKey);
+    loadEnv(envKey);
+    envList.style.display = 'none';
+  };
+});
+
+// закрытие при клике вне dropdown
+document.addEventListener('click', (e) => {
+  if (!envDropdown.contains(e.target)) envList.style.display = 'none';
+});
+
 
 /* ========= Loaders & session ========= */
 $('#collectionFile').addEventListener('change', onCollectionUpload);
@@ -1105,7 +1219,9 @@ async function onEnvUpload(e){
   const f = e.target.files[0]; if(!f) return;
   const txt = await f.text();
   try{
-    ENV = JSON.parse(txt); localStorage.setItem('pm_env', txt);
+    ENV = JSON.parse(txt);
+    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
     buildVarMap(); renderTree($('#search').value||'');
     $('#loadedInfo').textContent = shortInfo();
   }catch(err){ alert('Environment parse error: '+err.message); }
@@ -1127,8 +1243,9 @@ function autoOpenFirst(){
   if (!ctx.vars) ctx.vars = { ...VARS };
 
   const persistEnv = () => {
-    try { localStorage.setItem('pm_env', JSON.stringify(ENV)); } catch {}
-    if (typeof buildVarMap === 'function') buildVarMap();
+  const currentEnv = localStorage.getItem('selected_env') || 'dev';
+  try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
+  if (typeof buildVarMap === 'function') buildVarMap();
   };
 
   const setEnv = (key, value) => {
@@ -1208,11 +1325,19 @@ function autoOpenFirst(){
   }catch{}
   try{
     const envRes = await fetch(DEFAULT_ENV_PATH, {cache:'no-cache'});
-    if (envRes.ok){ const txt = await envRes.text(); ENV = JSON.parse(txt); localStorage.setItem('pm_env', txt); }
+  if (envRes.ok){
+    const txt = await envRes.text();
+    ENV = JSON.parse(txt);
+    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+  }
   }catch{}
   if (!loadedSomething){
     const storedCol = localStorage.getItem('pm_collection'); if (storedCol){ try{ COLLECTION = JSON.parse(storedCol); loadedSomething = true; }catch{} }
-    const storedEnv = localStorage.getItem('pm_env'); if (storedEnv){ try{ ENV = JSON.parse(storedEnv); }catch{} }
+    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+    const storedEnv = localStorage.getItem(`pm_env_${currentEnv}`);
+    if (storedEnv){ try{ ENV = JSON.parse(storedEnv); }catch{} }
+
   }
   if (loadedSomething){
     ITEMS_FLAT = []; flattenItems(COLLECTION); buildVarMap(); renderTree('');
@@ -1233,6 +1358,17 @@ document.addEventListener('click', (e) => {
     }
   });
 });
+/* ========= Error Modal ========= */
+function showError(title, msg) {
+  $('#errorTitle').textContent = title;
+  $('#errorMessage').textContent = msg;
+  $('#errorModal').hidden = false;
+}
+
+$('#errorClose').onclick = () => {
+  $('#errorModal').hidden = true;
+};
+
 /* === Variable edit modal === */
 let editingVarKey = null;
 
@@ -1266,7 +1402,9 @@ $('#varEditSave').onclick = () => {
     if (row) row.value = newVal;
     else ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
 
-    localStorage.setItem('pm_env', JSON.stringify(ENV));
+    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+
     buildVarMap();
 
     // обновляем URL строку
@@ -1374,3 +1512,27 @@ function restoreSelection(containerEl, offset) {
   sel.removeAllRanges();
   sel.addRange(range);
 }
+$('#clearStorageBtn').addEventListener('click', () => {
+  $('#clearConfirmModal').hidden = false;
+});
+
+$('#clearCancel').addEventListener('click', () => {
+  $('#clearConfirmModal').hidden = true;
+});
+
+$('#clearConfirm').addEventListener('click', () => {
+  // Удаляем env и selected_env
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('pm_env_') || key === 'selected_env') {
+      localStorage.removeItem(key);
+    }
+  });
+
+  $('#clearConfirmModal').hidden = true;
+  alert('Environments cleared. Default environment (DEV) will be used.');
+  
+  // сброс UI на dev
+  localStorage.setItem('selected_env', 'dev');
+  setEnvUI('dev');
+  loadEnv('dev');
+});
