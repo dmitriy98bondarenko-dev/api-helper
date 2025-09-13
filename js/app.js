@@ -691,6 +691,9 @@ $('#beautifyBtn').onclick = ()=>{
  $('#resetBtn').onclick = ()=>{
   clearReqState(CURRENT_REQ_ID);
   openRequest(item); // откроет заново и заново создаст подсветку
+   localStorage.setItem('selected_env', 'dev');
+  envSelect.value = 'dev';
+  loadEnv('dev');
 };
   
   // ==== SEND ====
@@ -1084,6 +1087,42 @@ $('#envImportFile').addEventListener('change', async (e)=>{
     buildVarsTableBody();
     alert('Environment imported (local).');
   }catch(err){ alert('Import error: '+err.message); }
+});
+
+/* ========= Env Selector ========= */
+const ENV_PATHS = {
+  dev: './data/dev_environment.json',
+  staging: './data/staging_environment.json',
+  prod: './data/prod_environment.json'
+};
+
+const envSelect = document.getElementById('envSelect');
+const savedEnv = localStorage.getItem('selected_env') || 'dev';
+envSelect.value = savedEnv;
+
+async function loadEnv(envKey) {
+  try {
+    const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
+    if (!res.ok) throw new Error('Failed to load env');
+    const txt = await res.text();
+    ENV = JSON.parse(txt);
+    localStorage.setItem('pm_env', txt);
+    buildVarMap();
+    renderTree($('#search').value || '');
+    $('#loadedInfo').textContent = shortInfo();
+  } catch (err) {
+    alert(`Ошибка загрузки env: ${err.message}`);
+  }
+}
+
+// загрузить сохранённое окружение при старте
+loadEnv(savedEnv);
+
+// при смене окружения
+envSelect.addEventListener('change', e => {
+  const envKey = e.target.value;
+  localStorage.setItem('selected_env', envKey);
+  loadEnv(envKey);
 });
 
 /* ========= Loaders & session ========= */
