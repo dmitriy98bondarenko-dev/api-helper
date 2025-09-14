@@ -1143,11 +1143,18 @@ $('#varsSave').addEventListener('click', ()=>{
   const currentEnv = localStorage.getItem('selected_env') || 'dev';
 
   // Если пусто — очищаем LS, чтобы не плодить фантомные ENV
-  if (!ENV.values || ENV.values.length === 0 || ENV.values.every(v => !v.key && !v.value)) {
+ if (!ENV.values || ENV.values.length === 0 || ENV.values.every(v => !v.key && !v.value)) {
+  // если dev — можно сохранить пустое, staging/prod — очищаем
+  if (currentEnv !== 'dev') {
     localStorage.removeItem(`pm_env_${currentEnv}`);
   } else {
     localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
   }
+} else {
+  // есть данные → сохраняем для всех окружений
+  localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+}
+
   buildVarMap();
   renderTree($('#search').value||'');
   $('#varsModal').hidden = true;
@@ -1236,36 +1243,36 @@ function setEnvUI(envKey) {
 async function loadEnv(envKey) {
   try {
     const stored = localStorage.getItem(`pm_env_${envKey}`);
-    if (stored) {
-  // if LS false
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed.values)) {
-        ENV = parsed;
-      } else {
-        throw new Error('Broken env in localStorage');
-      }
+
+// для staging/prod игнорируем LS, читаем только dev
+if (stored && envKey === 'dev') {
+  try {
+    const parsed = JSON.parse(stored);
+    if (Array.isArray(parsed.values)) {
+      ENV = parsed;
     } else {
-      // if LS true
-      const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
-      if (!res.ok) throw new Error('Failed to load env file');
-      const txt = await res.text();
-      ENV = JSON.parse(txt);
+      throw new Error('Broken env in localStorage');
+    }
+  } catch (err) {
+    console.error('Broken dev env in LS, clearing', err);
+    localStorage.removeItem(`pm_env_dev`);
+    ENV = { name: 'dev', values: [] };
+  }
+} else {
+  try {
+    const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
+    if (!res.ok) throw new Error('Failed to load env file');
+    ENV = JSON.parse(await res.text());
+    if (envKey === 'dev') {
       localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
     }
   } catch (err) {
     console.error('Env load failed', envKey, err);
-
-    // гарантированно чистим LS, чтобы staging/prod не поднимали мусор
     localStorage.removeItem(`pm_env_${envKey}`);
-
-    // create empty env
     ENV = { name: envKey, values: [] };
-
-    showAlert(
-      `Failed to load environment (${envKey}). Please try importing or adding variables manually.`,
-      'error'
-    );
   }
+}
+
 
   buildVarMap();
   renderTree($('#search').value || '');
@@ -1334,9 +1341,21 @@ function autoOpenFirst(){
 
   const persistEnv = () => {
   const currentEnv = localStorage.getItem('selected_env') || 'dev';
-  try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
+  try {
+    if (!ENV.values || ENV.values.length === 0 || ENV.values.every(v => !v.key && !v.value)) {
+      // dev сохраняем даже пустой, staging/prod чистим
+      if (currentEnv === 'dev') {
+        localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+      } else {
+        localStorage.removeItem(`pm_env_${currentEnv}`);
+      }
+    } else {
+      // есть данные → сохраняем для всех окружений
+      localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    }
+  } catch {}
   if (typeof buildVarMap === 'function') buildVarMap();
-  };
+};
 
   const setEnv = (key, value) => {
     // обновляем runtime
@@ -1509,7 +1528,14 @@ $('#varEditSave').onclick = () => {
     }
 
     const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    if (ENV.values && ENV.values.some(v => v.key && v.value)) {
+  localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    } else if (currentEnv !== 'dev') {
+      localStorage.removeItem(`pm_env_${currentEnv}`);
+    } else {
+      localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    }
+
 
     buildVarMap();
     renderTree($('#search').value || '');
