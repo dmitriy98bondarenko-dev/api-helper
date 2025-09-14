@@ -1132,7 +1132,7 @@ $('#varsCancel').addEventListener('click', ()=> $('#varsModal').hidden = true);
 $('#varsSave').addEventListener('click', ()=>{
   const rows = readVarsTable();
   ENV.values = rows.map(r=>({ key: r.key, value: r.value, enabled: r.enabled }));
-
+  
   const currentEnv = localStorage.getItem('selected_env') || 'dev';
   try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
 
@@ -1140,6 +1140,10 @@ $('#varsSave').addEventListener('click', ()=>{
   renderTree($('#search').value||'');
   $('#varsModal').hidden = true;
   updateVarsBtn();
+});
+
+$('#varsImportBtn').addEventListener('click', ()=>{
+  $('#envFile').click();
 });
 
 $('#envFile').addEventListener('change', async (e)=>{
