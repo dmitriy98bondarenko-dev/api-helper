@@ -869,6 +869,8 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 .env-select option {
   font-weight: 500;
 }
+/* env Dropdown */
+
 .envDropdown {
   margin-left: 8px;
   position: relative;
@@ -885,29 +887,27 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   gap: 6px;
   padding: 6px 12px;
   border-radius: 6px;
-  color: #fff;
-  min-width: 80px;
+  background: var(--panel);
+  border: 2px solid transparent;
+  min-width: 90px;
   justify-content: center;
+  transition: 0.2s;
 }
 
-/*  ▼ / ▲ */
+/* стрелка ▼ / ▲ */
 .envCurrent::after {
   content: "▼";
   font-size: 10px;
   margin-left: 4px;
   transition: transform 0.2s ease;
 }
-
 .envDropdown.open .envCurrent::after {
   content: "▲";
 }
+.envCurrent.dev    { border-color: #16a34a; color: #16a34a; }
+.envCurrent.staging{ border-color: #ca8a04; color: #ca8a04; }
+.envCurrent.prod   { border-color: #dc2626; color: #dc2626; }
 
-/* цвет фона по окружению */
-.envCurrent.dev    { background: #16a34a; }
-.envCurrent.staging{ background: #ca8a04; }
-.envCurrent.prod   { background: #dc2626; }
-
-/* выпадающий список */
 .envList {
   position: absolute;
   top: calc(100% + 4px);
@@ -916,24 +916,24 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   border: 1px solid var(--divider);
   border-radius: 6px;
   background: var(--panel);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   z-index: 1000;
   display: none;
 }
-
 .envOption {
-  padding: 6px 12px;
+  padding: 8px 12px;
   cursor: pointer;
   font-weight: 600;
-  color: #fff;
   border-radius: 4px;
-  margin: 4px;
 }
+.envOption.dev    { color: #16a34a; }
+.envOption.staging{ color: #ca8a04; }
+.envOption.prod   { color: #dc2626; }
 
-.envOption.dev    { background: #16a34a; }
-.envOption.staging{ background: #ca8a04; }
-.envOption.prod   { background: #dc2626; }
-.envOption:hover { filter: brightness(1.1); }
+.envOption:hover { 
+  background: var(--soft); 
+  filter: brightness(0.95);
+}
 
 /* ==== Reset button ==== */
 #clearStorageBtn.danger-clear {
