@@ -1601,16 +1601,16 @@ function restoreSelection(containerEl, offset) {
 }
 // reset local storage
 $('#clearStorageBtn')?.addEventListener('click', () => {
-  $('#clearConfirmModal').hidden = false;
+  $('#resetModal').hidden = false;
 });
 
 // Cancel
-$('#clearCancel')?.addEventListener('click', () => {
-  $('#clearConfirmModal').hidden = true;
+$('#resetCancel')?.addEventListener('click', () => {
+  $('#resetModal').hidden = true;
 });
 
 // clear env and token
-$('#clearEnvsAuth')?.addEventListener('click', () => {
+$('#resetEnvsAuth')?.addEventListener('click', () => {
   Object.keys(localStorage).forEach(key => {
     if (key.startsWith('pm_env_') || 
         key === 'selected_env' || 
@@ -1619,7 +1619,7 @@ $('#clearEnvsAuth')?.addEventListener('click', () => {
     }
   });
 
-  $('#clearConfirmModal').hidden = true;
+  $('#resetModal').hidden = true;
   showAlert('Environments and authorization cleared. Default environment (DEV) will be used.', 'success');
 
   localStorage.setItem('selected_env', 'dev');
@@ -1629,7 +1629,7 @@ $('#clearEnvsAuth')?.addEventListener('click', () => {
 });
 
 // full reset 
-$('#clearFull')?.addEventListener('click', () => {
+$('#resetFull')?.addEventListener('click', () => {
   Object.keys(localStorage).forEach(key => {
     if (key.startsWith('pm_env_') || 
         key.startsWith('pm_req_') || 
@@ -1639,10 +1639,10 @@ $('#clearFull')?.addEventListener('click', () => {
     }
   });
 
-  $('#clearConfirmModal').hidden = true;
+  $('#resetModal').hidden = true;
   showAlert('Full reset completed. Please reload the page.', 'success');
 
-  location.reload(); // reload page
+  location.reload();
 });
   // alert logic
 function showAlert(message, type = 'success') {
