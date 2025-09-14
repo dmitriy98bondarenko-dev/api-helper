@@ -268,7 +268,8 @@ function buildKVTable(rows){
   t.append(el('thead', {}, el('tr', {}, 
     el('th', {class:'kvOn'}, 'On'), 
     el('th', {}, 'Key'), 
-    el('th', {}, 'Value')
+    el('th', {}, 'Value'),
+    el('th', {}, '')
   )));
   const tb = el('tbody');
 
@@ -332,11 +333,22 @@ function appendRow(tb, row, isNew=false){
       }
     });
   });
+ // ❌ крестик справа
+const removeBtn = el('button', {
+  class:'varRemove',
+  title:'Delete row',
+  onclick:()=> {
+    tr.remove();
+    debSave(); 
+  }
+}, '✖');
+
 
   tr.append(
     el('td', {class:'kvOn'}, el('div',{class:'cell'}, cb)),
     el('td', {}, el('div',{class:'cell'}, keyInp)),
-    el('td', {}, el('div',{class:'cell'}, valInp))
+    el('td', {}, el('div',{class:'cell'}, valInp)),
+    el('td', {}, el('div',{class:'cell'}, removeBtn))
   );
 
   tb.append(tr);
@@ -363,7 +375,8 @@ function addNewRow(tb){
   trNew.append(
     el('td', {class:'kvOn'}, el('div',{class:'cell'}, cbNew)),
     el('td', {}, el('div',{class:'cell'}, keyNew)),
-    el('td', {}, el('div',{class:'cell'}, valNew))
+    el('td', {}, el('div',{class:'cell'}, valNew)),
+    el('td', {}, '')
   );
   tb.append(trNew);
 }
@@ -699,7 +712,9 @@ $('#beautifyBtn').onclick = ()=>{
     bodyEditor.innerHTML = highlightJSON(beautified);
     restoreSelection(bodyEditor, sel);
     saveReqState(CURRENT_REQ_ID, { body: beautified });
-  }catch{ alert('Body is not valid JSON'); }
+  }catch{ 
+    showAlert('Body is not valid JSON', 'error');
+  }
 };
 
 
@@ -830,8 +845,8 @@ $('#beautifyBtn').onclick = ()=>{
     const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
     const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
     const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
-    navigator.clipboard.writeText(cmd); 
-    alert('cURL copied');
+    navigator.clipboard.writeText(cmd);
+      showAlert('cURL copied', 'success');  
   };
 
   // Show saved response if any
@@ -901,11 +916,14 @@ function buildRespTools(rawText){
       const obj = JSON.parse(rawText||'{}');
       const path = (input.value||'').trim();
       const val = path ? getByPath(obj, path) : '';
-      if (val==null) { alert('Field not found'); return; }
+      if (val==null) { 
+        showAlert('Field not found', 'error');
+        return; 
+      }
       navigator.clipboard.writeText(String(val));
       btn.textContent='Copied!'; setTimeout(()=>btn.textContent='Copy field', 1000);
     }catch{
-      alert('Response is not JSON');
+      showAlert('Response is not JSON', 'error');
     }
   };
   btnAll.onclick = ()=>{
@@ -1063,15 +1081,26 @@ function buildVarsTableBody(){
     tr.append(
       el('td',{}, el('input',{value:key, 'data-idx':i, 'data-field':'key', type:'text'})),
       el('td',{}, el('input',{value:val, 'data-idx':i, 'data-field':'value', type:'text'})),
-      el('td',{}, el('input',{type:'checkbox', checked:enabled, 'data-idx':i, 'data-field':'enabled'}))
-    );
-    tb.append(tr);
-  });
+      el('td',{}, el('input',{type:'checkbox', checked:enabled, 'data-idx':i, 'data-field':'enabled'})),
+      el('td',{}, el('button',{
+        class:'varRemove',
+        title:'Delete',
+        onclick:()=>{
+          ENV.values.splice(i,1);
+          const currentEnv = localStorage.getItem('selected_env') || 'dev';
+          try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
+        buildVarsTableBody();
+        updateVarsBtn();
+        }
+    }, '✖'))
+  );
+
   const trNew = document.createElement('tr');
   trNew.append(
     el('td',{}, el('input',{'data-idx':'new','data-field':'key', placeholder:'key', type:'text'})),
     el('td',{}, el('input',{'data-idx':'new','data-field':'value', placeholder:'value', type:'text'})),
-    el('td',{}, el('input',{type:'checkbox','data-idx':'new','data-field':'enabled', checked:true}))
+    el('td',{}, el('input',{type:'checkbox','data-idx':'new','data-field':'enabled', checked:true})),
+    el('td',{}, '')
   );
   tb.append(trNew);
 }
@@ -1138,8 +1167,7 @@ $('#envImportFile').addEventListener('change', async (e)=>{
       if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
     });
     highlightMissingVars(document);
-
-    alert(`Environment imported for ${currentEnv.toUpperCase()}.`);
+    showAlert(`Environment imported for ${currentEnv.toUpperCase()}.`, 'success');
   } catch(err){ 
     showError('Import Error', 'Could not import environment: ' + err.message);
   } finally {
@@ -1259,7 +1287,9 @@ async function onCollectionUpload(e){
     ITEMS_FLAT = []; flattenItems(COLLECTION); buildVarMap(); renderTree($('#search').value||'');
     $('#loadedInfo').textContent = shortInfo();
     if (AUTO_OPEN_FIRST) autoOpenFirst();
-  }catch(err){ alert('Collection parse error: '+err.message); }
+  }catch(err){ 
+    showAlert('Collection parse error: ' + err.message, 'error');
+  }
 }
 async function onEnvUpload(e){
   const f = e.target.files[0]; if(!f) return;
@@ -1270,7 +1300,8 @@ async function onEnvUpload(e){
     localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
     buildVarMap(); renderTree($('#search').value||'');
     $('#loadedInfo').textContent = shortInfo();
-  }catch(err){ alert('Environment parse error: '+err.message); }
+  }catch(err){
+    showAlert('Environment parse error: ' + err.message, 'error');
 }
 function shortInfo(){
   const name = COLLECTION?.info?.name || 'Collection';
@@ -1563,28 +1594,73 @@ function restoreSelection(containerEl, offset) {
   sel.removeAllRanges();
   sel.addRange(range);
 }
+// reset local storage
 $('#clearStorageBtn').addEventListener('click', () => {
   $('#clearConfirmModal').hidden = false;
 });
 
+// Cancel
 $('#clearCancel').addEventListener('click', () => {
   $('#clearConfirmModal').hidden = true;
 });
 
-$('#clearConfirm').addEventListener('click', () => {
-  // Удаляем env и selected_env
+// clear env and token
+$('#clearEnvsAuth').addEventListener('click', () => {
   Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('pm_env_') || key === 'selected_env') {
+    if (key.startsWith('pm_env_') || 
+        key === 'selected_env' || 
+        key === 'global_bearer') {
       localStorage.removeItem(key);
     }
   });
 
   $('#clearConfirmModal').hidden = true;
-  alert('Environments cleared. Default environment (DEV) will be used.');
-  
-  // сброс UI на dev
+  showAlert('Environments and authorization cleared. Default environment (DEV) will be used.', 'success');
+
   localStorage.setItem('selected_env', 'dev');
   setEnvUI('dev');
   loadEnv('dev');
   closeEnvDropdown();
 });
+
+// full reset 
+$('#clearFull').addEventListener('click', () => {
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('pm_env_') || 
+        key.startsWith('pm_req_') || 
+        key === 'selected_env' || 
+        key === 'global_bearer') {
+      localStorage.removeItem(key);
+    }
+  });
+
+  $('#clearConfirmModal').hidden = true;
+  showAlert('Full reset completed. Please reload the page.', 'success');
+
+  location.reload(); // reload page
+});
+  // alert logic
+function showAlert(message, type = 'success') {
+  const container = document.getElementById('alertsContainer');
+  const alertBox = document.createElement('div');
+  alertBox.className = `alert ${type}`;
+
+  alertBox.innerHTML = `
+    <div class="alert__icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" height="24" fill="none">
+        <path d="m13 13h-2v-6h2zm0 4h-2v-2h2zm-1-15c-1.3 0-2.6.26-3.8.76-1.2.5-2.3 1.24-3.2 2.16-1.87 1.88-2.93 4.42-2.93 7.07 0 2.65 1.06 5.2 2.93 7.07.93.93 2 1.67 3.2 2.17 1.2.5 2.5.76 3.8.76 2.65 0 5.2-1.06 7.07-2.93 1.88-1.87 2.93-4.42 2.93-7.07 0-1.31-.26-2.61-.76-3.83-.5-1.21-1.24-2.31-2.17-3.24-.93-.93-2-1.67-3.24-2.17-1.21-.5-2.51-.76-3.83-.76z"></path>
+      </svg>
+    </div>
+    <div class="alert__title">${message}</div>
+    <div class="alert__close">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 20 20" height="20">
+        <path d="m15.8 5.34-1.18-1.18-4.65 4.66-4.66-4.66-1.18 1.18 4.66 4.66-4.66 4.66 1.18 1.18 4.66-4.66 4.65 4.66 1.18-1.18-4.65-4.66z"></path>
+      </svg>
+    </div>
+  `;
+
+  container.appendChild(alertBox);
+  alertBox.querySelector('.alert__close').onclick = () => alertBox.remove();
+  // clear alert after 2sec
+  setTimeout(() => alertBox.remove(), 2000);
+}
