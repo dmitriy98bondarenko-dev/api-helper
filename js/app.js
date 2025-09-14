@@ -1270,6 +1270,7 @@ async function loadEnv(envKey) {
       console.error('Env load failed', envKey, err);
       localStorage.removeItem(`pm_env_${envKey}`);
       ENV = { name: envKey, values: [] };
+      showAlert(`Environment file for "${envKey}" not found. Using empty.`, 'error');
     }
   }
     buildVarMap();
