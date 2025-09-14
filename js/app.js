@@ -1600,17 +1600,17 @@ function restoreSelection(containerEl, offset) {
   sel.addRange(range);
 }
 // reset local storage
-$('#clearStorageBtn').addEventListener('click', () => {
+$('#clearStorageBtn')?.addEventListener('click', () => {
   $('#clearConfirmModal').hidden = false;
 });
 
 // Cancel
-$('#clearCancel').addEventListener('click', () => {
+$('#clearCancel')?.addEventListener('click', () => {
   $('#clearConfirmModal').hidden = true;
 });
 
 // clear env and token
-$('#clearEnvsAuth').addEventListener('click', () => {
+$('#clearEnvsAuth')?.addEventListener('click', () => {
   Object.keys(localStorage).forEach(key => {
     if (key.startsWith('pm_env_') || 
         key === 'selected_env' || 
@@ -1629,7 +1629,7 @@ $('#clearEnvsAuth').addEventListener('click', () => {
 });
 
 // full reset 
-$('#clearFull').addEventListener('click', () => {
+$('#clearFull')?.addEventListener('click', () => {
   Object.keys(localStorage).forEach(key => {
     if (key.startsWith('pm_env_') || 
         key.startsWith('pm_req_') || 
