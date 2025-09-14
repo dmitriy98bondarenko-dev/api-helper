@@ -91,71 +91,60 @@
   color:#93c5fd;
 }
 /* ===== Theme Switch (слайдер) ===== */
-.theme-switch {
+/* Обёртка */
+.theme-toggle {
   position: relative;
-  width: 60px;
-  height: 30px;
-  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
 }
 
-.theme-switch-checkbox {
+.theme-toggle-input {
   display: none;
 }
 
-.theme-switch-label {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: #1f2937;        
-  border-radius: 20px;
-  cursor: pointer;
+/* Капсула (🌙 сумерки) */
+.theme-toggle-label {
   position: relative;
-  transition: background 0.3s;
-}
-
-.theme-switch-handle {
-  width: 26px;
-  height: 26px;
-  background: #fff;
-  border-radius: 50%;
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  transition: all 0.3s ease;
+  width: 72px;
+  height: 36px;
+  background: linear-gradient(135deg, #1e3a8a, #4c1d95); 
+  /* глубокий синий → фиолетовый */
+  border-radius: 9999px;
+  transition: background 0.45s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
   overflow: hidden;
 }
 
-.theme-switch-handle .icon {
+/* Бегунок */
+.theme-toggle-label::after {
+  content: "🌙"; 
   position: absolute;
-  opacity: 0;
-  transition: opacity 0.3s;
+  top: 3px;
+  left: 3px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+
+  transition: all 0.45s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ☀️ по умолчанию видно */
-.theme-switch-handle .sun {
-  color: #facc15;
-  opacity: 1;
+/* ☀️ рассвет */
+.theme-toggle-input:checked + .theme-toggle-label {
+  background: linear-gradient(135deg, #fde68a, #f59e0b, #f87171);
+  /* жёлтый → оранжевый → лёгкий розовый */
 }
 
-/* === Активное состояние (dark) === */
-.theme-switch-checkbox:checked + .theme-switch-label {
-  background: #facc15;       
+.theme-toggle-input:checked + .theme-toggle-label::after {
+  content: "☀️"; 
+  transform: translateX(36px) rotate(360deg);
 }
 
-.theme-switch-checkbox:checked + .theme-switch-label .theme-switch-handle {
-  left: 32px;                 
-}
-.theme-switch-checkbox:checked + .theme-switch-label .theme-switch-handle .sun {
-  opacity: 0;
-}
-.theme-switch-checkbox:checked + .theme-switch-label .theme-switch-handle .moon {
-  opacity: 1;
-  color: #1f2937;
-}
 
   .btn:hover, button:hover{filter:brightness(1.05)}
   input[type="file"]{display:none}
