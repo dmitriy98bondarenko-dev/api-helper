@@ -1088,12 +1088,14 @@ function buildVarsTableBody(){
         onclick:()=>{
           ENV.values.splice(i,1);
           const currentEnv = localStorage.getItem('selected_env') || 'dev';
-          try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
-        buildVarsTableBody();
-        updateVarsBtn();
+          try { 
+            localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); 
+          } catch {}
+          buildVarsTableBody();
+          updateVarsBtn();
         }
-    }, '✖'))
-  );
+      }, '✖'))
+    );
 
   const trNew = document.createElement('tr');
   trNew.append(
