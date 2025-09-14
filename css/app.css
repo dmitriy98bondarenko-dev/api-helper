@@ -1013,3 +1013,18 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   border-color: #dc2626;
   color: #fff;
 }
+/* ==== Unify top bar buttons height ==== */
+.authBtn,
+#varsBtn,
+.envCurrent,
+#clearStorageBtn.danger-clear {
+  height: 36px;               /* одинаковая высота */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;            /* только горизонтальный паддинг */
+  font-size: 14px;
+  line-height: 1;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
