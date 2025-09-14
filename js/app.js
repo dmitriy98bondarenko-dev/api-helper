@@ -51,15 +51,16 @@ function stripPrefixFolder(name){
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('ui_theme', t);
-  $('#themeBtn').textContent = t==='dark' ? '☀️' : '🌙';
+  $('#themeToggleSwitch').checked = (t === 'dark');
 }
 (function initTheme(){
   const t = localStorage.getItem('ui_theme') || 'light';
   applyTheme(t);
 })();
-$('#themeBtn').addEventListener('click', ()=>{
-  const cur = document.documentElement.getAttribute('data-theme') || 'light';
-  applyTheme(cur==='light' ? 'dark' : 'light');
+
+$('#themeToggleSwitch').addEventListener('change', (e)=>{
+  const newTheme = e.target.checked ? 'dark' : 'light';
+  applyTheme(newTheme);
 });
 
 /* ========= State ========= */
