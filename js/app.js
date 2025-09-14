@@ -1302,6 +1302,7 @@ async function onEnvUpload(e){
     $('#loadedInfo').textContent = shortInfo();
   }catch(err){
     showAlert('Environment parse error: ' + err.message, 'error');
+  }
 }
 function shortInfo(){
   const name = COLLECTION?.info?.name || 'Collection';
