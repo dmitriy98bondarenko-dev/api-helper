@@ -117,6 +117,18 @@ function buildVarMap(){
 } catch {}
 
 }
+function updateVarsBtn() {
+  const btn = document.getElementById('varsBtn');
+  if (!btn) return;
+
+  const total = Array.isArray(ENV?.values) ? ENV.values.length : 0;
+  const active = Array.isArray(ENV?.values)
+    ? ENV.values.filter(v => v.enabled !== false && v.value && v.value.trim() !== '').length
+    : 0;
+
+  btn.textContent = `Environment Variables (${active}/${total})`;
+}
+
 function resolveVars(str, extra={}) {
   if(typeof str!=='string') return str;
   return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=>{
@@ -1094,6 +1106,7 @@ $('#varsSave').addEventListener('click', ()=>{
   buildVarMap();
   renderTree($('#search').value||'');
   $('#varsModal').hidden = true;
+  updateVarsBtn();
 });
 
 
@@ -1161,8 +1174,11 @@ function setEnvUI(envKey) {
   if (opt) {
     envCurrent.textContent = opt.textContent;
     envCurrent.className = `envCurrent ${envKey}`;
+    document.documentElement.dataset.env = envKey; 
+    updateVarsBtn(); 
   }
 }
+
 
 async function loadEnv(envKey) {
   try {
@@ -1203,6 +1219,7 @@ async function loadEnv(envKey) {
     if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
   });
   highlightMissingVars(document);
+  updateVarsBtn();
 }
 
 envCurrent.onclick = toggleEnvDropdown;
@@ -1443,6 +1460,7 @@ $('#varEditSave').onclick = () => {
   }
   $('#varEditModal').hidden = true;
   editingVarKey = null;
+  updateVarsBtn();
 };
 function highlightJSON(text) {
   if (!text) return "";
