@@ -1142,7 +1142,7 @@ $('#varsSave').addEventListener('click', ()=>{
   updateVarsBtn();
 });
 
-$('#envImportFile').addEventListener('change', async (e)=>{
+$('#envFile').addEventListener('change', async (e)=>{
   const f = e.target.files[0]; 
   if (!f) return;
   const txt = await f.text();
@@ -1280,7 +1280,6 @@ document.addEventListener('click', (e) => {
 
 /* ========= Loaders & session ========= */
 $('#collectionFile').addEventListener('change', onCollectionUpload);
-$('#envFile').addEventListener('change', onEnvUpload);
 $('#search').addEventListener('input', debounce((e)=> renderTree(e.target.value), 200));
 
 async function onCollectionUpload(e){
@@ -1295,19 +1294,7 @@ async function onCollectionUpload(e){
     showAlert('Collection parse error: ' + err.message, 'error');
   }
 }
-async function onEnvUpload(e){
-  const f = e.target.files[0]; if(!f) return;
-  const txt = await f.text();
-  try{
-    ENV = JSON.parse(txt);
-    const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
-    buildVarMap(); renderTree($('#search').value||'');
-    $('#loadedInfo').textContent = shortInfo();
-  }catch(err){
-    showAlert('Environment parse error: ' + err.message, 'error');
-  }
-}
+
 function shortInfo(){
   const name = COLLECTION?.info?.name || 'Collection';
   const cnt = ITEMS_FLAT.length;
