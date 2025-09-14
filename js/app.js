@@ -1126,7 +1126,16 @@ $('#varsBtn').addEventListener('click', ()=>{
   buildVarsTableBody();
   $('#varsModal').hidden = false;
 });
-$('#varsCancel').addEventListener('click', ()=> $('#varsModal').hidden = true);
+$('#varsCancel').addEventListener('click', ()=> {
+  const currentEnv = localStorage.getItem('selected_env') || 'dev';
+  if ((currentEnv === 'staging' || currentEnv === 'prod') 
+      && (!ENV?.values || ENV.values.length === 0)) {
+    localStorage.removeItem(`pm_env_${currentEnv}`);
+    ENV = { name: currentEnv, values: [] };
+  }
+  $('#varsModal').hidden = true;
+});
+
 $('#varsSave').addEventListener('click', ()=>{
   const rows = readVarsTable();
   ENV.values = rows.map(r=>({ key: r.key, value: r.value, enabled: r.enabled }));
@@ -1223,14 +1232,15 @@ async function loadEnv(envKey) {
   try {
     const stored = localStorage.getItem(`pm_env_${envKey}`);
     if (stored) {
+  // if LS false
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed.values) && parsed.values.length > 0) {
+      if (Array.isArray(parsed.values)) {
         ENV = parsed;
       } else {
-        throw new Error('Empty env in localStorage');
+        throw new Error('Broken env in localStorage');
       }
     } else {
-      // load file
+      // if LS true
       const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
       if (!res.ok) throw new Error('Failed to load env file');
       const txt = await res.text();
@@ -1240,14 +1250,14 @@ async function loadEnv(envKey) {
   } catch (err) {
     console.error('Env load failed', envKey, err);
 
-    // clear LS
+    // гарантированно чистим LS, чтобы staging/prod не поднимали мусор
     localStorage.removeItem(`pm_env_${envKey}`);
 
-    // create empty env 
+    // create empty env
     ENV = { name: envKey, values: [] };
 
     showAlert(
-      `Failed to load environment (${envKey}). Please try importing your own JSON.`,
+      `Failed to load environment (${envKey}). Please try importing or adding variables manually.`,
       'error'
     );
   }
@@ -1262,6 +1272,7 @@ async function loadEnv(envKey) {
   highlightMissingVars(document);
   updateVarsBtn();
 }
+
 
 
 
@@ -1678,6 +1689,6 @@ function showAlert(message, type = 'success') {
 
   container.appendChild(alertBox);
   alertBox.querySelector('.alert__close').onclick = () => alertBox.remove();
-  // clear alert after 2sec
-  setTimeout(() => alertBox.remove(), 2000);
+  // clear alert after 3 sec
+  setTimeout(() => alertBox.remove(), 3000);
 }
