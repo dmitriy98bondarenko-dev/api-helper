@@ -120,14 +120,15 @@ function buildVarMap(){
 function updateVarsBtn() {
   const btn = document.getElementById('varsBtn');
   if (!btn) return;
+  const list = Array.isArray(ENV?.values) ? ENV.values : [];
+  const real = list.filter(v => (v?.key?.trim() || v?.value?.trim()));
 
-  const total = Array.isArray(ENV?.values) ? ENV.values.length : 0;
-  const active = Array.isArray(ENV?.values)
-    ? ENV.values.filter(v => v.enabled !== false && v.value && v.value.trim() !== '').length
-    : 0;
+  const total = real.length;
+  const active = real.filter(v => v.enabled !== false && v.value && v.value.trim() !== '').length;
 
   btn.textContent = `Environment Variables (${active}/${total})`;
 }
+
 
 function resolveVars(str, extra={}) {
   if(typeof str!=='string') return str;
@@ -1086,7 +1087,8 @@ function buildVarsTableBody(){
       class:'varRemove',
       title:'Delete',
       onclick:()=>{
-        ENV.values.splice(i,1);
+        const keyToRemove = v.key ?? v.name ?? '';
+        ENV.values = ENV.values.filter(x => x.key !== keyToRemove);
         const currentEnv = localStorage.getItem('selected_env') || 'dev';
         try { 
           localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); 
@@ -1242,13 +1244,11 @@ async function loadEnv(envKey) {
     }
   } catch (err) {
     console.error('Env load failed', envKey, err);
-
     showError(
       'Environment Load Error',
       `Failed to load environment (${envKey}). Please try importing your own JSON.`
     );
-    ENV = { name: envKey, values: Array.from({ length: 10 }, () => ({ key: '', value: '', enabled: false })) };
-    localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
+    ENV = { name: envKey, values: [] };
   }
 
   buildVarMap();
@@ -1476,15 +1476,21 @@ $('#varEditSave').onclick = () => {
     if (!Array.isArray(ENV.values)) ENV.values = [];
 
     const row = ENV.values.find(v => v.key === editingVarKey);
-    if (row) row.value = newVal;
-    else ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
+    if (row) {
+      row.value = newVal;
+      row.enabled = true;
+    } else {
+      ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
+    }
 
     const currentEnv = localStorage.getItem('selected_env') || 'dev';
     localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
 
     buildVarMap();
+    renderTree($('#search').value || '');
+    highlightMissingVars(document);
 
-    // обновляем URL строку
+    //  update URL 
     const hidden = document.querySelector('#urlInp');
     const disp = document.querySelector('#urlInpDisplay');
     if (hidden && disp) {
@@ -1495,6 +1501,7 @@ $('#varEditSave').onclick = () => {
   editingVarKey = null;
   updateVarsBtn();
 };
+
 function highlightJSON(text) {
   if (!text) return "";
   // symbols
