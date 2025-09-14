@@ -1005,9 +1005,9 @@ function updateAuthUI() {
     btn.classList.remove('active');
     text.textContent = 'Authorize';
     icon.innerHTML = `
-      <path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
-      <path d="M17 8V7a5 5 0 0 0-10 0v1H5v2h14V8h-2z"/>
-      <path d="M5 10h14v11H5z"/>
+      <path d="M16 4a4 4 0 0 0-8 0v2h2V4a2 2 0 1 1 4 0v5h2V4z"/>
+      <rect x="5" y="9" width="14" height="12" rx="2" ry="2"/>
+      <circle cx="12" cy="15" r="2"/>
     `;
   }
 }
