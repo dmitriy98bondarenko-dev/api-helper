@@ -1126,6 +1126,18 @@ const envDropdown = document.getElementById('envDropdown');
 const envCurrent = envDropdown.querySelector('.envCurrent');
 const envList = envDropdown.querySelector('.envList');
 const envOptions = envDropdown.querySelectorAll('.envOption');
+function openEnvDropdown() {
+  envList.style.display = 'block';
+  envDropdown.classList.add('open');
+}
+function closeEnvDropdown() {
+  envList.style.display = 'none';
+  envDropdown.classList.remove('open');
+}
+function toggleEnvDropdown() {
+  if (envList.style.display === 'block') closeEnvDropdown();
+  else openEnvDropdown();
+}
 
 const savedEnv = localStorage.getItem('selected_env') || 'dev';
 setEnvUI(savedEnv);
@@ -1180,13 +1192,7 @@ async function loadEnv(envKey) {
   highlightMissingVars(document);
 }
 
-
-envCurrent.onclick = () => {
-  const isOpen = envList.style.display === 'block';
-  envList.style.display = isOpen ? 'none' : 'block';
-  envDropdown.classList.toggle('open', !isOpen);
-};
-
+envCurrent.onclick = toggleEnvDropdown;
 
 envOptions.forEach(opt => {
   opt.onclick = () => {
@@ -1194,13 +1200,13 @@ envOptions.forEach(opt => {
     localStorage.setItem('selected_env', envKey);
     setEnvUI(envKey);
     loadEnv(envKey);
-    envList.style.display = 'none';
+    closeEnvDropdown();   // стрелка возвращается вниз
   };
 });
 
 // закрытие при клике вне dropdown
 document.addEventListener('click', (e) => {
-  if (!envDropdown.contains(e.target)) envList.style.display = 'none';
+  if (!envDropdown.contains(e.target)) closeEnvDropdown();
 });
 
 
@@ -1543,4 +1549,5 @@ $('#clearConfirm').addEventListener('click', () => {
   localStorage.setItem('selected_env', 'dev');
   setEnvUI('dev');
   loadEnv('dev');
+  closeEnvDropdown();
 });
