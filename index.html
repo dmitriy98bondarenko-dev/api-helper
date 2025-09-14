@@ -21,7 +21,13 @@
       <label class="file" id="envLabel">Environment
         <input id="envFile" type="file" accept=".json,application/json" />
       </label>
-      <button id="authBtn" title="Global Bearer token">Authorize</button>
+      <button id="authBtn" class="authBtn">
+        <span class="authText">Authorize</span>
+        <svg class="lockIcon" viewBox="0 0 24 24">
+          <path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+          <path d="M6 9V7a6 6 0 1 1 12 0v2h1a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1h1zm2 0h8V7a4 4 0 1 0-8 0v2z" />
+        </svg>
+      </button>
       <button id="varsBtn" title="Postman environment">Environment Variables</button>
       <div id="envDropdown" class="envDropdown">
       <div class="envCurrent">DEV</div>
@@ -31,10 +37,14 @@
           <div class="envOption prod" data-value="prod">PROD</div>
         </div>
       </div>
-      <button id="themeBtn" class="themeToggle" title="Toggle theme">🌙</button>
-      <button id="clearStorageBtn" title="Clear environments and token">🗑️ Clear</button>
+    <div class="theme-toggle">
+      <input type="checkbox" id="themeToggleSwitch" class="theme-toggle-input" />
+      <label for="themeToggleSwitch" class="theme-toggle-label"></label>
+    </div>
+
       <span id="loadedInfo" class="rightInfo"></span>
     </div>
+     <button id="clearStorageBtn" class="danger-clear" title="Clear environments and token">Reset</button>
   </header>
 
   <aside class="left">
