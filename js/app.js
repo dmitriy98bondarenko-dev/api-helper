@@ -987,18 +987,31 @@ function renderResponseSaved(resp){
 }
 
 /* ========= Authorize (global) ========= */
-function updateAuthUI(){
+function updateAuthUI() {
   const btn = $('#authBtn');
-  if (GLOBAL_BEARER){
-    btn.textContent = 'Authorized';
-    btn.style.background = '#d1fae5';
-    btn.style.color = '#065f46';
-  }else{
-    btn.textContent = 'Authorize';
-    btn.style.background = '';
-    btn.style.color = '';
+  const text = btn.querySelector('.authText');
+  const icon = btn.querySelector('.lockIcon');
+
+  if (GLOBAL_BEARER) {
+    // токен есть
+    btn.classList.add('active');
+    text.textContent = 'Authorized';
+    icon.innerHTML = `
+      <path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+      <path d="M6 9V7a6 6 0 1 1 12 0v2h1a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1h1zm2 0h8V7a4 4 0 1 0-8 0v2z"/>
+    `;
+  } else {
+    // токена нет
+    btn.classList.remove('active');
+    text.textContent = 'Authorize';
+    icon.innerHTML = `
+      <path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+      <path d="M17 8V7a5 5 0 0 0-10 0v1H5v2h14V8h-2z"/>
+      <path d="M5 10h14v11H5z"/>
+    `;
   }
 }
+
 $('#authBtn').addEventListener('click', ()=>{
   $('#authModal').hidden = false;
   $('#authToken').value = GLOBAL_BEARER || '';
