@@ -1073,38 +1073,40 @@ function buildVarsTableBody(){
       Array.from({length: 10 - list.length}, ()=>({key:'', value:'', enabled:false}))
     );
   }
-  list.forEach((v, i)=>{
-    const tr = document.createElement('tr');
-    const key = v.key ?? v.name ?? '';
-    const val = v.currentValue ?? v.value ?? '';
-    const enabled = v.enabled !== false;
-    tr.append(
-      el('td',{}, el('input',{value:key, 'data-idx':i, 'data-field':'key', type:'text'})),
-      el('td',{}, el('input',{value:val, 'data-idx':i, 'data-field':'value', type:'text'})),
-      el('td',{}, el('input',{type:'checkbox', checked:enabled, 'data-idx':i, 'data-field':'enabled'})),
-      el('td',{}, el('button',{
-        class:'varRemove',
-        title:'Delete',
-        onclick:()=>{
-          ENV.values.splice(i,1);
-          const currentEnv = localStorage.getItem('selected_env') || 'dev';
-          try { 
-            localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); 
-          } catch {}
-          buildVarsTableBody();
-          updateVarsBtn();
-        }
-      }, '✖'))
-    );
-
-  const trNew = document.createElement('tr');
-  trNew.append(
-    el('td',{}, el('input',{'data-idx':'new','data-field':'key', placeholder:'key', type:'text'})),
-    el('td',{}, el('input',{'data-idx':'new','data-field':'value', placeholder:'value', type:'text'})),
-    el('td',{}, el('input',{type:'checkbox','data-idx':'new','data-field':'enabled', checked:true})),
-    el('td',{}, '')
+ list.forEach((v, i)=>{
+  const tr = document.createElement('tr');
+  const key = v.key ?? v.name ?? '';
+  const val = v.currentValue ?? v.value ?? '';
+  const enabled = v.enabled !== false;
+  tr.append(
+    el('td',{}, el('input',{value:key, 'data-idx':i, 'data-field':'key', type:'text'})),
+    el('td',{}, el('input',{value:val, 'data-idx':i, 'data-field':'value', type:'text'})),
+    el('td',{}, el('input',{type:'checkbox', checked:enabled, 'data-idx':i, 'data-field':'enabled'})),
+    el('td',{}, el('button',{
+      class:'varRemove',
+      title:'Delete',
+      onclick:()=>{
+        ENV.values.splice(i,1);
+        const currentEnv = localStorage.getItem('selected_env') || 'dev';
+        try { 
+          localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); 
+        } catch {}
+        buildVarsTableBody();
+        updateVarsBtn();
+      }
+    }, '✖'))
   );
-  tb.append(trNew);
+  tb.append(tr); 
+});
+const trNew = document.createElement('tr');
+trNew.append(
+  el('td',{}, el('input',{'data-idx':'new','data-field':'key', placeholder:'key', type:'text'})),
+  el('td',{}, el('input',{'data-idx':'new','data-field':'value', placeholder:'value', type:'text'})),
+  el('td',{}, el('input',{type:'checkbox','data-idx':'new','data-field':'enabled', checked:true})),
+  el('td',{}, '')
+);
+tb.append(trNew);
+
 }
 function readVarsTable(){
   const rows = Array.from($('#varsTable tbody').querySelectorAll('tr'));
