@@ -91,7 +91,6 @@
   color:#93c5fd;
 }
 /* ===== Theme Switch (слайдер) ===== */
-/* Обёртка */
 .theme-toggle {
   position: relative;
   display: inline-flex;
@@ -103,22 +102,19 @@
   display: none;
 }
 
-/* Капсула (🌙 сумерки) */
 .theme-toggle-label {
   position: relative;
   width: 72px;
   height: 36px;
-  background: linear-gradient(135deg, #1e3a8a, #4c1d95); 
-  /* глубокий синий → фиолетовый */
+  background: linear-gradient(135deg, #1e3a8a, #4c1d95);
   border-radius: 9999px;
-  transition: background 0.45s ease;
+  transition: background 0.6s ease;
   box-shadow: 0 2px 6px rgba(0,0,0,.25);
   overflow: hidden;
 }
 
-/* Бегунок */
 .theme-toggle-label::after {
-  content: "🌙"; 
+  content: "🌙";
   position: absolute;
   top: 3px;
   left: 3px;
@@ -131,20 +127,27 @@
   justify-content: center;
   font-size: 16px;
 
-  transition: all 0.45s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(0) rotate(0deg);
+  transition: transform 0.6s cubic-bezier(0.25, 1.2, 0.5, 1);
 }
-
-/* ☀️ рассвет */
 .theme-toggle-input:checked + .theme-toggle-label {
   background: linear-gradient(135deg, #fde68a, #f59e0b, #f87171);
-  /* жёлтый → оранжевый → лёгкий розовый */
 }
 
 .theme-toggle-input:checked + .theme-toggle-label::after {
-  content: "☀️"; 
+  content: "☀️";
   transform: translateX(36px) rotate(360deg);
 }
 
+/* loon hover  */
+.theme-toggle-label:hover::after {
+  transform: translateX(6px) rotate(65deg);
+}
+
+/* sun hover  */
+.theme-toggle-input:checked + .theme-toggle-label:hover::after {
+  transform: translateX(30px) rotate(345deg);
+}
 
   .btn:hover, button:hover{filter:brightness(1.05)}
   input[type="file"]{display:none}
