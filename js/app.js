@@ -1609,7 +1609,10 @@ $('#resetEnvsAuth')?.addEventListener('click', () => {
       localStorage.removeItem(key);
     }
   });
-
+  
+  GLOBAL_BEARER = '';
+  updateAuthUI();
+  
   $('#resetModal').hidden = true;
   showAlert('Environments and authorization cleared. Default environment (DEV) will be used.', 'success');
 
@@ -1629,6 +1632,8 @@ $('#resetFull')?.addEventListener('click', () => {
       localStorage.removeItem(key);
     }
   });
+  GLOBAL_BEARER = '';
+  updateAuthUI();
 
   $('#resetModal').hidden = true;
   showAlert('Full reset completed. Please reload the page.', 'success');
