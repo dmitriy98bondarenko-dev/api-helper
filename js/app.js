@@ -715,15 +715,16 @@ $('#beautifyBtn').onclick = ()=>{
 };
 
 
-
-  // Reset only current request
- $('#resetBtn').onclick = ()=>{
+ // Reset only current request
+$('#resetBtn').onclick = ()=>{
   clearReqState(CURRENT_REQ_ID);
-  openRequest(item); // откроет заново и заново создаст подсветку
-   localStorage.setItem('selected_env', 'dev');
-  envSelect.value = 'dev';
+  openRequest(item);
+  localStorage.setItem('selected_env', 'dev');
+  setEnvUI('dev');        
   loadEnv('dev');
+  closeEnvDropdown();     // опционально, чтобы закрыть дропдаун
 };
+
   
   // ==== SEND ====
   $('#sendBtn').onclick = async ()=>{
@@ -1241,52 +1242,48 @@ function setEnvUI(envKey) {
 }
 
 async function loadEnv(envKey) {
-  try {
-    const stored = localStorage.getItem(`pm_env_${envKey}`);
+  const stored = localStorage.getItem(`pm_env_${envKey}`);
 
-// для staging/prod игнорируем LS, читаем только dev
-if (stored && envKey === 'dev') {
-  try {
-    const parsed = JSON.parse(stored);
-    if (Array.isArray(parsed.values)) {
-      ENV = parsed;
-    } else {
-      throw new Error('Broken env in localStorage');
+  // для staging/prod игнорируем LS, читаем только dev
+  if (stored && envKey === 'dev') {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed.values)) {
+        ENV = parsed;
+      } else {
+        throw new Error('Broken env in localStorage');
+      }
+    } catch (err) {
+      console.error('Broken dev env in LS, clearing', err);
+      localStorage.removeItem(`pm_env_dev`);
+      ENV = { name: 'dev', values: [] };
     }
-  } catch (err) {
-    console.error('Broken dev env in LS, clearing', err);
-    localStorage.removeItem(`pm_env_dev`);
-    ENV = { name: 'dev', values: [] };
-  }
-} else {
-  try {
-    const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
-    if (!res.ok) throw new Error('Failed to load env file');
-    ENV = JSON.parse(await res.text());
-    if (envKey === 'dev') {
-      localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
+  } else {
+    try {
+      const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
+      if (!res.ok) throw new Error('Failed to load env file');
+      ENV = JSON.parse(await res.text());
+      if (envKey === 'dev') {
+        localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
+      }
+    } catch (err) {
+      console.error('Env load failed', envKey, err);
+      localStorage.removeItem(`pm_env_${envKey}`);
+      ENV = { name: envKey, values: [] };
     }
-  } catch (err) {
-    console.error('Env load failed', envKey, err);
-    localStorage.removeItem(`pm_env_${envKey}`);
-    ENV = { name: envKey, values: [] };
   }
-}
-
-
-  buildVarMap();
+    buildVarMap();
   renderTree($('#search').value || '');
   $('#loadedInfo').textContent = shortInfo();
+
   document.querySelectorAll('#urlInpDisplay').forEach(disp => {
     const hidden = document.querySelector('#urlInp');
     if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
   });
+
   highlightMissingVars(document);
   updateVarsBtn();
 }
-
-
-
 
 envCurrent.onclick = toggleEnvDropdown;
 
