@@ -109,11 +109,28 @@
   fill: #fff;
 }
 
-[data-theme="dark"] #varsBtn {
-  background:#1e3a8a;         /* синий */
-  border-color:#1d4ed8;
-  color:#93c5fd;
+/* Кнопка Environment Variables */
+#varsBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--panel);
+  border: 2px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
 }
+#varsBtn:hover {
+  background: var(--soft);
+}
+
+[data-env="dev"]    #varsBtn { border-color: #16a34a; color: #16a34a; }
+[data-env="staging"]#varsBtn { border-color: #ca8a04; color: #ca8a04; }
+[data-env="prod"]   #varsBtn { border-color: #dc2626; color: #dc2626; }
+
 /* ===== Theme Switch (слайдер) ===== */
 .theme-toggle {
   position: relative;
