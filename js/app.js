@@ -51,15 +51,16 @@ function stripPrefixFolder(name){
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('ui_theme', t);
-  $('#themeBtn').textContent = t==='dark' ? '☀️' : '🌙';
+  $('#themeToggleSwitch').checked = (t === 'dark');
 }
 (function initTheme(){
   const t = localStorage.getItem('ui_theme') || 'light';
   applyTheme(t);
 })();
-$('#themeBtn').addEventListener('click', ()=>{
-  const cur = document.documentElement.getAttribute('data-theme') || 'light';
-  applyTheme(cur==='light' ? 'dark' : 'light');
+
+$('#themeToggleSwitch').addEventListener('change', (e)=>{
+  const newTheme = e.target.checked ? 'dark' : 'light';
+  applyTheme(newTheme);
 });
 
 /* ========= State ========= */
@@ -116,6 +117,18 @@ function buildVarMap(){
 } catch {}
 
 }
+function updateVarsBtn() {
+  const btn = document.getElementById('varsBtn');
+  if (!btn) return;
+
+  const total = Array.isArray(ENV?.values) ? ENV.values.length : 0;
+  const active = Array.isArray(ENV?.values)
+    ? ENV.values.filter(v => v.enabled !== false && v.value && v.value.trim() !== '').length
+    : 0;
+
+  btn.textContent = `Environment Variables (${active}/${total})`;
+}
+
 function resolveVars(str, extra={}) {
   if(typeof str!=='string') return str;
   return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=>{
@@ -986,18 +999,31 @@ function renderResponseSaved(resp){
 }
 
 /* ========= Authorize (global) ========= */
-function updateAuthUI(){
+function updateAuthUI() {
   const btn = $('#authBtn');
-  if (GLOBAL_BEARER){
-    btn.textContent = 'Authorized';
-    btn.style.background = '#d1fae5';
-    btn.style.color = '#065f46';
-  }else{
-    btn.textContent = 'Authorize';
-    btn.style.background = '';
-    btn.style.color = '';
+  const text = btn.querySelector('.authText');
+  const icon = btn.querySelector('.lockIcon');
+
+  if (GLOBAL_BEARER) {
+    // токен есть
+    btn.classList.add('active');
+    text.textContent = 'Authorized';
+    icon.innerHTML = `
+      <path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+      <path d="M6 9V7a6 6 0 1 1 12 0v2h1a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1h1zm2 0h8V7a4 4 0 1 0-8 0v2z"/>
+    `;
+  } else {
+    // токена нет
+    btn.classList.remove('active');
+    text.textContent = 'Authorize';
+    icon.innerHTML = `
+      <path d="M16 4a4 4 0 0 0-8 0v2h2V4a2 2 0 1 1 4 0v5h2V4z"/>
+      <rect x="5" y="9" width="14" height="12" rx="2" ry="2"/>
+      <circle cx="12" cy="15" r="2"/>
+    `;
   }
 }
+
 $('#authBtn').addEventListener('click', ()=>{
   $('#authModal').hidden = false;
   $('#authToken').value = GLOBAL_BEARER || '';
@@ -1080,6 +1106,7 @@ $('#varsSave').addEventListener('click', ()=>{
   buildVarMap();
   renderTree($('#search').value||'');
   $('#varsModal').hidden = true;
+  updateVarsBtn();
 });
 
 $('#envImportFile').addEventListener('change', async (e)=>{
@@ -1131,6 +1158,18 @@ const envDropdown = document.getElementById('envDropdown');
 const envCurrent = envDropdown.querySelector('.envCurrent');
 const envList = envDropdown.querySelector('.envList');
 const envOptions = envDropdown.querySelectorAll('.envOption');
+function openEnvDropdown() {
+  envList.style.display = 'block';
+  envDropdown.classList.add('open');
+}
+function closeEnvDropdown() {
+  envList.style.display = 'none';
+  envDropdown.classList.remove('open');
+}
+function toggleEnvDropdown() {
+  if (envList.style.display === 'block') closeEnvDropdown();
+  else openEnvDropdown();
+}
 
 const savedEnv = localStorage.getItem('selected_env') || 'dev';
 setEnvUI(savedEnv);
@@ -1141,8 +1180,11 @@ function setEnvUI(envKey) {
   if (opt) {
     envCurrent.textContent = opt.textContent;
     envCurrent.className = `envCurrent ${envKey}`;
+    document.documentElement.dataset.env = envKey; 
+    updateVarsBtn(); 
   }
 }
+
 
 async function loadEnv(envKey) {
   try {
@@ -1183,12 +1225,10 @@ async function loadEnv(envKey) {
     if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
   });
   highlightMissingVars(document);
+  updateVarsBtn();
 }
 
-
-envCurrent.onclick = () => {
-  envList.style.display = envList.style.display === 'none' ? 'block' : 'none';
-};
+envCurrent.onclick = toggleEnvDropdown;
 
 envOptions.forEach(opt => {
   opt.onclick = () => {
@@ -1196,13 +1236,13 @@ envOptions.forEach(opt => {
     localStorage.setItem('selected_env', envKey);
     setEnvUI(envKey);
     loadEnv(envKey);
-    envList.style.display = 'none';
+    closeEnvDropdown();   // стрелка возвращается вниз
   };
 });
 
 // закрытие при клике вне dropdown
 document.addEventListener('click', (e) => {
-  if (!envDropdown.contains(e.target)) envList.style.display = 'none';
+  if (!envDropdown.contains(e.target)) closeEnvDropdown();
 });
 
 
@@ -1379,7 +1419,7 @@ $('#errorClose').onclick = () => {
 let editingVarKey = null;
 
 // клик по токену → открываем модалку
-  document.addEventListener('click', (e) => {
+document.addEventListener('click', (e) => {
   const span = e.target.closest('.var-token');
   if (!span) return;
 
@@ -1389,6 +1429,10 @@ let editingVarKey = null;
   $('#varEditValue').value = current;
   $('#varEditTitle').textContent = `Edit variable: ${editingVarKey}`;
   $('#varEditModal').hidden = false;
+
+  const sel = window.getSelection();
+  if (sel) sel.removeAllRanges();
+  $('#urlInpDisplay').blur();
 });
 
 // закрыть
@@ -1422,6 +1466,7 @@ $('#varEditSave').onclick = () => {
   }
   $('#varEditModal').hidden = true;
   editingVarKey = null;
+  updateVarsBtn();
 };
 function highlightJSON(text) {
   if (!text) return "";
@@ -1541,4 +1586,5 @@ $('#clearConfirm').addEventListener('click', () => {
   localStorage.setItem('selected_env', 'dev');
   setEnvUI('dev');
   loadEnv('dev');
+  closeEnvDropdown();
 });

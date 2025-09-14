@@ -49,39 +49,151 @@
   }
 
   /* ---------- Header ---------- */
-  header{
-    grid-area:top; display:flex; gap:12px; align-items:center; padding:8px 12px;
-    background:var(--panel); border-bottom:1px solid var(--divider);
-  }
-  header h1 {
-  font-size:20px;
-  margin:0;
-  letter-spacing:.3px;
-  font-weight:700;
-  color:var(--ink);
+ header {
+  grid-area: top;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--divider);
+  justify-content: space-between; 
 }
-  .bar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  header h1 {
+  font-size: 20px;
+  margin: 0;
+  letter-spacing: .3px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: 1;
+}
   .btn, button{
     background:var(--chip-bg); color:var(--fg); border:1px solid var(--divider);
     padding:8px 10px; border-radius:8px; cursor:pointer
   }
 /* Верхняя панель */
-[data-theme="dark"] #authBtn {
-  background:#14532d;         /* зелёный */
-  border-color:#166534;
-  color:#4ade80;
-  font-weight:600;
+.authBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid #16a34a; /* зелёный */
+  background: transparent;
+  color: #16a34a;
+  transition: background 0.2s, color 0.2s;
 }
-[data-theme="dark"] #varsBtn {
-  background:#1e3a8a;         /* синий */
-  border-color:#1d4ed8;
-  color:#93c5fd;
+.authBtn .lockIcon {
+  width: 18px;
+  height: 18px;
+  fill: #16a34a;
+  transition: fill 0.2s;
 }
-[data-theme="dark"] #themeBtn {
-  background:#1f2937;
-  color:#facc15;              /* смена темы */
-  border:none;
+.authBtn:hover {
+  background: rgba(22, 163, 74, 0.08);
 }
+.authBtn.active {
+  background: #16a34a;
+  color: #fff;
+}
+.authBtn.active .lockIcon {
+  fill: #fff;
+}
+
+/* Кнопка Environment Variables */
+#varsBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  border: 2px solid transparent;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+html[data-env="dev"]     #varsBtn { border-color: #16a34a; color: #16a34a; }
+html[data-env="staging"] #varsBtn { border-color: #ca8a04; color: #ca8a04; }
+html[data-env="prod"]    #varsBtn { border-color: #dc2626; color: #dc2626; }
+
+#varsBtn:hover {
+  background: rgba(0,0,0,0.04);
+}
+[data-theme="dark"] #varsBtn:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* ===== Theme Switch (слайдер) ===== */
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.theme-toggle-input {
+  display: none;
+}
+
+.theme-toggle-label {
+  position: relative;
+  width: 72px;
+  height: 36px;
+  background: linear-gradient(135deg, #1e3a8a, #4c1d95);
+  border-radius: 9999px;
+  transition: background 0.6s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  overflow: hidden;
+}
+
+.theme-toggle-label::after {
+  content: "🌙";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+
+  transform: translateX(0) rotate(0deg);
+  transition: transform 0.6s cubic-bezier(0.25, 1.2, 0.5, 1);
+}
+.theme-toggle-input:checked + .theme-toggle-label {
+  background: linear-gradient(135deg, #fde68a, #f59e0b, #f87171);
+}
+
+.theme-toggle-input:checked + .theme-toggle-label::after {
+  content: "☀️";
+  transform: translateX(36px) rotate(360deg);
+}
+
+/* loon hover  */
+.theme-toggle-label:hover::after {
+  transform: translateX(6px) rotate(65deg);
+}
+
+/* sun hover  */
+.theme-toggle-input:checked + .theme-toggle-label:hover::after {
+  transform: translateX(30px) rotate(345deg);
+}
+
   .btn:hover, button:hover{filter:brightness(1.05)}
   input[type="file"]{display:none}
   label.file{padding:8px 10px; border:1px dashed var(--divider); border-radius:8px; cursor:pointer; background:var(--soft)}
@@ -802,48 +914,102 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 .env-select option {
   font-weight: 500;
 }
+/* env Dropdown */
+
 .envDropdown {
   margin-left: 8px;
   position: relative;
   display: inline-block;
-  cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
-  border: 1px solid var(--divider);
-  border-radius: 6px;
-  background: var(--panel);
+  font-weight: 600;
+  cursor: pointer;
   user-select: none;
 }
+
 .envCurrent {
-  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: 6px;
+  background: var(--panel);
+  border: 2px solid transparent;
+  min-width: 90px;
+  justify-content: center;
+  transition: border-color 0.2s, color 0.2s;
 }
+
+/* стрелка ▼ / ▲ */
+.envCurrent::after {
+  content: "▼";
+  font-size: 10px;
+  margin-left: 4px;
+  transition: transform 0.2s ease;
+}
+.envDropdown.open .envCurrent::after {
+  content: "▲";
+}
+.envCurrent.dev    { border-color: #16a34a; color: #16a34a; }
+.envCurrent.staging{ border-color: #ca8a04; color: #ca8a04; }
+.envCurrent.prod   { border-color: #dc2626; color: #dc2626; }
+
 .envList {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
-  background: var(--panel);
+  min-width: 100%;
   border: 1px solid var(--divider);
   border-radius: 6px;
-  margin-top: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: var(--panel);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   z-index: 1000;
+  display: none;
 }
 .envOption {
-  padding: 6px 12px;
+  padding: 8px 12px;
   cursor: pointer;
+  font-weight: 600;
+  border-radius: 4px;
 }
-.envOption:hover { background: var(--soft); }
+.envOption.dev    { color: #16a34a; }
+.envOption.staging{ color: #ca8a04; }
+.envOption.prod   { color: #dc2626; }
 
-.envOption.dev, .envCurrent.dev { color: #16a34a; }   /* зеленый */
-.envOption.staging, .envCurrent.staging { color: #ca8a04; } /* желтый */
-.envOption.prod, .envCurrent.prod { color: #dc2626; } /* красный */
-button.danger {
-  background: #dc2626;
-  color: #fff;
-  font-weight: 700;
-  border: none;
+.envOption:hover { 
+  background: var(--soft); 
+  filter: brightness(0.95);
 }
-button.danger:hover {
-  filter: brightness(1.1);
+
+/* ==== Reset button ==== */
+#clearStorageBtn.danger-clear {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 14px;
+  background-color: transparent;   
+  border: 2px solid #dc2626;       
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 300ms;
+  font-weight: 700;
+  color: #dc2626;                  
+}
+
+/* hover — заливка красным */
+#clearStorageBtn.danger-clear:hover {
+  background-color: #dc2626;
+  color: #fff;
+}
+
+/* ==== Dark theme ==== */
+[data-theme="dark"] #clearStorageBtn.danger-clear {
+  border-color: #f87171;   
+  color: #f87171;          
+}
+
+[data-theme="dark"] #clearStorageBtn.danger-clear:hover {
+  background-color: #dc2626;  
+  border-color: #dc2626;
+  color: #fff;
 }
