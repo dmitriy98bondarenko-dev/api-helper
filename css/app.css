@@ -111,25 +111,30 @@
 
 /* Кнопка Environment Variables */
 #varsBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  background: var(--panel);
-  border: 2px solid transparent;
-  font-size: 14px;
+  padding: 6px 14px;
+  font-size: 13px;           /* такой же как Authorize */
   font-weight: 600;
+  border-radius: 6px;
   cursor: pointer;
-  transition: 0.2s;
-}
-#varsBtn:hover {
-  background: var(--soft);
+  background: transparent;
+  border: 2px solid transparent;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 [data-env="dev"]    #varsBtn { border-color: #16a34a; color: #16a34a; }
 [data-env="staging"]#varsBtn { border-color: #ca8a04; color: #ca8a04; }
 [data-env="prod"]   #varsBtn { border-color: #dc2626; color: #dc2626; }
+
+#varsBtn:hover {
+  background: rgba(0,0,0,0.04);
+}
+[data-theme="dark"] #varsBtn:hover {
+  background: rgba(255,255,255,0.05);
+}
+
 
 /* ===== Theme Switch (слайдер) ===== */
 .theme-toggle {
