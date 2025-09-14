@@ -1223,16 +1223,16 @@ async function loadEnv(envKey) {
   try {
     const stored = localStorage.getItem(`pm_env_${envKey}`);
     if (stored) {
-      // если что-то есть в LS → берём
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed.values)) {
+      if (Array.isArray(parsed.values) && parsed.values.length > 0) {
         ENV = parsed;
       } else {
-        throw new Error('Broken env in localStorage');
+        throw new Error('Empty env in localStorage');
       }
     } else {
+      // load file
       const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
-      if (!res.ok) throw new Error(`Failed to load ${envKey} env file`);
+      if (!res.ok) throw new Error('Failed to load env file');
       const txt = await res.text();
       ENV = JSON.parse(txt);
       localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
@@ -1240,20 +1240,21 @@ async function loadEnv(envKey) {
   } catch (err) {
     console.error('Env load failed', envKey, err);
 
+    // clear LS
     localStorage.removeItem(`pm_env_${envKey}`);
 
+    // create empty env 
+    ENV = { name: envKey, values: [] };
+
     showAlert(
-      `Failed to load environment (${envKey}). Please try importing or adding variables manually.`,
+      `Failed to load environment (${envKey}). Please try importing your own JSON.`,
       'error'
     );
-
-    ENV = { name: envKey, values: [] };
   }
 
   buildVarMap();
   renderTree($('#search').value || '');
   $('#loadedInfo').textContent = shortInfo();
-
   document.querySelectorAll('#urlInpDisplay').forEach(disp => {
     const hidden = document.querySelector('#urlInp');
     if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
@@ -1261,6 +1262,7 @@ async function loadEnv(envKey) {
   highlightMissingVars(document);
   updateVarsBtn();
 }
+
 
 
 envCurrent.onclick = toggleEnvDropdown;
