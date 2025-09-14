@@ -31,7 +31,16 @@
           <div class="envOption prod" data-value="prod">PROD</div>
         </div>
       </div>
-      <button id="themeBtn" class="themeToggle" title="Toggle theme">🌙</button>
+     <div class="theme-switch">
+      <input type="checkbox" id="themeToggleSwitch" class="theme-switch-checkbox" />
+      <label for="themeToggleSwitch" class="theme-switch-label">
+         <div class="theme-switch-handle">
+            <span class="icon sun">☀️</span>
+            <span class="icon moon">🌙</span>
+          </div>
+      </label>
+     </div>
+
       <span id="loadedInfo" class="rightInfo"></span>
     </div>
      <button id="clearStorageBtn" class="danger-clear" title="Clear environments and token">Reset</button>
