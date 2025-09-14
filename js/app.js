@@ -1139,10 +1139,15 @@ $('#varsCancel').addEventListener('click', ()=> {
 $('#varsSave').addEventListener('click', ()=>{
   const rows = readVarsTable();
   ENV.values = rows.map(r=>({ key: r.key, value: r.value, enabled: r.enabled }));
-  
-  const currentEnv = localStorage.getItem('selected_env') || 'dev';
-  try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
 
+  const currentEnv = localStorage.getItem('selected_env') || 'dev';
+
+  // Если пусто — очищаем LS, чтобы не плодить фантомные ENV
+  if (!ENV.values || ENV.values.length === 0 || ENV.values.every(v => !v.key && !v.value)) {
+    localStorage.removeItem(`pm_env_${currentEnv}`);
+  } else {
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+  }
   buildVarMap();
   renderTree($('#search').value||'');
   $('#varsModal').hidden = true;
