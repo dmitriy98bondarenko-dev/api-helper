@@ -90,11 +90,73 @@
   border-color:#1d4ed8;
   color:#93c5fd;
 }
-[data-theme="dark"] #themeBtn {
-  background:#1f2937;
-  color:#facc15;              /* смена темы */
-  border:none;
+/* ===== Theme Switch (слайдер) ===== */
+.theme-switch {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  user-select: none;
 }
+
+.theme-switch-checkbox {
+  display: none;
+}
+
+.theme-switch-label {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #1f2937;        
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.theme-switch-handle {
+  width: 26px;
+  height: 26px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.theme-switch-handle .icon {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* ☀️ по умолчанию видно */
+.theme-switch-handle .sun {
+  color: #facc15;
+  opacity: 1;
+}
+
+/* === Активное состояние (dark) === */
+.theme-switch-checkbox:checked + .theme-switch-label {
+  background: #facc15;       
+}
+
+.theme-switch-checkbox:checked + .theme-switch-label .theme-switch-handle {
+  left: 32px;                 
+}
+.theme-switch-checkbox:checked + .theme-switch-label .theme-switch-handle .sun {
+  opacity: 0;
+}
+.theme-switch-checkbox:checked + .theme-switch-label .theme-switch-handle .moon {
+  opacity: 1;
+  color: #1f2937;
+}
+
   .btn:hover, button:hover{filter:brightness(1.05)}
   input[type="file"]{display:none}
   label.file{padding:8px 10px; border:1px dashed var(--divider); border-radius:8px; cursor:pointer; background:var(--soft)}
