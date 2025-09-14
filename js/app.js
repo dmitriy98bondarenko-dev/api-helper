@@ -1401,12 +1401,19 @@ function autoOpenFirst(){
   }
   }catch{}
   if (!loadedSomething){
-    const storedCol = localStorage.getItem('pm_collection'); if (storedCol){ try{ COLLECTION = JSON.parse(storedCol); loadedSomething = true; }catch{} }
+    const storedCol = localStorage.getItem('pm_collection'); 
+    if (storedCol){ 
+      try{ COLLECTION = JSON.parse(storedCol); loadedSomething = true; }catch{} 
+    }
     const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    const storedEnv = localStorage.getItem(`pm_env_${currentEnv}`);
-    if (storedEnv){ try{ ENV = JSON.parse(storedEnv); }catch{} }
-
+    if (currentEnv === 'dev') {
+      const storedEnv = localStorage.getItem('pm_env_dev');
+      if (storedEnv){ 
+        try{ ENV = JSON.parse(storedEnv); }catch{} 
+      }
+    }
   }
+
   if (loadedSomething){
     ITEMS_FLAT = []; flattenItems(COLLECTION); buildVarMap(); renderTree('');
     $('#loadedInfo').textContent = shortInfo();
