@@ -1244,10 +1244,8 @@ async function loadEnv(envKey) {
     }
   } catch (err) {
     console.error('Env load failed', envKey, err);
-    showError(
-      'Environment Load Error',
-      `Failed to load environment (${envKey}). Please try importing your own JSON.`
-    );
+    localStorage.removeItem(`pm_env_${envKey}`);
+    showAlert(`Failed to load environment (${envKey}). Please try importing your own JSON.`, 'error');
     ENV = { name: envKey, values: [] };
   }
 
