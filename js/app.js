@@ -1182,8 +1182,11 @@ async function loadEnv(envKey) {
 
 
 envCurrent.onclick = () => {
-  envList.style.display = envList.style.display === 'none' ? 'block' : 'none';
+  const isOpen = envList.style.display === 'block';
+  envList.style.display = isOpen ? 'none' : 'block';
+  envDropdown.classList.toggle('open', !isOpen);
 };
+
 
 envOptions.forEach(opt => {
   opt.onclick = () => {
