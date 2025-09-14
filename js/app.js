@@ -88,6 +88,8 @@ function loadScriptsLegacy(id){ try{ return JSON.parse(localStorage.getItem(scri
 /* ========= Variables & helpers ========= */
 function buildVarMap(){
   const map = {};
+
+  // переменные из выбранного ENV в памяти
   if (ENV && Array.isArray(ENV.values)){
     ENV.values.forEach(v=>{
       if(!v) return;
@@ -97,6 +99,8 @@ function buildVarMap(){
       if (key) map[key] = val;
     });
   }
+
+  // переменные из коллекции
   if (COLLECTION && Array.isArray(COLLECTION.variable)){
     COLLECTION.variable.forEach(v=>{
       if(!v) return;
@@ -105,29 +109,22 @@ function buildVarMap(){
       if (key && map[key]==null) map[key]=val;
     });
   }
-  VARS = map;
- try {
-  const currentEnv = localStorage.getItem('selected_env') || 'dev';
-  const stored = JSON.parse(localStorage.getItem(`pm_env_${currentEnv}`) || '{"values":[]}');
-  if (Array.isArray(stored.values)) {
-    stored.values.forEach(v=>{
-      if (v && v.enabled !== false) VARS[v.key] = v.value;
-    });
-  }
-} catch {}
 
+  VARS = map;
 }
+
 function updateVarsBtn() {
   const btn = document.getElementById('varsBtn');
   if (!btn) return;
+  const list = Array.isArray(ENV?.values) ? ENV.values : [];
+  const real = list.filter(v => (v?.key?.trim() || v?.value?.trim()));
 
-  const total = Array.isArray(ENV?.values) ? ENV.values.length : 0;
-  const active = Array.isArray(ENV?.values)
-    ? ENV.values.filter(v => v.enabled !== false && v.value && v.value.trim() !== '').length
-    : 0;
+  const total = real.length;
+  const active = real.filter(v => v.enabled !== false && v.value && v.value.trim() !== '').length;
 
   btn.textContent = `Environment Variables (${active}/${total})`;
 }
+
 
 function resolveVars(str, extra={}) {
   if(typeof str!=='string') return str;
@@ -718,15 +715,16 @@ $('#beautifyBtn').onclick = ()=>{
 };
 
 
-
-  // Reset only current request
- $('#resetBtn').onclick = ()=>{
+ // Reset only current request
+$('#resetBtn').onclick = ()=>{
   clearReqState(CURRENT_REQ_ID);
-  openRequest(item); // откроет заново и заново создаст подсветку
-   localStorage.setItem('selected_env', 'dev');
-  envSelect.value = 'dev';
+  openRequest(item);
+  localStorage.setItem('selected_env', 'dev');
+  setEnvUI('dev');        
   loadEnv('dev');
+  closeEnvDropdown();     // опционально, чтобы закрыть дропдаун
 };
+
   
   // ==== SEND ====
   $('#sendBtn').onclick = async ()=>{
@@ -1086,7 +1084,8 @@ function buildVarsTableBody(){
       class:'varRemove',
       title:'Delete',
       onclick:()=>{
-        ENV.values.splice(i,1);
+        const keyToRemove = v.key ?? v.name ?? '';
+        ENV.values = ENV.values.filter(x => x.key !== keyToRemove);
         const currentEnv = localStorage.getItem('selected_env') || 'dev';
         try { 
           localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); 
@@ -1128,13 +1127,34 @@ $('#varsBtn').addEventListener('click', ()=>{
   buildVarsTableBody();
   $('#varsModal').hidden = false;
 });
-$('#varsCancel').addEventListener('click', ()=> $('#varsModal').hidden = true);
+$('#varsCancel').addEventListener('click', ()=> {
+  const currentEnv = localStorage.getItem('selected_env') || 'dev';
+  if ((currentEnv === 'staging' || currentEnv === 'prod') 
+      && (!ENV?.values || ENV.values.length === 0)) {
+    localStorage.removeItem(`pm_env_${currentEnv}`);
+    ENV = { name: currentEnv, values: [] };
+  }
+  $('#varsModal').hidden = true;
+});
+
 $('#varsSave').addEventListener('click', ()=>{
   const rows = readVarsTable();
   ENV.values = rows.map(r=>({ key: r.key, value: r.value, enabled: r.enabled }));
-  
+
   const currentEnv = localStorage.getItem('selected_env') || 'dev';
-  try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
+
+  // Если пусто — очищаем LS, чтобы не плодить фантомные ENV
+ if (!ENV.values || ENV.values.length === 0 || ENV.values.every(v => !v.key && !v.value)) {
+  // если dev — можно сохранить пустое, staging/prod — очищаем
+  if (currentEnv !== 'dev') {
+    localStorage.removeItem(`pm_env_${currentEnv}`);
+  } else {
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+  }
+} else {
+  // есть данные → сохраняем для всех окружений
+  localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+}
 
   buildVarMap();
   renderTree($('#search').value||'');
@@ -1221,45 +1241,46 @@ function setEnvUI(envKey) {
   }
 }
 
-
 async function loadEnv(envKey) {
-  try {
-    const stored = localStorage.getItem(`pm_env_${envKey}`);
-    if (stored) {
+  const stored = localStorage.getItem(`pm_env_${envKey}`);
+
+  // для staging/prod игнорируем LS, читаем только dev
+  if (stored && envKey === 'dev') {
+    try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed.values) && parsed.values.length > 0) {
+      if (Array.isArray(parsed.values)) {
         ENV = parsed;
       } else {
-        throw new Error('Empty env in localStorage');
+        throw new Error('Broken env in localStorage');
       }
-    } else {
-      // load file
+    } catch (err) {
+      console.error('Broken dev env in LS, clearing', err);
+      localStorage.removeItem(`pm_env_dev`);
+      ENV = { name: 'dev', values: [] };
+    }
+  } else {
+    try {
       const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
       if (!res.ok) throw new Error('Failed to load env file');
-      const txt = await res.text();
-      ENV = JSON.parse(txt);
-      localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
+      ENV = JSON.parse(await res.text());
+      if (envKey === 'dev') {
+        localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
+      }
+    } catch (err) {
+      console.error('Env load failed', envKey, err);
+      localStorage.removeItem(`pm_env_${envKey}`);
+      ENV = { name: envKey, values: [] };
     }
-  } catch (err) {
-    console.error('Env load failed', envKey, err);
-
-    showError(
-      'Environment Load Error',
-      `Failed to load environment (${envKey}). Please try importing your own JSON.`
-    );
-    ENV = { name: envKey, values: Array.from({ length: 10 }, () => ({ key: '', value: '', enabled: false })) };
-    localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
   }
-
-  buildVarMap();
+    buildVarMap();
   renderTree($('#search').value || '');
   $('#loadedInfo').textContent = shortInfo();
 
-  // updatee url
   document.querySelectorAll('#urlInpDisplay').forEach(disp => {
     const hidden = document.querySelector('#urlInp');
     if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
   });
+
   highlightMissingVars(document);
   updateVarsBtn();
 }
@@ -1317,9 +1338,21 @@ function autoOpenFirst(){
 
   const persistEnv = () => {
   const currentEnv = localStorage.getItem('selected_env') || 'dev';
-  try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
+  try {
+    if (!ENV.values || ENV.values.length === 0 || ENV.values.every(v => !v.key && !v.value)) {
+      // dev сохраняем даже пустой, staging/prod чистим
+      if (currentEnv === 'dev') {
+        localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+      } else {
+        localStorage.removeItem(`pm_env_${currentEnv}`);
+      }
+    } else {
+      // есть данные → сохраняем для всех окружений
+      localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    }
+  } catch {}
   if (typeof buildVarMap === 'function') buildVarMap();
-  };
+};
 
   const setEnv = (key, value) => {
     // обновляем runtime
@@ -1401,17 +1434,25 @@ function autoOpenFirst(){
   if (envRes.ok){
     const txt = await envRes.text();
     ENV = JSON.parse(txt);
-    const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    // save in pm_env_dev, but not in selected_env
+    localStorage.setItem('pm_env_dev', JSON.stringify(ENV));
+
   }
   }catch{}
   if (!loadedSomething){
-    const storedCol = localStorage.getItem('pm_collection'); if (storedCol){ try{ COLLECTION = JSON.parse(storedCol); loadedSomething = true; }catch{} }
+    const storedCol = localStorage.getItem('pm_collection'); 
+    if (storedCol){ 
+      try{ COLLECTION = JSON.parse(storedCol); loadedSomething = true; }catch{} 
+    }
     const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    const storedEnv = localStorage.getItem(`pm_env_${currentEnv}`);
-    if (storedEnv){ try{ ENV = JSON.parse(storedEnv); }catch{} }
-
+    if (currentEnv === 'dev') {
+      const storedEnv = localStorage.getItem('pm_env_dev');
+      if (storedEnv){ 
+        try{ ENV = JSON.parse(storedEnv); }catch{} 
+      }
+    }
   }
+
   if (loadedSomething){
     ITEMS_FLAT = []; flattenItems(COLLECTION); buildVarMap(); renderTree('');
     $('#loadedInfo').textContent = shortInfo();
@@ -1476,15 +1517,28 @@ $('#varEditSave').onclick = () => {
     if (!Array.isArray(ENV.values)) ENV.values = [];
 
     const row = ENV.values.find(v => v.key === editingVarKey);
-    if (row) row.value = newVal;
-    else ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
+    if (row) {
+      row.value = newVal;
+      row.enabled = true;
+    } else {
+      ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
+    }
 
     const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    if (ENV.values && ENV.values.some(v => v.key && v.value)) {
+  localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    } else if (currentEnv !== 'dev') {
+      localStorage.removeItem(`pm_env_${currentEnv}`);
+    } else {
+      localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    }
+
 
     buildVarMap();
+    renderTree($('#search').value || '');
+    highlightMissingVars(document);
 
-    // обновляем URL строку
+    //  update URL 
     const hidden = document.querySelector('#urlInp');
     const disp = document.querySelector('#urlInpDisplay');
     if (hidden && disp) {
@@ -1495,6 +1549,7 @@ $('#varEditSave').onclick = () => {
   editingVarKey = null;
   updateVarsBtn();
 };
+
 function highlightJSON(text) {
   if (!text) return "";
   // symbols
@@ -1662,6 +1717,6 @@ function showAlert(message, type = 'success') {
 
   container.appendChild(alertBox);
   alertBox.querySelector('.alert__close').onclick = () => alertBox.remove();
-  // clear alert after 2sec
-  setTimeout(() => alertBox.remove(), 2000);
+  // clear alert after 3 sec
+  setTimeout(() => alertBox.remove(), 3000);
 }
