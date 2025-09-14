@@ -88,6 +88,8 @@ function loadScriptsLegacy(id){ try{ return JSON.parse(localStorage.getItem(scri
 /* ========= Variables & helpers ========= */
 function buildVarMap(){
   const map = {};
+
+  // переменные из выбранного ENV в памяти
   if (ENV && Array.isArray(ENV.values)){
     ENV.values.forEach(v=>{
       if(!v) return;
@@ -97,6 +99,8 @@ function buildVarMap(){
       if (key) map[key] = val;
     });
   }
+
+  // переменные из коллекции
   if (COLLECTION && Array.isArray(COLLECTION.variable)){
     COLLECTION.variable.forEach(v=>{
       if(!v) return;
@@ -105,18 +109,10 @@ function buildVarMap(){
       if (key && map[key]==null) map[key]=val;
     });
   }
-  VARS = map;
- try {
-  const currentEnv = localStorage.getItem('selected_env') || 'dev';
-  const stored = JSON.parse(localStorage.getItem(`pm_env_${currentEnv}`) || '{"values":[]}');
-  if (Array.isArray(stored.values)) {
-    stored.values.forEach(v=>{
-      if (v && v.enabled !== false) VARS[v.key] = v.value;
-    });
-  }
-} catch {}
 
+  VARS = map;
 }
+
 function updateVarsBtn() {
   const btn = document.getElementById('varsBtn');
   if (!btn) return;
