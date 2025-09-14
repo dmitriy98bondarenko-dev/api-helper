@@ -1018,13 +1018,92 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 #varsBtn,
 .envCurrent,
 #clearStorageBtn.danger-clear {
-  height: 36px;               /* одинаковая высота */
+  height: 36px;              
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 14px;            /* только горизонтальный паддинг */
+  padding: 0 14px;            
   font-size: 14px;
   line-height: 1;
   border-radius: 6px;
   box-sizing: border-box;
+}
+/* delete var remove rows */
+.varRemove {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  color: #dc2626;
+  background: none;
+  border: none;
+  padding: 0 6px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.varRemove:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+/* alerts */
+
+#alertsContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 9999;
+}
+
+.alert {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  width: 320px;
+  padding: 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  border-radius: 8px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: fadeIn 0.3s forwards, fadeOut 0.3s 4s forwards;
+}
+
+.alert__icon {
+  width: 20px;
+  height: 20px;
+  transform: translateY(-2px);
+  margin-right: 8px;
+}
+.alert__icon path { fill: #fff; }
+
+.alert__title {
+  font-weight: 500;
+  font-size: 14px;
+  color: #fff;
+}
+
+.alert__close {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  margin-left: auto;
+}
+.alert__close path { fill: #fff; }
+
+/* Варианты */
+.alert.error   { background: #EF665B; } /* красный */
+.alert.success { background: #16a34a; } /* зелёный */
+
+/* Анимации */
+@keyframes fadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(-10px); }
 }

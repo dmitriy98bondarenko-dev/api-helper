@@ -86,28 +86,25 @@
       </div>
     </div>
   </div>
-
-  <!-- Variables modal -->
+<!-- Variables modal -->
   <div id="varsModal" class="modal" hidden>
     <div class="modalCard">
       <h3>Environment variables</h3>
       <div class="kvs" style="max-height:42vh; overflow:auto; border:1px solid var(--divider); border-radius:10px">
         <table id="varsTable" class="varsTable">
-          <thead><tr><th style="width:40%">Key</th><th>Value</th><th style="width:80px">On</th></tr></thead>
+          <thead>
+            <tr><th style="width:40%">Key</th><th>Value</th><th style="width:80px">On</th></tr>
+          </thead>
           <tbody></tbody>
         </table>
       </div>
       <div class="modalActions">
-        <div class="varsHelp">Variables are stored locally (in your browser).</div>
-        <div style="display:flex; gap:8px; align-items:center">
-          <label class="file" for="envImportFile">Import JSON<input id="envImportFile" type="file" accept=".json,application/json"/></label>
-          <button id="varsCancel">Cancel</button>
-          <button id="varsSave" class="auth-ok">Save</button>
-        </div>
+        <button id="varsImportBtn" type="button">Import JSON</button>
+        <button id="varsCancel">Cancel</button>
+        <button id="varsSave" class="auth-ok">Save</button>
       </div>
     </div>
   </div>
-
   
 <!-- Variable edit modal -->
 <div id="varEditModal" class="modal" hidden>
@@ -132,23 +129,24 @@
     </div>
   </div>
 </div>
-<!-- Clear confirmation modal -->
-<div id="clearConfirmModal" class="modal" hidden>
-  <div class="modalCard" style="max-width:420px;">
-    <h3>Clear environments</h3>
-    <p style="margin: 12px 0 18px; color:var(--muted);">
-      This will remove all saved environments and reset the selected environment.<br>
-      Are you sure you want to continue?
-    </p>
-    <div class="modalActions">
-      <button id="clearCancel">Cancel</button>
-      <button id="clearConfirm" class="danger">Clear</button>
+<!-- Reset modal -->
+  <div id="resetModal" class="modal" hidden>
+    <div class="modalCard" style="max-width:420px;">
+      <h3>Reset options</h3>
+      <p style="margin: 12px 0 18px; color:var(--muted);">
+        Choose what you want to reset.
+      </p>
+      <div class="modalActions">
+        <button id="resetCancel">Cancel</button>
+        <button id="resetEnvsAuth" class="danger-clear">Clear envs & auth</button>
+        <button id="resetFull" class="danger-clear">Full reset</button>
+      </div>
     </div>
   </div>
-</div>
 
 
   <div id="loader" class="loaderOverlay" hidden><div class="spinner"></div></div>
+  <div id="alertsContainer"></div>
  <script src="./js/app.js"></script>
 </body>
 </html>
