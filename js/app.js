@@ -1399,8 +1399,9 @@ function autoOpenFirst(){
   if (envRes.ok){
     const txt = await envRes.text();
     ENV = JSON.parse(txt);
-    const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    // save in pm_env_dev, but not in selected_env
+    localStorage.setItem('pm_env_dev', JSON.stringify(ENV));
+
   }
   }catch{}
   if (!loadedSomething){
