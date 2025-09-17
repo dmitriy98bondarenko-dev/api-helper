@@ -88,6 +88,8 @@ function loadScriptsLegacy(id){ try{ return JSON.parse(localStorage.getItem(scri
 /* ========= Variables & helpers ========= */
 function buildVarMap(){
   const map = {};
+
+  // переменные из выбранного ENV в памяти
   if (ENV && Array.isArray(ENV.values)){
     ENV.values.forEach(v=>{
       if(!v) return;
@@ -97,6 +99,8 @@ function buildVarMap(){
       if (key) map[key] = val;
     });
   }
+
+  // переменные из коллекции
   if (COLLECTION && Array.isArray(COLLECTION.variable)){
     COLLECTION.variable.forEach(v=>{
       if(!v) return;
@@ -105,29 +109,22 @@ function buildVarMap(){
       if (key && map[key]==null) map[key]=val;
     });
   }
-  VARS = map;
- try {
-  const currentEnv = localStorage.getItem('selected_env') || 'dev';
-  const stored = JSON.parse(localStorage.getItem(`pm_env_${currentEnv}`) || '{"values":[]}');
-  if (Array.isArray(stored.values)) {
-    stored.values.forEach(v=>{
-      if (v && v.enabled !== false) VARS[v.key] = v.value;
-    });
-  }
-} catch {}
 
+  VARS = map;
 }
+
 function updateVarsBtn() {
   const btn = document.getElementById('varsBtn');
   if (!btn) return;
+  const list = Array.isArray(ENV?.values) ? ENV.values : [];
+  const real = list.filter(v => (v?.key?.trim() || v?.value?.trim()));
 
-  const total = Array.isArray(ENV?.values) ? ENV.values.length : 0;
-  const active = Array.isArray(ENV?.values)
-    ? ENV.values.filter(v => v.enabled !== false && v.value && v.value.trim() !== '').length
-    : 0;
+  const total = real.length;
+  const active = real.filter(v => v.enabled !== false && v.value && v.value.trim() !== '').length;
 
   btn.textContent = `Environment Variables (${active}/${total})`;
 }
+
 
 function resolveVars(str, extra={}) {
   if(typeof str!=='string') return str;
@@ -268,7 +265,8 @@ function buildKVTable(rows){
   t.append(el('thead', {}, el('tr', {}, 
     el('th', {class:'kvOn'}, 'On'), 
     el('th', {}, 'Key'), 
-    el('th', {}, 'Value')
+    el('th', {}, 'Value'),
+    el('th', {}, '')
   )));
   const tb = el('tbody');
 
@@ -332,11 +330,22 @@ function appendRow(tb, row, isNew=false){
       }
     });
   });
+ // ❌ крестик справа
+const removeBtn = el('button', {
+  class:'varRemove',
+  title:'Delete row',
+  onclick:()=> {
+    tr.remove();
+    debSave(); 
+  }
+}, '✖');
+
 
   tr.append(
     el('td', {class:'kvOn'}, el('div',{class:'cell'}, cb)),
     el('td', {}, el('div',{class:'cell'}, keyInp)),
-    el('td', {}, el('div',{class:'cell'}, valInp))
+    el('td', {}, el('div',{class:'cell'}, valInp)),
+    el('td', {}, el('div',{class:'cell'}, removeBtn))
   );
 
   tb.append(tr);
@@ -363,7 +372,8 @@ function addNewRow(tb){
   trNew.append(
     el('td', {class:'kvOn'}, el('div',{class:'cell'}, cbNew)),
     el('td', {}, el('div',{class:'cell'}, keyNew)),
-    el('td', {}, el('div',{class:'cell'}, valNew))
+    el('td', {}, el('div',{class:'cell'}, valNew)),
+    el('td', {}, '')
   );
   tb.append(trNew);
 }
@@ -699,19 +709,22 @@ $('#beautifyBtn').onclick = ()=>{
     bodyEditor.innerHTML = highlightJSON(beautified);
     restoreSelection(bodyEditor, sel);
     saveReqState(CURRENT_REQ_ID, { body: beautified });
-  }catch{ alert('Body is not valid JSON'); }
+  }catch{ 
+    showAlert('Body is not valid JSON', 'error');
+  }
 };
 
 
-
-  // Reset only current request
- $('#resetBtn').onclick = ()=>{
+ // Reset only current request
+$('#resetBtn').onclick = ()=>{
   clearReqState(CURRENT_REQ_ID);
-  openRequest(item); // откроет заново и заново создаст подсветку
-   localStorage.setItem('selected_env', 'dev');
-  envSelect.value = 'dev';
+  openRequest(item);
+  localStorage.setItem('selected_env', 'dev');
+  setEnvUI('dev');        
   loadEnv('dev');
+  closeEnvDropdown();     // опционально, чтобы закрыть дропдаун
 };
+
   
   // ==== SEND ====
   $('#sendBtn').onclick = async ()=>{
@@ -830,8 +843,8 @@ $('#beautifyBtn').onclick = ()=>{
     const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
     const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
     const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
-    navigator.clipboard.writeText(cmd); 
-    alert('cURL copied');
+    navigator.clipboard.writeText(cmd);
+      showAlert('cURL copied', 'success');  
   };
 
   // Show saved response if any
@@ -901,11 +914,14 @@ function buildRespTools(rawText){
       const obj = JSON.parse(rawText||'{}');
       const path = (input.value||'').trim();
       const val = path ? getByPath(obj, path) : '';
-      if (val==null) { alert('Field not found'); return; }
+      if (val==null) { 
+        showAlert('Field not found', 'error');
+        return; 
+      }
       navigator.clipboard.writeText(String(val));
       btn.textContent='Copied!'; setTimeout(()=>btn.textContent='Copy field', 1000);
     }catch{
-      alert('Response is not JSON');
+      showAlert('Response is not JSON', 'error');
     }
   };
   btnAll.onclick = ()=>{
@@ -1055,25 +1071,41 @@ function buildVarsTableBody(){
       Array.from({length: 10 - list.length}, ()=>({key:'', value:'', enabled:false}))
     );
   }
-  list.forEach((v, i)=>{
-    const tr = document.createElement('tr');
-    const key = v.key ?? v.name ?? '';
-    const val = v.currentValue ?? v.value ?? '';
-    const enabled = v.enabled !== false;
-    tr.append(
-      el('td',{}, el('input',{value:key, 'data-idx':i, 'data-field':'key', type:'text'})),
-      el('td',{}, el('input',{value:val, 'data-idx':i, 'data-field':'value', type:'text'})),
-      el('td',{}, el('input',{type:'checkbox', checked:enabled, 'data-idx':i, 'data-field':'enabled'}))
-    );
-    tb.append(tr);
-  });
-  const trNew = document.createElement('tr');
-  trNew.append(
-    el('td',{}, el('input',{'data-idx':'new','data-field':'key', placeholder:'key', type:'text'})),
-    el('td',{}, el('input',{'data-idx':'new','data-field':'value', placeholder:'value', type:'text'})),
-    el('td',{}, el('input',{type:'checkbox','data-idx':'new','data-field':'enabled', checked:true}))
+ list.forEach((v, i)=>{
+  const tr = document.createElement('tr');
+  const key = v.key ?? v.name ?? '';
+  const val = v.currentValue ?? v.value ?? '';
+  const enabled = v.enabled !== false;
+  tr.append(
+    el('td',{}, el('input',{value:key, 'data-idx':i, 'data-field':'key', type:'text'})),
+    el('td',{}, el('input',{value:val, 'data-idx':i, 'data-field':'value', type:'text'})),
+    el('td',{}, el('input',{type:'checkbox', checked:enabled, 'data-idx':i, 'data-field':'enabled'})),
+    el('td',{}, el('button',{
+      class:'varRemove',
+      title:'Delete',
+      onclick:()=>{
+        const keyToRemove = v.key ?? v.name ?? '';
+        ENV.values = ENV.values.filter(x => x.key !== keyToRemove);
+        const currentEnv = localStorage.getItem('selected_env') || 'dev';
+        try { 
+          localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); 
+        } catch {}
+        buildVarsTableBody();
+        updateVarsBtn();
+      }
+    }, '✖'))
   );
-  tb.append(trNew);
+  tb.append(tr); 
+});
+const trNew = document.createElement('tr');
+trNew.append(
+  el('td',{}, el('input',{'data-idx':'new','data-field':'key', placeholder:'key', type:'text'})),
+  el('td',{}, el('input',{'data-idx':'new','data-field':'value', placeholder:'value', type:'text'})),
+  el('td',{}, el('input',{type:'checkbox','data-idx':'new','data-field':'enabled', checked:true})),
+  el('td',{}, '')
+);
+tb.append(trNew);
+
 }
 function readVarsTable(){
   const rows = Array.from($('#varsTable tbody').querySelectorAll('tr'));
@@ -1095,13 +1127,34 @@ $('#varsBtn').addEventListener('click', ()=>{
   buildVarsTableBody();
   $('#varsModal').hidden = false;
 });
-$('#varsCancel').addEventListener('click', ()=> $('#varsModal').hidden = true);
+$('#varsCancel').addEventListener('click', ()=> {
+  const currentEnv = localStorage.getItem('selected_env') || 'dev';
+  if ((currentEnv === 'staging' || currentEnv === 'prod') 
+      && (!ENV?.values || ENV.values.length === 0)) {
+    localStorage.removeItem(`pm_env_${currentEnv}`);
+    ENV = { name: currentEnv, values: [] };
+  }
+  $('#varsModal').hidden = true;
+});
+
 $('#varsSave').addEventListener('click', ()=>{
   const rows = readVarsTable();
   ENV.values = rows.map(r=>({ key: r.key, value: r.value, enabled: r.enabled }));
 
   const currentEnv = localStorage.getItem('selected_env') || 'dev';
-  try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
+
+  // Если пусто — очищаем LS, чтобы не плодить фантомные ENV
+ if (!ENV.values || ENV.values.length === 0 || ENV.values.every(v => !v.key && !v.value)) {
+  // если dev — можно сохранить пустое, staging/prod — очищаем
+  if (currentEnv !== 'dev') {
+    localStorage.removeItem(`pm_env_${currentEnv}`);
+  } else {
+    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+  }
+} else {
+  // есть данные → сохраняем для всех окружений
+  localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+}
 
   buildVarMap();
   renderTree($('#search').value||'');
@@ -1109,7 +1162,11 @@ $('#varsSave').addEventListener('click', ()=>{
   updateVarsBtn();
 });
 
-$('#envImportFile').addEventListener('change', async (e)=>{
+$('#varsImportBtn').addEventListener('click', ()=>{
+  $('#envFile').click();
+});
+
+$('#envFile').addEventListener('change', async (e)=>{
   const f = e.target.files[0]; 
   if (!f) return;
   const txt = await f.text();
@@ -1138,8 +1195,7 @@ $('#envImportFile').addEventListener('change', async (e)=>{
       if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
     });
     highlightMissingVars(document);
-
-    alert(`Environment imported for ${currentEnv.toUpperCase()}.`);
+    showAlert(`Environment imported for ${currentEnv.toUpperCase()}.`, 'success');
   } catch(err){ 
     showError('Import Error', 'Could not import environment: ' + err.message);
   } finally {
@@ -1185,45 +1241,47 @@ function setEnvUI(envKey) {
   }
 }
 
-
 async function loadEnv(envKey) {
-  try {
-    const stored = localStorage.getItem(`pm_env_${envKey}`);
-    if (stored) {
+  const stored = localStorage.getItem(`pm_env_${envKey}`);
+
+  // для staging/prod игнорируем LS, читаем только dev
+  if (stored && envKey === 'dev') {
+    try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed.values) && parsed.values.length > 0) {
+      if (Array.isArray(parsed.values)) {
         ENV = parsed;
       } else {
-        throw new Error('Empty env in localStorage');
+        throw new Error('Broken env in localStorage');
       }
-    } else {
-      // load file
+    } catch (err) {
+      console.error('Broken dev env in LS, clearing', err);
+      localStorage.removeItem(`pm_env_dev`);
+      ENV = { name: 'dev', values: [] };
+    }
+  } else {
+    try {
       const res = await fetch(ENV_PATHS[envKey], { cache: 'no-cache' });
       if (!res.ok) throw new Error('Failed to load env file');
-      const txt = await res.text();
-      ENV = JSON.parse(txt);
-      localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
+      ENV = JSON.parse(await res.text());
+      if (envKey === 'dev') {
+        localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
+      }
+    } catch (err) {
+      console.error('Env load failed', envKey, err);
+      localStorage.removeItem(`pm_env_${envKey}`);
+      ENV = { name: envKey, values: [] };
+      showAlert(`Environment file for "${envKey}" not found. Using empty.`, 'error');
     }
-  } catch (err) {
-    console.error('Env load failed', envKey, err);
-
-    showError(
-      'Environment Load Error',
-      `Failed to load environment (${envKey}). Please try importing your own JSON.`
-    );
-    ENV = { name: envKey, values: Array.from({ length: 10 }, () => ({ key: '', value: '', enabled: false })) };
-    localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(ENV));
   }
-
-  buildVarMap();
+    buildVarMap();
   renderTree($('#search').value || '');
   $('#loadedInfo').textContent = shortInfo();
 
-  // updatee url
   document.querySelectorAll('#urlInpDisplay').forEach(disp => {
     const hidden = document.querySelector('#urlInp');
     if (hidden) disp.innerHTML = renderUrlWithVars(hidden.value);
   });
+
   highlightMissingVars(document);
   updateVarsBtn();
 }
@@ -1248,7 +1306,6 @@ document.addEventListener('click', (e) => {
 
 /* ========= Loaders & session ========= */
 $('#collectionFile').addEventListener('change', onCollectionUpload);
-$('#envFile').addEventListener('change', onEnvUpload);
 $('#search').addEventListener('input', debounce((e)=> renderTree(e.target.value), 200));
 
 async function onCollectionUpload(e){
@@ -1259,19 +1316,11 @@ async function onCollectionUpload(e){
     ITEMS_FLAT = []; flattenItems(COLLECTION); buildVarMap(); renderTree($('#search').value||'');
     $('#loadedInfo').textContent = shortInfo();
     if (AUTO_OPEN_FIRST) autoOpenFirst();
-  }catch(err){ alert('Collection parse error: '+err.message); }
+  }catch(err){ 
+    showAlert('Collection parse error: ' + err.message, 'error');
+  }
 }
-async function onEnvUpload(e){
-  const f = e.target.files[0]; if(!f) return;
-  const txt = await f.text();
-  try{
-    ENV = JSON.parse(txt);
-    const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
-    buildVarMap(); renderTree($('#search').value||'');
-    $('#loadedInfo').textContent = shortInfo();
-  }catch(err){ alert('Environment parse error: '+err.message); }
-}
+
 function shortInfo(){
   const name = COLLECTION?.info?.name || 'Collection';
   const cnt = ITEMS_FLAT.length;
@@ -1290,9 +1339,21 @@ function autoOpenFirst(){
 
   const persistEnv = () => {
   const currentEnv = localStorage.getItem('selected_env') || 'dev';
-  try { localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV)); } catch {}
+  try {
+    if (!ENV.values || ENV.values.length === 0 || ENV.values.every(v => !v.key && !v.value)) {
+      // dev сохраняем даже пустой, staging/prod чистим
+      if (currentEnv === 'dev') {
+        localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+      } else {
+        localStorage.removeItem(`pm_env_${currentEnv}`);
+      }
+    } else {
+      // есть данные → сохраняем для всех окружений
+      localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    }
+  } catch {}
   if (typeof buildVarMap === 'function') buildVarMap();
-  };
+};
 
   const setEnv = (key, value) => {
     // обновляем runtime
@@ -1374,17 +1435,25 @@ function autoOpenFirst(){
   if (envRes.ok){
     const txt = await envRes.text();
     ENV = JSON.parse(txt);
-    const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    // save in pm_env_dev, but not in selected_env
+    localStorage.setItem('pm_env_dev', JSON.stringify(ENV));
+
   }
   }catch{}
   if (!loadedSomething){
-    const storedCol = localStorage.getItem('pm_collection'); if (storedCol){ try{ COLLECTION = JSON.parse(storedCol); loadedSomething = true; }catch{} }
+    const storedCol = localStorage.getItem('pm_collection'); 
+    if (storedCol){ 
+      try{ COLLECTION = JSON.parse(storedCol); loadedSomething = true; }catch{} 
+    }
     const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    const storedEnv = localStorage.getItem(`pm_env_${currentEnv}`);
-    if (storedEnv){ try{ ENV = JSON.parse(storedEnv); }catch{} }
-
+    if (currentEnv === 'dev') {
+      const storedEnv = localStorage.getItem('pm_env_dev');
+      if (storedEnv){ 
+        try{ ENV = JSON.parse(storedEnv); }catch{} 
+      }
+    }
   }
+
   if (loadedSomething){
     ITEMS_FLAT = []; flattenItems(COLLECTION); buildVarMap(); renderTree('');
     $('#loadedInfo').textContent = shortInfo();
@@ -1449,15 +1518,28 @@ $('#varEditSave').onclick = () => {
     if (!Array.isArray(ENV.values)) ENV.values = [];
 
     const row = ENV.values.find(v => v.key === editingVarKey);
-    if (row) row.value = newVal;
-    else ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
+    if (row) {
+      row.value = newVal;
+      row.enabled = true;
+    } else {
+      ENV.values.push({ key: editingVarKey, value: newVal, enabled: true });
+    }
 
     const currentEnv = localStorage.getItem('selected_env') || 'dev';
-    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    if (ENV.values && ENV.values.some(v => v.key && v.value)) {
+  localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    } else if (currentEnv !== 'dev') {
+      localStorage.removeItem(`pm_env_${currentEnv}`);
+    } else {
+      localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(ENV));
+    }
+
 
     buildVarMap();
+    renderTree($('#search').value || '');
+    highlightMissingVars(document);
 
-    // обновляем URL строку
+    //  update URL 
     const hidden = document.querySelector('#urlInp');
     const disp = document.querySelector('#urlInpDisplay');
     if (hidden && disp) {
@@ -1468,6 +1550,7 @@ $('#varEditSave').onclick = () => {
   editingVarKey = null;
   updateVarsBtn();
 };
+
 function highlightJSON(text) {
   if (!text) return "";
   // symbols
@@ -1563,28 +1646,78 @@ function restoreSelection(containerEl, offset) {
   sel.removeAllRanges();
   sel.addRange(range);
 }
-$('#clearStorageBtn').addEventListener('click', () => {
-  $('#clearConfirmModal').hidden = false;
+// reset local storage
+$('#clearStorageBtn')?.addEventListener('click', () => {
+  $('#resetModal').hidden = false;
 });
 
-$('#clearCancel').addEventListener('click', () => {
-  $('#clearConfirmModal').hidden = true;
+// Cancel
+$('#resetCancel')?.addEventListener('click', () => {
+  $('#resetModal').hidden = true;
 });
 
-$('#clearConfirm').addEventListener('click', () => {
-  // Удаляем env и selected_env
+// clear env and token
+$('#resetEnvsAuth')?.addEventListener('click', () => {
   Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('pm_env_') || key === 'selected_env') {
+    if (key.startsWith('pm_env_') || 
+        key === 'selected_env' || 
+        key === 'global_bearer') {
       localStorage.removeItem(key);
     }
   });
-
-  $('#clearConfirmModal').hidden = true;
-  alert('Environments cleared. Default environment (DEV) will be used.');
   
-  // сброс UI на dev
+  GLOBAL_BEARER = '';
+  updateAuthUI();
+  
+  $('#resetModal').hidden = true;
+  showAlert('Environments and authorization cleared. Default environment (DEV) will be used.', 'success');
+
   localStorage.setItem('selected_env', 'dev');
   setEnvUI('dev');
   loadEnv('dev');
   closeEnvDropdown();
 });
+
+// full reset 
+$('#resetFull')?.addEventListener('click', () => {
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('pm_env_') || 
+        key.startsWith('pm_req_') || 
+        key === 'selected_env' || 
+        key === 'global_bearer') {
+      localStorage.removeItem(key);
+    }
+  });
+  GLOBAL_BEARER = '';
+  updateAuthUI();
+
+  $('#resetModal').hidden = true;
+  showAlert('Full reset completed. Please reload the page.', 'success');
+
+  location.reload();
+});
+  // alert logic
+function showAlert(message, type = 'success') {
+  const container = document.getElementById('alertsContainer');
+  const alertBox = document.createElement('div');
+  alertBox.className = `alert ${type}`;
+
+  alertBox.innerHTML = `
+    <div class="alert__icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" height="24" fill="none">
+        <path d="m13 13h-2v-6h2zm0 4h-2v-2h2zm-1-15c-1.3 0-2.6.26-3.8.76-1.2.5-2.3 1.24-3.2 2.16-1.87 1.88-2.93 4.42-2.93 7.07 0 2.65 1.06 5.2 2.93 7.07.93.93 2 1.67 3.2 2.17 1.2.5 2.5.76 3.8.76 2.65 0 5.2-1.06 7.07-2.93 1.88-1.87 2.93-4.42 2.93-7.07 0-1.31-.26-2.61-.76-3.83-.5-1.21-1.24-2.31-2.17-3.24-.93-.93-2-1.67-3.24-2.17-1.21-.5-2.51-.76-3.83-.76z"></path>
+      </svg>
+    </div>
+    <div class="alert__title">${message}</div>
+    <div class="alert__close">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 20 20" height="20">
+        <path d="m15.8 5.34-1.18-1.18-4.65 4.66-4.66-4.66-1.18 1.18 4.66 4.66-4.66 4.66 1.18 1.18 4.66-4.66 4.65 4.66 1.18-1.18-4.65-4.66z"></path>
+      </svg>
+    </div>
+  `;
+
+  container.appendChild(alertBox);
+  alertBox.querySelector('.alert__close').onclick = () => alertBox.remove();
+  // clear alert after 3 sec
+  setTimeout(() => alertBox.remove(), 3000);
+}
