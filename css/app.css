@@ -840,7 +840,7 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
   border-radius: 6px;
 }
 .logo-icon {
-  height: 28px;     
+  height: 58px;
   width: auto;     
   margin-right: 8px;
 }
