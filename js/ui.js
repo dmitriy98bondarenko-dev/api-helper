@@ -280,7 +280,10 @@ export function renderResponse(res, text, ms, url) {
         return;
     }
 
-    // ---------- Header (единый) ----------
+    // ---------- Заголовок карточки ----------
+    const title = el('div', { class: 'respTitle' }, 'Response');
+
+    // ---------- Header зі статусом / часом / URL ----------
     const header = el('div', { class: 'respHeader' },
         el('span', { class: 'statusPill ' + (res.status >= 200 && res.status < 300 ? 'ok' : 'err') }, res.status),
         el('span', { class: 'respMeta' }, `${ms.toFixed(0)} ms`),
@@ -325,10 +328,15 @@ export function renderResponse(res, text, ms, url) {
         el('div', { class: 'tabPane', id: 'tab-auth' }, authPre)
     );
 
-    // ---------- Card (единый блок) ----------
-    const card = el('div', { class: 'respCard' }, tabs, tabPanes);
+    // ---------- Card (все разом) ----------
+    const card = el('div', { class: 'respCard' },
+        title,
+        header,
+        tabs,
+        tabPanes
+    );
 
-    pane.append(header, card);
+    pane.append(card);
 
     function switchTab(tab) {
         pane.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
