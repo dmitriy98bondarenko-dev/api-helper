@@ -6,194 +6,28 @@ import {
        buildKVTable, tableToSimpleArray,
        renderResponse, renderResponseSaved
  } from './ui.js';
-import { getGlobalBearer, setGlobalBearer, loadReqState, saveReqState, clearReqState, loadScriptsLegacy } from './config.js';
-import { updateAuthUI } from './auth.js';
+import { getGlobalBearer, loadReqState, saveReqState, clearReqState, loadScriptsLegacy } from './config.js';
+import { flattenItems, renderTree, setActiveRow, normalizeUrl } from './sidebar.js';
+
+import { buildVarMap, buildVarsTableBody, initVarsModal, initResetModal, updateVarsBtnCounter } from './vars.js';
+
+import { loadJson } from './state.js';
+import { state, resolveVars } from './state.js';
+
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, state.VARS);
 
-export const state = {
-  COLLECTION: null,
-  ENV: null,
-  VARS: {},
-  ITEMS_FLAT: [],
-  CURRENT_REQ_ID: null,
-  CURRENT_OP_EL: null,
-};
-
-// ===== Variables & helpers =====
-function stripPrefixFolder(name){
-    return String(name||'').replace(/^DriverGateway\s*\/\s*/i,'') || 'No folder';
-}
-function resolveVars(str, extra={}) {
-    if(typeof str!=='string') return str;
-    return str.replace(/{{\s*([^}]+)\s*}}/g,(_,k)=>{
-        if (extra && extra[k] != null) return extra[k];
-        if (state.VARS[k] != null && state.VARS[k] !== '') return state.VARS[k];
-        return '';
-    });
-}
-// --- Модал Environment Variables ---
-const varsBtn = $('#varsBtn');
-const varsModal = $('#varsModal');
-const varsCancel = $('#varsCancel');
-const varsSave = $('#varsSave');
-
-if (varsBtn && varsModal) {
-    varsBtn.addEventListener('click', () => {
-        buildVarsTableBody();
-        varsModal.hidden = false;
-    });
-}
-if (varsCancel) {
-    varsCancel.addEventListener('click', () => {
-        varsModal.hidden = true;
-    });
-}
-if (varsSave) {
-    varsSave.addEventListener('click', () => {
-        const rows = Array.from(document.querySelectorAll('#varsTable tbody tr'));
-        const values = rows.map(tr => {
-            const keyInp = tr.querySelector('input[data-field="key"]');
-            const valInp = tr.querySelector('input[data-field="value"]');
-            const chk = tr.querySelector('input[data-field="enabled"]');
-            if (!keyInp || !valInp) return null;
-            const key = keyInp.value.trim();
-            if (!key) return null;
-            return {
-                key,
-                value: valInp.value,
-                enabled: chk ? chk.checked : true
-            };
-        }).filter(Boolean);
-
-        state.ENV.values = values;
-
-        const currentEnv = localStorage.getItem('selected_env') || 'dev';
-        try {
-            localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
-        } catch {}
-
-        buildVarMap();
-        highlightMissingVars(document, state.VARS);
-
-        varsModal.hidden = true;
-        showAlert('Variables saved', 'success');
-    });
-}
-function normalizeUrl(u){
-    if(!u) return ''; if(typeof u==='string') return u;
-    let raw = u.raw || '';
-    if(!raw){
-        const protocol = u.protocol ? u.protocol+'://' : '';
-        const host = Array.isArray(u.host) ? u.host.join('.') : (u.host||'');
-        const path = Array.isArray(u.path) ? '/'+u.path.join('/') : (u.path||'');
-        const query = Array.isArray(u.query) && u.query.length ? '?' + u.query.filter(q=>!q.disabled).map(q=>`${q.key}=${q.value??''}`).join('&') : '';
-        raw = protocol + host + path + query;
-    }
-    return raw;
-}
-function pathOnly(u){
-    if(!u) return '';
-    try{
-        const full = resolveVars(u);
-        const isAbs = /^https?:\/\//i.test(full);
-        const urlObj = new URL(isAbs ? full : (location.origin + (full.startsWith('/')?full:'/'+full)));
-        return urlObj.pathname || '/';
-    }catch{ return String(u).replace(/^https?:\/\/[^/]+/i,'') || '/'; }
-}
 
 
-function buildVarMap(){
-    const map = {};
-    // переменные из выбранного ENV в памяти
-    if (state.ENV && Array.isArray(state.ENV.values)){
-        state.ENV.values.forEach(v=>{
-            if(!v) return;
-            if (v.enabled === false) return;
-            const key = v.key ?? v.name;
-            const val = (v.currentValue ?? v.value ?? v.initialValue);
-            if (key) map[key] = val;
-        });
-    }
 
-    // переменные из коллекции
-    if (state.COLLECTION && Array.isArray(state.COLLECTION.variable)){
-        state.COLLECTION.variable.forEach(v=>{
-            if(!v) return;
-            const key = v.key ?? v.name;
-            const val = (v.currentValue ?? v.value ?? v.initialValue);
-            if (key && map[key]==null) map[key]=val;
-        });
-    }
-    state.VARS = map;
-}
-function buildVarsTableBody() {
-    const tb = $('#varsTable tbody');
-    tb.innerHTML = '';
 
-    let list = Array.isArray(state.ENV?.values) ? state.ENV.values : [];
-    if (list.length < 10) {
-        list = list.concat(
-            Array.from({ length: 10 - list.length }, () => ({ key: '', value: '', enabled: false }))
-        );
-    }
 
-    list.forEach((v, i) => {
-        const tr = document.createElement('tr');
-        const key = v.key ?? v.name ?? '';
-        const val = v.currentValue ?? v.value ?? '';
-        const enabled = v.enabled !== false;
 
-        tr.append(
-            el('td', {}, el('input', { value: key, 'data-idx': i, 'data-field': 'key', type: 'text' })),
-            el('td', {}, el('input', { value: val, 'data-idx': i, 'data-field': 'value', type: 'text' })),
-            el('td', {}, el('input', { type: 'checkbox', checked: enabled, 'data-idx': i, 'data-field': 'enabled' })),
-            el('td', {}, el('button', {
-                class: 'varRemove',
-                title: 'Delete',
-                onclick: () => {
-                    const keyToRemove = v.key ?? v.name ?? '';
-                    state.ENV.values = state.ENV.values.filter(x => x.key !== keyToRemove);
 
-                    const currentEnv = localStorage.getItem('selected_env') || 'dev';
-                    try {
-                        localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
-                    } catch {}
 
-                    buildVarsTableBody();
-                    if (typeof updateVarsBtn === 'function') updateVarsBtn();
-                }
-            }, '✖'))
-        );
 
-        tb.append(tr);
-    });
 
-    // строка для добавления новых переменных
-    const trNew = document.createElement('tr');
-    trNew.append(
-        el('td', {}, el('input', { 'data-idx': 'new', 'data-field': 'key', placeholder: 'key', type: 'text' })),
-        el('td', {}, el('input', { 'data-idx': 'new', 'data-field': 'value', placeholder: 'value', type: 'text' })),
-        el('td', {}, el('input', { type: 'checkbox', 'data-idx': 'new', 'data-field': 'enabled', checked: true })),
-        el('td', {}, '')
-    );
-    tb.append(trNew);
-}
 
-function flattenItems(node, path=[]){
-    if(!node) return;
-    if(Array.isArray(node)){ node.forEach(n=>flattenItems(n, path)); return; }
-    if(node.item){ const newPath = node.name ? path.concat(stripPrefixFolder(node.name)) : path; node.item.forEach(child=>flattenItems(child, newPath)); return; }
-    if(node.request){
-        state.ITEMS_FLAT.push({
-            id: crypto.randomUUID(),
-            path: path.join(' / '),
-            name: node.name || '(untitled)',
-            request: node.request,
-            event: node.event || []
-        });
-    }
 
-}
 
 function safeBuildUrl(url, queryArr){
     const raw = url || '';
@@ -214,55 +48,9 @@ function safeBuildUrl(url, queryArr){
     return base + (qs ? '?' + qs : '') + (hashPart ? '#' + hashPart : '');
 }
 
-// ===== Sidebar =====
-function setActiveRow(elm){
-    if (state.CURRENT_OP_EL) state.CURRENT_OP_EL.classList.remove('active');
-    state.CURRENT_OP_EL = elm;
-    if (state.CURRENT_OP_EL) state.CURRENT_OP_EL.classList.add('active');
-}
 
-function renderTree(filter = '') {
-    const tree = $('#tree');
-    tree.innerHTML = '';
 
-    const q = (filter || '').toLowerCase();
-    const match = s => (s || '').toLowerCase().includes(q);
 
-    const groups = {};
-    state.ITEMS_FLAT.forEach(it => {
-        const folder = it.path || 'ROOT';
-        const urlRaw = normalizeUrl(it.request.url);
-        if (q && !(match(it.name) || match(folder) || match(urlRaw))) return;
-        (groups[folder] ||= []).push(it);
-    });
-
-    Object.entries(groups).forEach(([folder, items]) => {
-        const sec = el('div', { class: 'node' });
-        sec.append(el('div', { class: 'folder' }, folder === 'ROOT' ? 'No folder' : stripPrefixFolder(folder)));
-
-        items.forEach(it => {
-            const urlRaw = normalizeUrl(it.request.url);
-            const urlResolved = resolveVars(urlRaw);
-            const method = (it.request.method || 'GET').toUpperCase();
-            const displayPath = pathOnly(urlResolved || urlRaw);
-            const row = el(
-                'div',
-                { class: 'op ' + method, 'data-req-id': it.id,
-                    onclick: (e) => { openRequest(it); setActiveRow(e.currentTarget); },
-                    title: (it.name ? it.name + ' • ' : '') + (urlResolved || urlRaw || '') },
-                el('div', { class: 'op-method' }, method),
-                el('div', { class: 'op-path' }, displayPath || '(no url)')
-            );
-            sec.append(row);
-        });
-
-        tree.append(sec);
-    });
-
-    if (!tree.children.length) {
-        tree.append(el('div', { class: 'section muted small' }, 'Nothing found'));
-    }
-}
 
 // ==== Content-Type detection ====
 function detectContentType(body){
@@ -434,12 +222,20 @@ function getInitialStateForItem(item, forceDefaults = false) {
     };
 }
 
+function getAuthData() {
+    return {
+        type: $('#authType').value,
+        token: $('#authTokenInp').value.trim()
+    };
+}
+
 // Для краткости: ниже — укороченная версия openRequest, повторно использующая UI-модули
-function openRequest(item, forceDefaults = false) {
+export function openRequest(item, forceDefaults = false) {
 state.CURRENT_REQ_ID = item.id;
 
-const { method, methodOrig, url, paramsInit, headersInit, bodyText, scripts, auth, response } =
-    getInitialStateForItem(item, forceDefaults);
+    const { method, url, paramsInit, headersInit, bodyText, scripts, auth, response } =
+        getInitialStateForItem(item, forceDefaults);
+
 
 const pane = $('#reqPane');
 pane.innerHTML = '';
@@ -473,24 +269,33 @@ const urlDisp = el('div', {
     contenteditable:'true'
 });
     urlDisp.innerHTML = renderUrlWithVarsLocal(url);
-
-urlDisp.addEventListener('input', ()=>{
-    urlHidden.value = urlDisp.textContent;
-    const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    urlDisp.innerHTML = renderUrlWithVarsLocal(
-        safeBuildUrl($('#urlInp').value.trim(), params)
-    );
+    highlightMissingVars(urlDisp, state.VARS);
 
 
-    const sel = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(urlDisp);
-    range.collapse(false);
-    sel.removeAllRanges();
-    sel.addRange(range);
+    urlDisp.addEventListener('input', () => {
+        urlHidden.value = urlDisp.textContent;
 
-    debSave();
-});
+        const params = tableToSimpleArray(paramsTable.tBodies[0]);
+
+        // ререндерим URL c токенами
+        urlDisp.innerHTML = renderUrlWithVarsLocal(
+            safeBuildUrl($('#urlInp').value.trim(), params)
+        );
+
+        // (опционально) если хочешь также прогонять общую подсветку по инпутам внутри блока
+        // highlightMissingVars(urlDisp, state.VARS);
+
+        // вернуть каретку в конец
+        const range = document.createRange();
+        range.selectNodeContents(urlDisp);
+        range.collapse(false);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        debSave();
+    });
+
 
 // Header: Method + URL + Send
 
@@ -637,10 +442,10 @@ bodyEditor.innerHTML = highlightJSON(bodyText || '');
 
 // при вводе — обновляем подсветку
 bodyEditor.addEventListener('input', (e) => {
-    const sel = saveSelection(e.currentTarget);   // запоминаем позицию
+    const savedSel = saveSelection(e.currentTarget);
     const text = e.currentTarget.textContent;
     e.currentTarget.innerHTML = highlightJSON(text);
-    restoreSelection(e.currentTarget, sel);       // восстанавливаем каретку
+    restoreSelection(e.currentTarget, savedSel);// восстанавливаем каретку
     debSave();
 });
 
@@ -729,8 +534,7 @@ $('#sendBtn').onclick = async ()=>{
         safeBuildUrl($('#urlInp').value.trim(), params)
     );
     let body = resolveVars($('#bodyRawArea').textContent || '');
-    const authType = $('#authType').value;
-    const authToken = $('#authTokenInp').value.trim();
+    const { type: authType, token: authToken } = getAuthData();
 
     // Inject Authorization if missing
     const hasAuth = Object.keys(headers).some(h=>h.toLowerCase()==='authorization');
@@ -817,8 +621,10 @@ $('#curlBtn').onclick = ()=>{
     );
     const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
     const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
-    const authType = $('#authType').value;
-    const authToken = $('#authTokenInp').value.trim();
+    const authTypeEl = $('#authType');
+    const authTokenEl = $('#authTokenInp');
+    const authType = authTypeEl.value;
+    const authToken = authTokenEl.value.trim();
 
     if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
         if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
@@ -849,28 +655,58 @@ console.log("Events for", item.name, item.event);
 
 }
 
-// ====== Загрузка коллекции/окружения и старт ======
-async function loadJson(path) {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
-  return res.json();
-}
 
-export async function bootApp({ collectionPath, envPath, autoOpenFirst }) {
-  const [collection, env] = await Promise.all([
-    loadJson(collectionPath),
-    loadJson(envPath)
-  ]);
+export async function bootApp({ collectionPath, autoOpenFirst }) {
+
+    const collection = await loadJson(collectionPath);
+
+    // читаем окружение из LS или ставим dev
+    let currentEnv = localStorage.getItem('selected_env') || 'dev';
+    let savedEnv = null;
+
+    try {
+        const raw = localStorage.getItem(`pm_env_${currentEnv}`);
+        if (raw) savedEnv = JSON.parse(raw);
+    } catch {}
+
+    let env;
+    if (savedEnv && Array.isArray(savedEnv.values)) {
+        // если окружение есть в LS → используем
+        env = savedEnv;
+    } else {
+        try {
+            if (currentEnv === 'dev') {
+                // для dev всегда пытаемся загрузить файл
+                env = await loadJson('./data/dev_environment.json');
+            } else {
+                // для stage/prod файла нет → создаём пустой
+                env = { values: [] };
+                localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(env));
+            }
+        } catch {
+            env = { values: [] };
+        }
+    }
 
     state.COLLECTION = collection;
     state.ENV = env;
     state.ITEMS_FLAT = [];
     flattenItems(collection, []);
 
+
 // синхронизация ENV → VARS и UI
     buildVarMap();
-    renderTree('');
-    highlightMissingVars(document, state.VARS);
+    updateVarsBtnCounter();
+    renderTree('', { onRequestClick: openRequest });
+
+    initVarsModal();
+    initResetModal();
+    const urlDispNow = $('#urlInpDisplay');
+    if (urlDispNow) {
+        const currentRaw = $('#urlInp')?.value?.trim() || '';
+        urlDispNow.innerHTML = renderUrlWithVarsLocal(currentRaw);
+        highlightMissingVars(urlDispNow, state.VARS); // опционально
+    }
 
 
     // Поиск/фильтр в сайдбаре
@@ -884,8 +720,6 @@ export async function bootApp({ collectionPath, envPath, autoOpenFirst }) {
     if (envDropdown) {
         const envCurrent = envDropdown.querySelector('.envCurrent');
         const envList = envDropdown.querySelector('.envList');
-        const arrow = envCurrent.querySelector('.arrow');
-
         // выставляем дефолт при старте
         let currentEnv = localStorage.getItem('selected_env') || 'dev';
         document.documentElement.setAttribute('data-env', currentEnv);
@@ -936,8 +770,9 @@ export async function bootApp({ collectionPath, envPath, autoOpenFirst }) {
                 localStorage.setItem('selected_env', envKey);
 
                 buildVarMap();
-                renderTree('');
+                renderTree('', { onRequestClick: openRequest });
                 highlightMissingVars(document, state.VARS);
+                updateVarsBtnCounter();
 
                 const varsModal = $('#varsModal');
                 if (varsModal && !varsModal.hidden) buildVarsTableBody();
@@ -948,6 +783,10 @@ export async function bootApp({ collectionPath, envPath, autoOpenFirst }) {
                 envList.style.display = 'none';
                 document.documentElement.setAttribute('data-env', envKey);
                 showAlert(`Environment switched: ${envKey.toUpperCase()}`, 'success');
+                if (state.CURRENT_REQ_ID) {
+                    const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
+                    if (item) openRequest(item, true);
+                }
             });
         });
 
@@ -969,104 +808,6 @@ export async function bootApp({ collectionPath, envPath, autoOpenFirst }) {
     const firstRow = document.querySelector(`.op[data-req-id="${state.ITEMS_FLAT[0].id}"]`);
     if (firstRow) setActiveRow(firstRow);
   }
-}
-// ====== Reset Local Storage ======
-const resetBtn = $('#clearStorageBtn');
-const resetModal = $('#resetModal');
-const resetCancel = $('#resetCancel');
-const resetEnvsAuth = $('#resetEnvsAuth');
-const resetFull = $('#resetFull');
-
-if (resetBtn && resetModal) {
-    // показать модальное окно
-    resetBtn.addEventListener('click', () => {
-        resetModal.hidden = false;
-    });
-}
-
-if (resetCancel) {
-    // закрыть без изменений
-    resetCancel.addEventListener('click', () => {
-        resetModal.hidden = true;
-    });
-}
-if (resetEnvsAuth) {
-    // очистить только ENV и токен
-    resetEnvsAuth.addEventListener('click', async () => {
-        Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('pm_env_') ||
-                key === 'selected_env' ||
-                key === 'global_bearer') {
-                localStorage.removeItem(key);
-            }
-        });
-
-        // сброс токена через config.js
-        setGlobalBearer('');
-        updateAuthUI();
-
-
-        // 👉 чистим и поле в Authorization вкладке
-        const authTokenField = document.querySelector('#authTokenInp');
-        if (authTokenField) authTokenField.value = '';
-
-        // вернуть DEV по умолчанию
-        const envKey = 'dev';
-        const defaultPath = './data/dev_environment.json';
-
-        try {
-            const defaultEnv = await loadJson(defaultPath);
-            state.ENV = defaultEnv;
-            localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(defaultEnv));
-        } catch (err) {
-            state.ENV = { values: [] }; // fallback
-            showAlert('Default DEV environment file not found, using empty ENV', 'error');
-        }
-
-        state.VARS = {};
-        buildVarMap();
-
-        resetModal.hidden = true;
-        showAlert('Environments and authorization reset. Default DEV loaded.', 'success');
-
-        localStorage.setItem('selected_env', envKey);
-        document.documentElement.setAttribute('data-env', envKey);
-
-        const envCurrent = document.querySelector('#envDropdown .envCurrent');
-        if (envCurrent) {
-            envCurrent.innerHTML = envKey.toUpperCase() + ' <span class="arrow">▼</span>';
-            envCurrent.className = 'envCurrent ' + envKey;
-        }
-
-        renderTree('');
-        highlightMissingVars(document, state.VARS);
-    });
-}
-
-
-if (resetFull) {
-    resetFull.addEventListener('click', async () => {
-        Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('pm_env_') ||
-                key.startsWith('pm_req_') ||
-                key === 'selected_env' ||
-                key === 'global_bearer') {
-                localStorage.removeItem(key);
-            }
-        });
-
-        // сброс токена правильно
-        setGlobalBearer('');
-
-        // 👉 обновляем кнопку Authorize
-        updateAuthUI();
-
-        resetModal.hidden = true;
-        showAlert('Full reset completed. Please reload the page…', 'success');
-
-        // гарантированная перезагрузка, чтобы подтянулись дефолтные env/collection
-        setTimeout(() => location.reload(), 500);
-    });
 }
 
 

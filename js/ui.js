@@ -1,6 +1,6 @@
 // js/ui.js
 export const $ = sel => document.querySelector(sel);
-
+import { state } from './state.js';
 export const el = (tag, attrs = {}, ...children) => {
   const n = document.createElement(tag);
   const boolAttrs = new Set([
@@ -186,7 +186,7 @@ export function tableToSimpleArray(tbody) {
 }
 // ===== Response rendering =====
 // ui.js — ДОБАВЬ рядом с highlightJSON:
-function escapeHtml(text='') {
+export function escapeHtml(text='') {
     return String(text)
         .replace(/&/g,'&amp;')
         .replace(/</g,'&lt;')
@@ -413,7 +413,7 @@ export function highlightJSON(text) {
 
     // ключи
     html = html.replace(
-        /(^|[\{\[,]\s*)("(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\"]*)")(\s*:)/g,
+        /(^|[{[,]\s*)("(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\"]*)")(\s*:)/g,
         '$1<span class="json-key">$2</span>$3'
     );
 
@@ -437,7 +437,7 @@ export function highlightJSON(text) {
 
     // {{vars}}
     html = html.replace(
-        /(\{\{\s*[^}]+\s*\}\})/g,
+        /({{\s*[^}]+\s*}})/g,
         '<span class="json-var">$1</span>'
     );
 
@@ -517,3 +517,16 @@ export function showAlert(message, type = 'success') {
     // Автоматически убрать через 3 сек
     setTimeout(() => alertBox.remove(), 3000);
 }
+
+export function updateVarsBtn() {
+    const btn = document.getElementById('varsBtn');
+    if (!btn) return;
+    const list = Array.isArray(state.ENV?.values) ? state.ENV.values : [];
+    const real = list.filter(v => (v?.key?.trim() || v?.value?.trim()));
+
+    const total = real.length;
+    const active = real.filter(v => v.enabled !== false && v.value && v.value.trim() !== '').length;
+
+    btn.textContent = `Environment Variables (${active}/${total})`;
+}
+
