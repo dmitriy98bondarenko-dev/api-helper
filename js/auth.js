@@ -75,3 +75,10 @@ export function initAuthModal() {
     // обновить состояние сразу при загрузке
     updateAuthUI();
 }
+export function clearAuthUI() {
+    const authTokenInp = $('#authToken'); // модалка
+    if (authTokenInp) authTokenInp.value = '';
+
+    const authTokenField = document.querySelector('#authTokenInp'); // вкладка
+    if (authTokenField) authTokenField.value = '';
+}

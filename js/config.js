@@ -36,3 +36,24 @@ export function clearReqState(id) {
 export function loadScriptsLegacy(id) {
   try { return JSON.parse(localStorage.getItem(scriptsKey(id)) || '{}'); } catch { return {}; }
 }
+
+// Загрузка JSON (например для ENV по умолчанию)
+export async function loadJson(path) {
+    const resp = await fetch(path);
+    if (!resp.ok) throw new Error(`Failed to load ${path}: ${resp.status}`);
+    return resp.json();
+}
+
+// Очистка localStorage по префиксам и точным ключам
+export function clearLocalStorage(prefixes = [], exactKeys = []) {
+    Object.keys(localStorage).forEach(key => {
+        if (prefixes.some(p => key.startsWith(p)) || exactKeys.includes(key)) {
+            localStorage.removeItem(key);
+        }
+    });
+}
+
+// Унификация получения значения переменной
+export function getVal(v) {
+    return v?.currentValue ?? v?.value ?? v?.initialValue ?? '';
+}
