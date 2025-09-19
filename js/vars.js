@@ -259,6 +259,47 @@ export function initVarsModal() {
             keyInp.focus();
         });
     }
+    const varsImportBtn = $('#varsImportBtn');
+    if (varsImportBtn) {
+        varsImportBtn.addEventListener('click', () => {
+            // создаём скрытый input[type=file]
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'application/json';
+
+            fileInput.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                try {
+                    const text = await file.text();
+                    const json = JSON.parse(text);
+
+                    if (!Array.isArray(json.values)) {
+                        showAlert('Invalid JSON format (no "values" array)', 'error');
+                        return;
+                    }
+
+                    // заменяем ENV
+                    state.ENV = { values: json.values };
+
+                    // сохраняем в LS
+                    saveEnvToLocal();
+
+                    // обновляем UI
+                    refreshVarsUI();
+                    buildVarsTableBody();
+
+                    showAlert(`Imported ${json.values.length} variables`, 'success');
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Failed to import JSON: ' + err.message, 'error');
+                }
+            };
+
+            fileInput.click();
+        });
+    }
 
 }
 
