@@ -1,15 +1,15 @@
 // js/feature.js
 import {
-   $, el, debounce, showLoader, showAlert,
-       saveSelection, restoreSelection, highlightJSON,
-       highlightMissingVars, renderUrlWithVars,
-       buildKVTable, tableToSimpleArray,
-       renderResponse, renderResponseSaved
- } from './ui.js';
+    $, el, debounce, showLoader, showAlert,
+    saveSelection, restoreSelection, highlightJSON,
+    highlightMissingVars, renderUrlWithVars,
+    buildKVTable, tableToSimpleArray,
+    renderResponse, renderResponseSaved
+} from './ui.js';
 import { getGlobalBearer, loadReqState, saveReqState, clearReqState, loadScriptsLegacy } from './config.js';
 import { flattenItems, renderTree, setActiveRow, normalizeUrl } from './sidebar.js';
 
-import { buildVarMap, buildVarsTableBody, initVarsModal, initResetModal, updateVarsBtnCounter } from './vars.js';
+import { buildVarMap, buildVarsTableBody, initVarsModal, initResetModal, updateVarsBtnCounter, initVarEditModal } from './vars.js';
 
 import { loadJson } from './state.js';
 import { state, resolveVars } from './state.js';
@@ -231,43 +231,43 @@ function getAuthData() {
 
 // Для краткости: ниже — укороченная версия openRequest, повторно использующая UI-модули
 export function openRequest(item, forceDefaults = false) {
-state.CURRENT_REQ_ID = item.id;
+    state.CURRENT_REQ_ID = item.id;
 
     const { method, url, paramsInit, headersInit, bodyText, scripts, auth, response } =
         getInitialStateForItem(item, forceDefaults);
 
 
-const pane = $('#reqPane');
-pane.innerHTML = '';
-const card = el('div', { class:'card' });
+    const pane = $('#reqPane');
+    pane.innerHTML = '';
+    const card = el('div', { class:'card' });
 // === AUTOSAVE ===
-const debSave = debounce(()=> {
-    const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    const headers= tableToSimpleArray(headersTable.tBodies[0]);
-    const scriptsNew = { pre: preTA.value, post: postTA.value };
-    const authNew = { type: $('#authType').value, token: $('#authTokenInp').value };
-    const patch = {
-        method: getSelectedMethod(),
-        url: $('#urlInp').value,
-        params, headers,
-        body: $('#bodyRawArea').textContent,
-        scripts: scriptsNew,
-        auth: authNew
-    };
-    saveReqState(state.CURRENT_REQ_ID, patch);
-}, 180);
+    const debSave = debounce(()=> {
+        const params = tableToSimpleArray(paramsTable.tBodies[0]);
+        const headers= tableToSimpleArray(headersTable.tBodies[0]);
+        const scriptsNew = { pre: preTA.value, post: postTA.value };
+        const authNew = { type: $('#authType').value, token: $('#authTokenInp').value };
+        const patch = {
+            method: getSelectedMethod(),
+            url: $('#urlInp').value,
+            params, headers,
+            body: $('#bodyRawArea').textContent,
+            scripts: scriptsNew,
+            auth: authNew
+        };
+        saveReqState(state.CURRENT_REQ_ID, patch);
+    }, 180);
 // --- URL input / editable display ---
-const urlHidden = el('input', {
-    id: 'urlInp',
-    value: url,
-    style:'position:absolute;opacity:0;pointer-events:none;'
-});
+    const urlHidden = el('input', {
+        id: 'urlInp',
+        value: url,
+        style:'position:absolute;opacity:0;pointer-events:none;'
+    });
 
-const urlDisp = el('div', {
-    id:'urlInpDisplay',
-    class:'urlDisp',
-    contenteditable:'true'
-});
+    const urlDisp = el('div', {
+        id:'urlInpDisplay',
+        class:'urlDisp',
+        contenteditable:'true'
+    });
     urlDisp.innerHTML = renderUrlWithVarsLocal(url);
     highlightMissingVars(urlDisp, state.VARS);
 
@@ -299,359 +299,373 @@ const urlDisp = el('div', {
 
 // Header: Method + URL + Send
 
-const header = el('div', { class: 'reqHeader' },
+    const header = el('div', { class: 'reqHeader' },
 
 // --- Method dropdown ---
-    (() => {
-        const methods = ['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
-        const colors = {
-            GET:    'background: var(--op-get-b); color: var(--op-get-f);',
-            POST:   'background: var(--op-post-b); color: var(--op-post-f);',
-            PUT:    'background: var(--op-put-b); color: var(--op-put-f);',
-            PATCH:  'background: var(--op-patch-b); color: var(--op-patch-f);',
-            DELETE: 'background: var(--op-del-b); color: var(--op-del-f);',
-            HEAD:   'background: var(--op-other-b); color: var(--op-other-f);',
-            OPTIONS:'background: var(--op-other-b); color: var(--op-other-f);'
-        };
+        (() => {
+            const methods = ['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
+            const colors = {
+                GET:    'background: var(--op-get-b); color: var(--op-get-f);',
+                POST:   'background: var(--op-post-b); color: var(--op-post-f);',
+                PUT:    'background: var(--op-put-b); color: var(--op-put-f);',
+                PATCH:  'background: var(--op-patch-b); color: var(--op-patch-f);',
+                DELETE: 'background: var(--op-del-b); color: var(--op-del-f);',
+                HEAD:   'background: var(--op-other-b); color: var(--op-other-f);',
+                OPTIONS:'background: var(--op-other-b); color: var(--op-other-f);'
+            };
 
-        // контейнер
-        const wrap = el('div', { class: 'methodDropdown' });
+            // контейнер
+            const wrap = el('div', { class: 'methodDropdown' });
 
-        // выбранный метод
-        const current = el('div', { class: 'methodCurrent', style: colors[method] }, method);
-        wrap.append(current);
+            // выбранный метод
+            const current = el('div', { class: 'methodCurrent', style: colors[method] }, method);
+            wrap.append(current);
 
-        // список
-        const list = el('div', { class: 'methodList', style: 'display:none;' });
-        methods.forEach(m => {
-            const opt = el('div', {
-                class: 'methodOption',
-                style: colors[m],
-                onclick: () => {
-                    current.textContent = m;
-                    current.setAttribute('style', colors[m]);
-                    wrap.dataset.value = m;
-                    list.style.display = 'none';
-                    debSave(); // при смене сразу сохраняем
-                }
-            }, m);
-            if (m === method) wrap.dataset.value = m;
-            list.append(opt);
-        });
-        wrap.append(list);
+            // список
+            const list = el('div', { class: 'methodList', style: 'display:none;' });
+            methods.forEach(m => {
+                const opt = el('div', {
+                    class: 'methodOption',
+                    style: colors[m],
+                    onclick: () => {
+                        current.textContent = m;
+                        current.setAttribute('style', colors[m]);
+                        wrap.dataset.value = m;
+                        list.style.display = 'none';
+                        debSave(); // при смене сразу сохраняем
+                    }
+                }, m);
+                if (m === method) wrap.dataset.value = m;
+                list.append(opt);
+            });
+            wrap.append(list);
 
-        current.onclick = () => {
-            list.style.display = (list.style.display==='none' ? 'block' : 'none');
-        };
+            current.onclick = () => {
+                list.style.display = (list.style.display==='none' ? 'block' : 'none');
+            };
 
-        return wrap;
-    })(),
+            return wrap;
+        })(),
 
-    // --- URL (editable + hidden) ---
-    el('div', { class: 'urlWrap' }, urlDisp, urlHidden),
+        // --- URL (editable + hidden) ---
+        el('div', { class: 'urlWrap' }, urlDisp, urlHidden),
 
-    // --- Send button ---
-    el('button', { id: 'sendBtn', class: 'send' }, 'Send')
-);
+        // --- Send button ---
+        el('button', { id: 'sendBtn', class: 'send' }, 'Send')
+    );
 
 
 // Tabs (с атрибутом data-method для подсветки underline)
-const tabs = el('div', {class:'tabs'},
-    el('div', {class:'tab active', id:'tabParams', dataset:{method}}, 'Params'),
-    el('div', {class:'tab', id:'tabHeaders', dataset:{method}}, 'Headers'),
-    el('div', {class:'tab', id:'tabAuth', dataset:{method}}, 'Authorization'),
-    el('div', {class:'tab', id:'tabScripts', dataset:{method}}, 'Scripts')
-);
+    const tabs = el('div', {class:'tabs'},
+        el('div', {class:'tab active', id:'tabParams', dataset:{method}}, 'Params'),
+        el('div', {class:'tab', id:'tabHeaders', dataset:{method}}, 'Headers'),
+        el('div', {class:'tab', id:'tabAuth', dataset:{method}}, 'Authorization'),
+        el('div', {class:'tab', id:'tabScripts', dataset:{method}}, 'Scripts')
+    );
 
-const paramsPane = el('div', {class:'tabPane active', id:'paneParams'});
-const headersPane= el('div', {class:'tabPane',        id:'paneHeaders'});
-const authPane   = el('div', {class:'tabPane',        id:'paneAuth'});
-const scriptsPane= el('div', {class:'tabPane',        id:'paneScripts'});
+    const paramsPane = el('div', {class:'tabPane active', id:'paneParams'});
+    const headersPane= el('div', {class:'tabPane',        id:'paneHeaders'});
+    const authPane   = el('div', {class:'tabPane',        id:'paneAuth'});
+    const scriptsPane= el('div', {class:'tabPane',        id:'paneScripts'});
 
 // Params/Headers
-const paramsTable = buildKVTable(paramsInit);
-paramsPane.append(el('div', {class:'kvs'}, paramsTable, el('div',{class:'kvHint'},'Add or change query parameters')));
+    const paramsTable = buildKVTable(paramsInit);
+    paramsPane.append(el('div', {class:'kvs'}, paramsTable, el('div',{class:'kvHint'},'Add or change query parameters')));
 
-const headersTable = buildKVTable(headersInit);
-headersPane.append(el('div', {class:'kvs'}, headersTable, el('div',{class:'kvHint'},'Request headers')));
+    const headersTable = buildKVTable(headersInit);
+    headersPane.append(el('div', {class:'kvs'}, headersTable, el('div',{class:'kvHint'},'Request headers')));
 // update URL
-['input','change'].forEach(ev=>{
-    paramsPane.addEventListener(ev, () => {
-        const params = tableToSimpleArray(paramsTable.tBodies[0]);
-        $('#urlInpDisplay').innerHTML = renderUrlWithVarsLocal(
-            safeBuildUrl($('#urlInp').value.trim(), params)
-        );
+    ['input','change'].forEach(ev=>{
+        paramsPane.addEventListener(ev, () => {
+            const params = tableToSimpleArray(paramsTable.tBodies[0]);
+            $('#urlInpDisplay').innerHTML = renderUrlWithVarsLocal(
+                safeBuildUrl($('#urlInp').value.trim(), params)
+            );
+        });
     });
-});
 
 
 // Authorization tab
-const authTypeSel = el('select', {id:'authType'},
-    el('option', {value:'bearer', selected: (auth?.type||'bearer')==='bearer'}, 'Bearer Token')
-);
-const authTokenInp = el('input', {id:'authTokenInp', value: auth?.token || '', placeholder:'Token value'});
-authPane.append(
-    el('div', {class:'authRow'}, el('div', {class:'muted'}, 'Auth type'), authTypeSel),
-    el('div', {class:'authRow'}, el('div', {class:'muted'}, 'Token'), authTokenInp),
-    el('div', {class:'kvHint'}, 'If there is no "Authorization" header, the token will be added automatically (Authorization tab > Global).')
-);
+    const authTypeSel = el('select', {id:'authType'},
+        el('option', {value:'bearer', selected: (auth?.type||'bearer')==='bearer'}, 'Bearer Token')
+    );
+    const authTokenInp = el('input', {id:'authTokenInp', value: auth?.token || '', placeholder:'Token value'});
+    authPane.append(
+        el('div', {class:'authRow'}, el('div', {class:'muted'}, 'Auth type'), authTypeSel),
+        el('div', {class:'authRow'}, el('div', {class:'muted'}, 'Token'), authTokenInp),
+        el('div', {class:'kvHint'}, 'If there is no "Authorization" header, the token will be added automatically (Authorization tab > Global).')
+    );
 
 // Scripts
-const sw = el('div', {class:'scriptsSwitcher'},
-    el('button', {id:'btnPre',  class:'active', onclick:()=>switchScript('pre')},  'PRE-Request'),
-    el('button', {id:'btnPost', onclick:()=>switchScript('post')}, 'POST-Request')
-);
-const preTA  = el('textarea', {id:'preScript'},  scripts?.pre || '');
-const postTA = el('textarea', {id:'postScript', style:'display:none'}, scripts?.post || '');
-const scriptsArea = el('div', {class:'scriptsArea'}, preTA, postTA);
-const scriptsPaneInfo = el('div', {class:'small muted', style:'padding:0 12px 12px'}, 'Available: ctx.request (method,url,params,headers,body), ctx.response (status, headers, bodyText)');
-scriptsPane.append(sw, scriptsArea, scriptsPaneInfo);
+    const sw = el('div', {class:'scriptsSwitcher'},
+        el('button', {id:'btnPre',  class:'active', onclick:()=>switchScript('pre')},  'PRE-Request'),
+        el('button', {id:'btnPost', onclick:()=>switchScript('post')}, 'POST-Request')
+    );
+    const preTA  = el('textarea', {id:'preScript'},  scripts?.pre || '');
+    const postTA = el('textarea', {id:'postScript', style:'display:none'}, scripts?.post || '');
+    const scriptsArea = el('div', {class:'scriptsArea'}, preTA, postTA);
+    const scriptsPaneInfo = el('div', {class:'small muted', style:'padding:0 12px 12px'}, 'Available: ctx.request (method,url,params,headers,body), ctx.response (status, headers, bodyText)');
+    scriptsPane.append(sw, scriptsArea, scriptsPaneInfo);
 
 // Body
-const bodyWrap = el('div', {class:'reqBodyWrap'});
-const bodyToolbar = el('div', {class:'reqBodyToolbar'},
-    el('span', {}, 'Request body'),
-    el('button', {class:'beautify', id:'beautifyBtn'}, 'Beautify JSON'),
-    el('button', {
-        class:'clear',
-        onclick:()=>{
-            const sel = saveSelection(bodyEditor);
-            bodyEditor.textContent = '';
-            bodyEditor.innerHTML = '';
-            restoreSelection(bodyEditor, 0);
-            saveReqState(state.CURRENT_REQ_ID, { body: '' });
-        }
-    }, 'Clear'),
-    el('span', {class:'small muted'}, '(Content-Type will be set automatically if missing)')
-);
+    const bodyWrap = el('div', {class:'reqBodyWrap'});
+    const bodyToolbar = el('div', {class:'reqBodyToolbar'},
+        el('span', {}, 'Request body'),
+        el('button', {class:'beautify', id:'beautifyBtn'}, 'Beautify JSON'),
+        el('button', {
+            class:'clear',
+            onclick:()=>{
+                bodyEditor.textContent = '';
+                saveReqState(state.CURRENT_REQ_ID, { body: '' });
+            }
+        }, 'Clear'),
+        el('span', {class:'small muted'}, '(Content-Type will be set automatically if missing)')
+    );
 
-// === Request Body (JSON editor with highlight) ===
-const bodyCode = el('pre', { class: 'code-editor reqBody' },
-    el('code', {
-        id: 'bodyRawArea',
-        contenteditable: 'true',
-        spellcheck: 'false',
-        autocapitalize: 'off',
-        autocorrect: 'off'
-    }, bodyText || '')
-);
-bodyWrap.append(bodyToolbar, bodyCode);
+    // === Request Body (JSON editor with highlight) ===
+    const bodyCode = el('pre', { class: 'code-editor reqBody' },
+        el('code', {
+            id: 'bodyRawArea',
+            contenteditable: 'true',
+            spellcheck: 'false',
+            autocapitalize: 'off',
+            autocorrect: 'off'
+        })
+    );
+    bodyWrap.append(bodyToolbar, bodyCode);
 
-const bodyEditor = bodyCode.querySelector('#bodyRawArea');
-bodyEditor.innerHTML = highlightJSON(bodyText || '');
+    const bodyEditor = bodyCode.querySelector('#bodyRawArea');
 
-// при вводе — обновляем подсветку
-bodyEditor.addEventListener('input', (e) => {
-    const savedSel = saveSelection(e.currentTarget);
-    const text = e.currentTarget.textContent;
-    e.currentTarget.innerHTML = highlightJSON(text);
-    restoreSelection(e.currentTarget, savedSel);// восстанавливаем каретку
-    debSave();
-});
+    // === Инициализация с подсветкой ===
+    // === Инициализация при загрузке ===
+    let pretty = bodyText || '';
+    try {
+        pretty = JSON.stringify(JSON.parse(bodyText), null, 2);
+    } catch {}
+    bodyEditor.innerHTML = highlightJSON(pretty);
+
+// === При вводе не трогаем HTML ===
+    bodyEditor.addEventListener('input', () => {
+        const offset = saveSelection(bodyEditor)
+        const raw = bodyEditor.textContent;         // 2. взять текст
+        const highlighted = highlightJSON(raw);    // 3. подсветить
+        bodyEditor.innerHTML = highlighted;        // 4. вставить обратно
+        restoreSelection(bodyEditor, offset);      // 5. вернуть курсор
+
+        debSave();
+    });
+
 
 // Actions
-const actions = el('div', {class:'actions'});
+    const actions = el('div', {class:'actions'});
 //const sendBtn = el('button', {class:'send', id:'sendBtn'}, 'Send');
-const curlBtn = el('button', {id:'curlBtn'}, 'Copy cURL');
-const resetBtn= el('button', {id:'resetBtn', class:'reset', title:'Reset local changes for this request'}, 'Reset to defaults');
-actions.append(curlBtn, resetBtn); // ←  sendBtn
+    const curlBtn = el('button', {id:'curlBtn'}, 'Copy cURL');
+    const resetBtn= el('button', {id:'resetBtn', class:'reset', title:'Reset local changes for this request'}, 'Reset to defaults');
+    actions.append(curlBtn, resetBtn); // ←  sendBtn
 
 // mount card
-card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
-pane.append(card);
+    card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
+    pane.append(card);
 
 // подсветка переменных
-highlightMissingVars(card, state.VARS);
-card.addEventListener('input', () => highlightMissingVars(card, state.VARS));
+    highlightMissingVars(card, state.VARS);
+    card.addEventListener('click', (e) => {
+        const t = e.target;
+        if (t.classList.contains('var-token')) {
+            const key = t.dataset.var || t.textContent.replace(/[{}]/g,'').trim();
+            if (key) window.openVarEdit(key);
+        }
+    });
+
+
 
 
 //  подписки на изменения
-['input','change','keyup'].forEach(ev=>{
-    header.addEventListener(ev, debSave);
-    paramsPane.addEventListener(ev, debSave);
-    headersPane.addEventListener(ev, debSave);
-    scriptsPane.addEventListener(ev, debSave);
-    authPane.addEventListener(ev, debSave);
-    bodyWrap.addEventListener(ev, debSave);
-});
+    ['input','change','keyup'].forEach(ev=>{
+        header.addEventListener(ev, debSave);
+        paramsPane.addEventListener(ev, debSave);
+        headersPane.addEventListener(ev, debSave);
+        scriptsPane.addEventListener(ev, debSave);
+        authPane.addEventListener(ev, debSave);
+        bodyWrap.addEventListener(ev, debSave);
+    });
 
 // --- helpers & handlers (внутри openRequest) ---
-function getSelectedMethod(){
-    return document.querySelector('.methodDropdown')?.dataset.value || 'GET';
-}
+    function getSelectedMethod(){
+        return document.querySelector('.methodDropdown')?.dataset.value || 'GET';
+    }
 
-function activateTab(name){
-    ['Params','Headers','Auth','Scripts'].forEach(t=>{
-        $('#tab'+t).classList.toggle('active', t===name);
-        $('#pane'+t).classList.toggle('active', t===name);
-    });
-}
-$('#tabParams').onclick = ()=>activateTab('Params');
-$('#tabHeaders').onclick= ()=>activateTab('Headers');
-$('#tabAuth').onclick   = ()=>activateTab('Auth');
-$('#tabScripts').onclick= ()=>activateTab('Scripts');
+    function activateTab(name){
+        ['Params','Headers','Auth','Scripts'].forEach(t=>{
+            $('#tab'+t).classList.toggle('active', t===name);
+            $('#pane'+t).classList.toggle('active', t===name);
+        });
+    }
+    $('#tabParams').onclick = ()=>activateTab('Params');
+    $('#tabHeaders').onclick= ()=>activateTab('Headers');
+    $('#tabAuth').onclick   = ()=>activateTab('Auth');
+    $('#tabScripts').onclick= ()=>activateTab('Scripts');
 
-function switchScript(which){
-    $('#btnPre').classList.toggle('active', which==='pre');
-    $('#btnPost').classList.toggle('active', which==='post');
-    preTA.style.display  = which==='pre' ? '' : 'none';
-    postTA.style.display = which==='post'? '' : 'none';
-}
+    function switchScript(which){
+        $('#btnPre').classList.toggle('active', which==='pre');
+        $('#btnPost').classList.toggle('active', which==='post');
+        preTA.style.display  = which==='pre' ? '' : 'none';
+        postTA.style.display = which==='post'? '' : 'none';
+    }
 
 // Beautify JSON
-$('#beautifyBtn').onclick = ()=>{
-    const src = bodyEditor.textContent.trim();
-    try{
-        const obj = JSON.parse(src);
-        const sel = saveSelection(bodyEditor);
-        const beautified = JSON.stringify(obj, null, 2);
-        bodyEditor.textContent = beautified;
-        bodyEditor.innerHTML = highlightJSON(beautified);
-        restoreSelection(bodyEditor, sel);
-        saveReqState(state.CURRENT_REQ_ID, { body: beautified });
-    }catch{
-        showAlert('Body is not valid JSON', 'error');
-    }
-};
+    $('#beautifyBtn').onclick = ()=>{
+        const src = bodyEditor.textContent.trim();
+        try {
+            const obj = JSON.parse(src);
+            const beautified = JSON.stringify(obj, null, 2);
+
+            bodyEditor.textContent = beautified;   // ✅ чистый текст
+            saveReqState(state.CURRENT_REQ_ID, { body: beautified });
+        } catch {
+            showAlert('Body is not valid JSON', 'error');
+        }
+    };
+
 
 
 // Reset only current request
-$('#resetBtn').onclick = ()=>{
-    clearReqState(state.CURRENT_REQ_ID);
-    openRequest(item);
-};
+    $('#resetBtn').onclick = ()=>{
+        clearReqState(state.CURRENT_REQ_ID);
+        openRequest(item);
+    };
 
 
 // ==== SEND ====
-$('#sendBtn').onclick = async ()=>{
-    debSave();
-    const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
-    let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
+    $('#sendBtn').onclick = async ()=>{
+        debSave();
+        const params = tableToSimpleArray(paramsTable.tBodies[0]);
+        const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+        let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
 
-    let method = getSelectedMethod();
-    let finalUrl = resolveVars(
-        safeBuildUrl($('#urlInp').value.trim(), params)
-    );
-    let body = resolveVars($('#bodyRawArea').textContent || '');
-    const { type: authType, token: authToken } = getAuthData();
+        let method = getSelectedMethod();
+        let finalUrl = resolveVars(
+            safeBuildUrl($('#urlInp').value.trim(), params)
+        );
+        let body = resolveVars($('#bodyRawArea').textContent || '');
+        const { type: authType, token: authToken } = getAuthData();
 
-    // Inject Authorization if missing
-    const hasAuth = Object.keys(headers).some(h=>h.toLowerCase()==='authorization');
-    if (!hasAuth){
-        if (authType==='bearer' && authToken){
-            headers['Authorization'] = 'Bearer ' + authToken;
-        } else if (getGlobalBearer()){
-            headers['Authorization'] = 'Bearer ' + getGlobalBearer();
+        // Inject Authorization if missing
+        const hasAuth = Object.keys(headers).some(h=>h.toLowerCase()==='authorization');
+        if (!hasAuth){
+            if (authType==='bearer' && authToken){
+                headers['Authorization'] = 'Bearer ' + authToken;
+            } else if (getGlobalBearer()){
+                headers['Authorization'] = 'Bearer ' + getGlobalBearer();
+            }
         }
-    }
 
-    // Auto Content-Type
-    if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
-        const ct = detectContentType(body);
-        if (ct) headers['Content-Type'] = ct;
-    }
+        // Auto Content-Type
+        if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
+            const ct = detectContentType(body);
+            if (ct) headers['Content-Type'] = ct;
+        }
 
-    // PRE
-    const preCode = preTA.value.trim();
-    if (preCode){
+        // PRE
+        const preCode = preTA.value.trim();
+        if (preCode){
+            try{
+                const ctx = makePreCtx({method, url:finalUrl, params, headers, body});
+                runUserScript(preCode, ctx);
+                ({method} = ctx.request);
+                finalUrl = ctx.request.url;
+                headers  = ctx.request.headers;
+                body     = ctx.request.body;
+            }catch(e){ renderResponse(null, 'PRE error: '+e.message, 0, finalUrl); return; }
+        }
+
+        showLoader(true); $('#sendBtn').disabled = true;
+        const started = performance.now();
+        let res, text;
         try{
-            const ctx = makePreCtx({method, url:finalUrl, params, headers, body});
-            runUserScript(preCode, ctx);
-            ({method} = ctx.request);
-            finalUrl = ctx.request.url;
-            headers  = ctx.request.headers;
-            body     = ctx.request.body;
-        }catch(e){ renderResponse(null, 'PRE error: '+e.message, 0, finalUrl); return; }
-    }
+            res = await fetch(finalUrl, { method, headers, body: (method==='GET'||method==='HEAD')?undefined:body });
+            text = await res.text();
+        }catch(e){
+            const ms = performance.now()-started;
+            renderResponse(null, String(e), ms, finalUrl);
+            const postCode = postTA.value.trim();
+            if (postCode){
+                try{ const ctxPost = makePostCtx({request:{method,url:finalUrl,headers,body}, response:null, error:String(e)}); runUserScript(postCode, ctxPost); }catch(_){}
+            }
+            saveReqState(state.CURRENT_REQ_ID, { response: { status:0, statusText:'Network error', headers:{}, bodyText:String(e), url:finalUrl, timeMs:ms }});
+            showLoader(false); $('#sendBtn').disabled = false;
+            return;
+        }
 
-    showLoader(true); $('#sendBtn').disabled = true;
-    const started = performance.now();
-    let res, text;
-    try{
-        res = await fetch(finalUrl, { method, headers, body: (method==='GET'||method==='HEAD')?undefined:body });
-        text = await res.text();
-    }catch(e){
-        const ms = performance.now()-started;
-        renderResponse(null, String(e), ms, finalUrl);
+        // POST
         const postCode = postTA.value.trim();
         if (postCode){
-            try{ const ctxPost = makePostCtx({request:{method,url:finalUrl,headers,body}, response:null, error:String(e)}); runUserScript(postCode, ctxPost); }catch(_){}
+            try{
+                const ctxPost = makePostCtx({
+                    request:{method,url:finalUrl,headers,body},
+                    response:{ status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
+                });
+                runUserScript(postCode, ctxPost);
+                if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') text = ctxPost.response.bodyText;
+            }catch(e){ /* ignore */ }
         }
-        saveReqState(state.CURRENT_REQ_ID, { response: { status:0, statusText:'Network error', headers:{}, bodyText:String(e), url:finalUrl, timeMs:ms }});
+
+        const ms = performance.now()-started;
+        renderResponse(res, text, ms, finalUrl);
+
+        const respObj = {
+            status: res.status,
+            statusText: res.statusText,
+            headers: Object.fromEntries(res.headers.entries()),
+            bodyText: text,
+            url: finalUrl,
+            timeMs: ms
+        };
+        saveReqState(state.CURRENT_REQ_ID, { response: respObj });
+
         showLoader(false); $('#sendBtn').disabled = false;
-        return;
-    }
-
-    // POST
-    const postCode = postTA.value.trim();
-    if (postCode){
-        try{
-            const ctxPost = makePostCtx({
-                request:{method,url:finalUrl,headers,body},
-                response:{ status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
-            });
-            runUserScript(postCode, ctxPost);
-            if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') text = ctxPost.response.bodyText;
-        }catch(e){ /* ignore */ }
-    }
-
-    const ms = performance.now()-started;
-    renderResponse(res, text, ms, finalUrl);
-
-    const respObj = {
-        status: res.status,
-        statusText: res.statusText,
-        headers: Object.fromEntries(res.headers.entries()),
-        bodyText: text,
-        url: finalUrl,
-        timeMs: ms
     };
-    saveReqState(state.CURRENT_REQ_ID, { response: respObj });
-
-    showLoader(false); $('#sendBtn').disabled = false;
-};
 
 // cURL
-$('#curlBtn').onclick = ()=>{
-    const m = getSelectedMethod();
-    const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    const finalUrl = resolveVars(
-        safeBuildUrl($('#urlInp').value.trim(), params)
-    );
-    const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
-    const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
-    const authTypeEl = $('#authType');
-    const authTokenEl = $('#authTokenInp');
-    const authType = authTypeEl.value;
-    const authToken = authTokenEl.value.trim();
+    $('#curlBtn').onclick = ()=>{
+        const m = getSelectedMethod();
+        const params = tableToSimpleArray(paramsTable.tBodies[0]);
+        const finalUrl = resolveVars(
+            safeBuildUrl($('#urlInp').value.trim(), params)
+        );
+        const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+        const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
+        const authTypeEl = $('#authType');
+        const authTokenEl = $('#authTokenInp');
+        const authType = authTypeEl.value;
+        const authToken = authTokenEl.value.trim();
 
-    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
-        if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
-        else if (getGlobalBearer()) hdrs['Authorization'] = 'Bearer ' + getGlobalBearer();
-    }
+        if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
+            if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
+            else if (getGlobalBearer()) hdrs['Authorization'] = 'Bearer ' + getGlobalBearer();
+        }
 
-    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
-        const ct = detectContentType($('#bodyRawArea').textContent || '');
-        if (ct) hdrs['Content-Type'] = ct;
-    }
+        if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
+            const ct = detectContentType($('#bodyRawArea').textContent || '');
+            if (ct) hdrs['Content-Type'] = ct;
+        }
 
-    const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').textContent || '');
-    const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
-    const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
-    const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
-    navigator.clipboard.writeText(cmd);
-    showAlert('cURL copied', 'success');
-};
+        const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').textContent || '');
+        const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
+        const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
+        const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
+        navigator.clipboard.writeText(cmd);
+        showAlert('cURL copied', 'success');
+    };
 
 // Show saved response if any
-if (response){
-    renderResponseSaved(response);
-} else {
-    $('#resPane').innerHTML = '';
-}
+    if (response){
+        renderResponseSaved(response);
+    } else {
+        $('#resPane').innerHTML = '';
+    }
 // logs DELETE
-console.log("Events for", item.name, item.event);
+    console.log("Events for", item.name, item.event);
 
 }
 
@@ -701,6 +715,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
     initVarsModal();
     initResetModal();
+    initVarEditModal();
     const urlDispNow = $('#urlInpDisplay');
     if (urlDispNow) {
         const currentRaw = $('#urlInp')?.value?.trim() || '';
@@ -710,11 +725,11 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
 
     // Поиск/фильтр в сайдбаре
-  const filterInp = $('#searchInp');
-  if (filterInp) {
-    const deb = debounce((e) => renderTree(e.target.value || ''), 150);
-    filterInp.addEventListener('input', deb);
-  }
+    const filterInp = $('#searchInp');
+    if (filterInp) {
+        const deb = debounce((e) => renderTree(e.target.value || ''), 150);
+        filterInp.addEventListener('input', deb);
+    }
     // --- Переключение окружения (кастомный dropdown) ---
     const envDropdown = $('#envDropdown');
     if (envDropdown) {
@@ -803,11 +818,9 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
 
     if (autoOpenFirst && state.ITEMS_FLAT[0]) {
-    openRequest(state.ITEMS_FLAT[0]);
-    // и можно подсветить активный
-    const firstRow = document.querySelector(`.op[data-req-id="${state.ITEMS_FLAT[0].id}"]`);
-    if (firstRow) setActiveRow(firstRow);
-  }
+        openRequest(state.ITEMS_FLAT[0]);
+        // и можно подсветить активный
+        const firstRow = document.querySelector(`.op[data-req-id="${state.ITEMS_FLAT[0].id}"]`);
+        if (firstRow) setActiveRow(firstRow);
+    }
 }
-
-

@@ -106,16 +106,19 @@
   </div>
   
 <!-- Variable edit modal -->
-<div id="varEditModal" class="modal" hidden>
-  <div class="modalCard" style="max-width:420px">
-      <label for="varEditValue" class="visually-hidden">Edit variable</label>
-      <input id="varEditValue" placeholder="Value…" />
-    <div class="modalActions">
-      <button id="varEditCancel">Cancel</button>
-      <button id="varEditSave" class="auth-ok">Save</button>
-    </div>
+  <!-- Variable edit modal -->
+  <div id="varEditModal" class="modal" hidden>
+      <div class="modalCard" style="max-width:420px">
+          <h3 id="varEditTitle">Edit variable</h3>
+          <div class="row">
+              <input id="varEditValue" placeholder="Value…" />
+          </div>
+          <div class="modalActions">
+              <button id="varEditCancel">Cancel</button>
+              <button id="varEditSave" class="auth-ok">Save</button>
+          </div>
+      </div>
   </div>
-</div>
 <!-- error modal -->
   <div id="errorModal" class="modal" hidden>
   <div class="modalCard">
