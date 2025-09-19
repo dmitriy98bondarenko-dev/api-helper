@@ -469,7 +469,7 @@ html[data-env="prod"]    #varsBtn { border-color: #dc2626; color: #dc2626; }
 
 /* JSON highlight – мягкие цвета и меньший размер */
 .json-key    { color:#569CD6; font-weight:500; }     /* ключи – мягкий синий */
-.json-string { color:#CE9178; }                      /* строки – мягкий оранжево-розовый */
+                    /* строки – мягкий оранжево-розовый */
 .json-number { color:#B5CEA8; }                      /* числа – светло-зелёный */
 .json-boolean{ color:#4EC9B0; font-weight:500; }     /* true/false – бирюзовый */
 .json-null   { color:#9CA3AF; font-style:italic; }   /* null – серый курсив */
@@ -748,52 +748,52 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
 
 /* === Modal for variable edit === */
 #varEditModal.modal {
-  background: rgba(2, 6, 23, .58);
-  backdrop-filter: saturate(1.2) blur(2px);
+    background: rgba(2, 6, 23, .58);
+    backdrop-filter: saturate(1.2) blur(2px);
 }
 html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 
 #varEditModal .modalCard {
-  width: 420px;
-  max-width: 92vw;
-  padding: 20px 24px;
-  border-radius: 12px;
-  border: 1px solid var(--divider);
-  background: var(--panel);
-  box-shadow: 0 20px 60px rgba(0,0,0,.18);
+    width: 420px;
+    max-width: 92vw;
+    padding: 20px 24px;
+    border-radius: 12px;
+    border: 1px solid var(--divider);
+    background: var(--panel);
+    box-shadow: 0 20px 60px rgba(0,0,0,.18);
 }
 
 #varEditModal .modalCard h3 {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0 0 14px 0;
-  color: var(--ink);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 14px 0;
+    color: var(--ink);
 }
 
 #varEditModal .row {
-  display: block;
-  margin: 10px 0;
+    display: block;
+    margin: 10px 0;
 }
 #varEditModal .row input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--divider);
-  font-size: 14px;
-  background: #0000;
-  color: var(--fg);
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--divider);
+    font-size: 14px;
+    background: #0000;
+    color: var(--fg);
 }
 
 #varEditModal .modalActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
 }
 #varEditModal .modalActions button {
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 14px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
 }
 #varEditModal #varEditSave { background:#10b981; color:#fff; border:none; }
 #varEditModal #varEditCancel { background:var(--panel); color:var(--fg); border:1px solid var(--divider); }
@@ -1559,7 +1559,7 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 
     /* JSON highlight – мягкие цвета и меньший размер */
     .json-key    { color:#569CD6; font-weight:500; }     /* ключи – мягкий синий */
-    .json-string { color:#CE9178; }                      /* строки – мягкий оранжево-розовый */
+    .json-string { color:#CE9178; }                   /* строки – мягкий оранжево-розовый */
     .json-number { color:#B5CEA8; }                      /* числа – светло-зелёный */
     .json-boolean{ color:#4EC9B0; font-weight:500; }     /* true/false – бирюзовый */
     .json-null   { color:#9CA3AF; font-style:italic; }   /* null – серый курсив */
@@ -2300,4 +2300,139 @@ pre {
     clip: rect(0,0,0,0);
     white-space: nowrap;
     border: 0;
+}
+/* === Modal for variable edit (styled, как на скрине 2) === */
+#varEditModal.modal {
+    background: rgba(2, 6, 23, .58);
+    backdrop-filter: saturate(1.2) blur(2px);
+}
+html:has(#varEditModal:not([hidden])) { overflow: hidden; }
+
+#varEditModal .modalCard {
+    width: 420px;
+    max-width: 92vw;
+    padding: 20px 24px;
+    border-radius: 12px;
+    border: 1px solid var(--divider);
+    background: var(--panel);
+    box-shadow: 0 20px 60px rgba(0,0,0,.18);
+}
+
+#varEditModal .modalCard h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 14px 0;
+    color: var(--ink);
+}
+
+#varEditModal .row {
+    display: block;
+    margin: 10px 0;
+}
+#varEditModal .row input {
+    width: 100%;
+    height: 44px;
+    padding: 10px 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--divider);
+    background: #0000;
+    color: var(--fg);
+}
+
+#varEditModal .modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+#varEditModal .modalActions button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+#varEditModal #varEditCancel {
+    background: var(--panel);
+    color: var(--fg);
+    border: 1px solid var(--divider);
+}
+#varEditModal #varEditSave {
+    background: #10b981;
+    color: #fff;
+    border: none;
+}
+#varEditModal #varEditSave:hover { filter: brightness(1.05); }
+
+/* общий JSON стиль */
+.json-key    { color:#569CD6; font-weight:500; }
+.json-string { color:#CE9178; }
+.json-number { color:#B5CEA8; }
+.json-boolean{ color:#4EC9B0; font-weight:500; }
+.json-null    { color: #e06c75; }   /* красный */
+.json-url    { color:#D7BA7D; text-decoration:underline; cursor:pointer; }
+
+/* переменные (такие же как URL var-token) */
+.var-token {
+    cursor: pointer;
+    padding: 0 2px;
+    border-radius: 3px;
+}
+.var-token.missing {
+    background: #fff0f0;
+    border: 1px solid #ffc0b6;
+    color: #7a1d16;
+}
+[data-theme="dark"] .var-token.missing {
+    background: #3b1f23;
+    border-color: #63313a;
+    color: #ffd1d6;
+}
+.var-token.filled {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+[data-theme="dark"] .var-token.filled {
+    background: #12291c;
+    border-color: #1d3b2a;
+    color: #4ade80;
+}
+/* Редактор тела запроса */
+.reqBodyWrapInner {
+    position: relative;
+    height: 300px; /* можно подогнать под себя */
+}
+
+.reqBodyWrapInner textarea.bodyEditor,
+.reqBodyWrapInner pre.bodyHighlight {
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    padding: 8px;
+    margin: 0;
+    border: none;
+    outline: none;
+    white-space: pre;
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.reqBodyWrapInner textarea.bodyEditor {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    color: transparent;     /* текст скрыт */
+    caret-color: black;     /* курсор чёрный */
+    resize: none;
+    z-index: 2;
+}
+
+.reqBodyWrapInner pre.bodyHighlight {
+    pointer-events: none;   /* клики проходят сквозь */
+    z-index: 1;
 }

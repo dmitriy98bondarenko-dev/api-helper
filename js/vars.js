@@ -5,7 +5,7 @@ import { setGlobalBearer, loadJson, clearLocalStorage, getVal } from './config.j
 import { updateAuthUI, clearAuthUI } from './auth.js';
 import { renderTree, updateEnvDropdown } from './sidebar.js';
 import { openRequest } from './feature.js';
-
+import { highlightJSON, saveSelection, restoreSelection } from './ui.js';
 
 // ===== Variables & helpers =====
 
@@ -32,6 +32,13 @@ export function buildVarMap() {
 
     state.VARS = map;
     updateVarsBtnCounter();
+    const bodyEditor = document.querySelector('#bodyRawArea');
+    if (bodyEditor) {
+        const raw = bodyEditor.textContent || '';
+        const offset = saveSelection(bodyEditor);
+        bodyEditor.innerHTML = highlightJSON(raw);
+        restoreSelection(bodyEditor, offset);
+    }
 }
 
 export function buildVarsTableBody() {
@@ -349,7 +356,7 @@ export function initResetModal() {
             document.documentElement.setAttribute('data-env', envKey);
             updateEnvDropdown(envKey);
 
-            renderTree('');
+            renderTree('', { onRequestClick: openRequest });
             highlightMissingVars(document, state.VARS);
             updateVarsBtnCounter();
         });
@@ -451,3 +458,51 @@ function refreshCurrentRequest() {
     }
 }
 
+// --- Modal for editing single variable ---
+export function initVarEditModal() {
+    const modal = $('#varEditModal');
+    const inp   = $('#varEditValue');
+    const cancel= $('#varEditCancel');
+    const save  = $('#varEditSave');
+    let currentKey = null;
+
+    function openVarEdit(key) {
+        currentKey = key;
+        const row = (state.ENV?.values||[]).find(v => v.key === key);
+        inp.value = row?.value || '';
+        modal.querySelector('h3').textContent = `Edit variable: ${key}`;
+        modal.hidden = false;
+        inp.focus();
+    }
+
+    function close() {
+        modal.hidden = true;
+        currentKey = null;
+    }
+
+    cancel.addEventListener('click', close);
+
+    save.addEventListener('click', () => {
+        if (!currentKey) return;
+        const val = inp.value.trim();
+
+        if (!state.ENV) state.ENV = { values: [] };
+        if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
+
+        let row = state.ENV.values.find(v => v.key === currentKey);
+        if (row) {
+            row.value = val;
+            row.enabled = true;
+        } else {
+            state.ENV.values.push({ key: currentKey, value: val, enabled: true });
+        }
+
+        saveEnvToLocal();
+        refreshVarsUI();
+        close();
+        showAlert(`Variable ${currentKey} updated`, 'success');
+    });
+
+    // expose globally, чтобы вызывать из feature.js
+    window.openVarEdit = openVarEdit;
+}

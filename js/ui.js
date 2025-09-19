@@ -185,7 +185,7 @@ export function tableToSimpleArray(tbody) {
   return out;
 }
 // ===== Response rendering =====
-// ui.js — ДОБАВЬ рядом с highlightJSON:
+
 export function escapeHtml(text='') {
     return String(text)
         .replace(/&/g,'&amp;')
@@ -394,52 +394,57 @@ export function renderResponseSaved(saved) {
 
     pane.append(header, tools, bodyWrap, headersPre);
 }
-
-
-
 export function highlightJSON(text) {
     if (!text) return "";
-    // экранируем только спецсимволы, НО НЕ кавычки!
+
     let html = String(text)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 
-    // строки
+    // === 1. Ключи: "key":
     html = html.replace(
-        /("(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\"]*)")(?!\s*:)/g,
-        '<span class="json-string">$1</span>'
+        /"([^"]+)"\s*:/g,
+        (_, key) => `<span class='json-key'>"${key}"</span>:`
     );
 
-    // ключи
+/*
     html = html.replace(
-        /(^|[{[,]\s*)("(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\"]*)")(\s*:)/g,
-        '$1<span class="json-key">$2</span>$3'
+            /"([^"]+)"\s*:/g,
+            (_, key) => `\"<span class="json-key">${key}</span>\":`
+        );
+
+*/
+    // 3) Строки-значения (не ключи)
+    html = html.replace(
+        /"([^"]*?)"/g,
+        (match, value) => {
+            // если это {{var}}, выделим как переменную
+            if (value.startsWith("{{") && value.endsWith("}}")) {
+                const varName = value.replace(/[{}]/g, "");
+                return `"<span class="var-token" data-var="${varName}">{{${varName}}}</span>"`;
+            }
+            return `<span class="json-string">"${value}"</span>`;
+        }
     );
 
-    // числа
+    // 4) Числа
     html = html.replace(
         /\b(-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?)\b/g,
-        '<span class="json-number">$1</span>'
+        '<span data-json="number">$1</span>'
     );
 
-    // boolean
-    html = html.replace(/\b(true|false)\b/g, '<span class="json-boolean">$1</span>');
+    // 5) true/false/null
+    html = html.replace(/\b(true|false)\b/g, '<span data-json="boolean">$1</span>');
+    html = html.replace(/\b(null)\b/g, '<span data-json="null">$1</span>');
 
-    // null
-    html = html.replace(/\b(null)\b/g, '<span class="json-null">$1</span>');
-
-    // URL
-    html = html.replace(
-        /"(https?:\/\/[^"]+)"/g,
-        '"<span class="json-url">$1</span>"'
-    );
-
-    // {{vars}}
-    html = html.replace(
-        /({{\s*[^}]+\s*}})/g,
-        '<span class="json-var">$1</span>'
-    );
+    // 6) {{vars}} — кликабельные токены (цвет как в URL)
+    html = html.replace(/{{\s*([^}]+)\s*}}/g, (_, key) => {
+        const k = key.trim();
+        const val = (state.VARS && state.VARS[k] != null) ? String(state.VARS[k]) : '';
+        const title = (val || '(not set)').replace(/"/g, '&quot;');
+        return `<span class="var-token ${val ? 'filled' : 'missing'}" data-var="${k}" title="${title}">{{${k}}}</span>`;
+    });
 
     return html;
 }
