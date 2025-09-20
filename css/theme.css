@@ -25,7 +25,7 @@
     /* Базовые цвета */
     --bg:#0d1117; --panel:#161b22; --soft:#1f2937;
     --fg:#e5e7eb; --ink:#f9fafb; --muted:#9ca3af;
-    --accent:#3b82f6; --divider:#2d3748;
+    --accent:#3b82f6; --divider: #2d4448;
 
     /* Состояния */
     --ok:#22c55e; --warn:#eab308; --err:#f87171;

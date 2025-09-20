@@ -754,10 +754,23 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
 
     // Поиск/фильтр в сайдбаре
-    const filterInp = $('#searchInp');
-    if (filterInp) {
-        const deb = debounce((e) => renderTree(e.target.value || ''), 150);
-        filterInp.addEventListener('input', deb);
+    {
+        let filterInp = $('#search');             // основное поле
+        if (!filterInp) filterInp = $('#searchInp'); // запасной вариант
+
+        if (filterInp) {
+            const applyFilter = () => {
+                const v = (filterInp.value || '').trim();
+                renderTree(v, { onRequestClick: openRequest });
+            };
+            const deb = debounce(applyFilter, 150);
+
+            filterInp.addEventListener('input', deb);
+            filterInp.addEventListener('change', deb);
+
+            // если в поле уже есть текст, сразу применим фильтр
+            if (filterInp.value) applyFilter();
+        }
     }
     // --- Переключение окружения (кастомный dropdown) ---
     const envDropdown = $('#envDropdown');
