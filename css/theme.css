@@ -1,0 +1,49 @@
+/* ---------- Theme tokens ---------- */
+:root {
+    /* Базовые цвета */
+    --bg:#f6f8fb; --panel:#fff; --soft:#f9fafb;
+    --fg:#0a0d14; --ink:#0b1220; --muted:#6b7280;
+    --accent:#0b6cff; --divider:#e5e7eb; --code:#0f172a;
+
+    /* Состояния */
+    --ok:#16a34a; --warn:#b45309; --err:#dc2626;
+
+    /* Доп. элементы */
+    --pill:#fff;
+    --chip-bg:#f3f4f6; --chip-bg-2:#ffefd2; --chip-fg:#8a5a00;
+
+    /* API методы (светлая тема) */
+    --op-get:#e8f5ee;   --op-get-b:#dff3e7;  --op-get-f:#0a7c3a;
+    --op-post:#f3e9ff;  --op-post-b:#efe4ff; --op-post-f:#7a3cff;
+    --op-put:#f6f7dd;   --op-put-b:#f2f4c9;  --op-put-f:#7a7f17;
+    --op-patch:#ffe9d9; --op-patch-b:#ffe1cd;--op-patch-f:#c05621;
+    --op-del:#ffe5e7;   --op-del-b:#ffdadd;  --op-del-f:#c81e1e;
+    --op-other:#eaf2ff; --op-other-b:#e2ecff;--op-other-f:#0b6cff;
+}
+
+[data-theme="dark"] {
+    /* Базовые цвета */
+    --bg:#0d1117; --panel:#161b22; --soft:#1f2937;
+    --fg:#e5e7eb; --ink:#f9fafb; --muted:#9ca3af;
+    --accent:#3b82f6; --divider:#2d3748;
+
+    /* Состояния */
+    --ok:#22c55e; --warn:#eab308; --err:#f87171;
+
+    /* API методы (тёмная тема) */
+    --op-get:#052e16;   --op-get-b:#14532d;  --op-get-f:#4ade80;
+    --op-post:#1e1b4b;  --op-post-b:#312e81; --op-post-f:#c4b5fd;
+    --op-put:#422006;   --op-put-b:#713f12;  --op-put-f:#facc15;
+    --op-patch:#451a03; --op-patch-b:#9a3412;--op-patch-f:#fb923c;
+    --op-del:#450a0a;   --op-del-b:#7f1d1d;  --op-del-f:#fca5a5;
+    --op-other:#172554; --op-other-b:#1e3a8a;--op-other-f:#60a5fa;
+}
+
+/* === Dark theme panel overrides === */
+[data-theme="dark"] .reqHeader,
+[data-theme="dark"] .respHeader { background:#1e293b; }
+
+[data-theme="dark"] .reqBodyWrap,
+[data-theme="dark"] .respTools { background:#1f2937; }
+
+[data-theme="dark"] .respBody { background:#111827; color:#f3f4f6; }
