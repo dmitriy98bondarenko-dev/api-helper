@@ -46,7 +46,10 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .folder{color:var(--ink); font-weight:800; text-transform:none; letter-spacing:.2px; font-size:18px; margin:18px 10px 6px;}
 .op{display:flex; align-items:center; gap:12px; border-radius:8px; padding:10px 12px; margin:8px 6px; border:1px solid var(--divider); cursor:pointer; background:#0000; transition:transform .05s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease; box-shadow:0 1px 0 rgba(15,23,42,.03);}
 .op:hover{background:var(--soft); border-color:#dbe3ed; transform:translateY(-1px);}
-.op.active{outline:2px solid #2b8cff33;}
+.op.active{
+    border-color: #16a34a;
+    outline:2px solid rgba(253, 14, 14, 0);
+}
 .op .op-method{min-width:66px; text-align:center; font-weight:800; font-size:12px; padding:6px 8px; border-radius:6px; letter-spacing:.5px; border:1px solid rgba(0,0,0,.06);}
 .op .op-path{flex:1; min-width:0; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px; color:var(--ink); white-space:normal; word-break:break-all;}
 

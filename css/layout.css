@@ -150,14 +150,47 @@ html[data-env="prod"]    #varsBtn { border-color: #dc2626; color: #dc2626; }
 /* === Layout === */
 .left  { grid-area: left;  background: var(--panel); border-right: 1px solid var(--divider); overflow:auto; }
 .right { grid-area: right; background: var(--bg); overflow:auto; }
-.section { padding: 12px; }
+.section { padding: 5px;          /* внутренние поля */
+    margin: 0;
+    border: none;
+    background: none;
+    box-sizing: border-box;  }
+/* Обёртка для поиска */
+.searchWrap {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--panel);
+    border-bottom: 1px solid var(--divider);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    margin: 0;
+    padding: 10px 0;
+}
+
+/* Поле поиска внутри */
 .search {
     width: 100%;
-    padding: 10px 12px;
+    height: 40px;
+    line-height: 28px;
+    padding: 0 1rem;
+    padding-left: 2.5rem;
+    border: 2px solid transparent;
     border-radius: 8px;
-    border: 1px solid var(--divider);
-    background: transparent;
-    color: var(--fg);
+    outline: none;
+    background-color: #f3f3f4;
+    color: #0d0c22;
+    transition: 0.3s ease;
+}
+.search::placeholder {
+    color: #9e9ea7;
+}
+.search:focus,
+search:hover {
+    outline: none;
+    border-color: rgba(234, 226, 183, 0.4);
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgb(234 226 183 / 10%);
 }
 .pane {
     max-width: 1100px;
@@ -236,25 +269,26 @@ th {
 .rightInfo { font-size: 12px; color: var(--muted); }
 
 /* === API Tree === */
-.tree { margin-top: 12px; }
-.folder {
-    margin: 18px 10px 6px;
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--ink);
-}
+.tree {  box-sizing: border-box;
+    max-width: 100%;   /* не шире контейнера */
+    overflow-x: hidden; }
+
 .op {
-    display: flex; align-items: center; gap: 12px;
-    margin: 8px 6px; padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 6px 0;
+    padding: 10px 12px;
     border: 1px solid var(--divider);
     border-radius: 8px;
     background: transparent;
     cursor: pointer;
     transition: transform .05s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+
     box-shadow: 0 1px 0 rgba(15,23,42,.03);
 }
 .op:hover { background: var(--soft); border-color: #dbe3ed; transform: translateY(-1px); }
-.op.active { outline: 2px solid #2b8cff33; }
+.op.active { outline: 2px solid rgba(255, 0, 0, 0.62); }
 .op .op-method {
     min-width: 66px; padding: 6px 8px;
     font-size: 12px; font-weight: 800; text-align: center;
@@ -326,3 +360,115 @@ th {
 .tab.active[data-method="DELETE"]::after { background: var(--op-del-f); }
 .tab.active[data-method="HEAD"]::after,
 .tab.active[data-method="OPTIONS"]::after { background: var(--op-other-f); }
+/* === API Tree Folders === */
+.folder {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+    padding: 8px 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #16a34a;
+    background: transparent;
+    border: 2px solid #16a34a;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background .2s, color .2s, border-color .2s;
+    box-sizing: border-box;
+}
+
+.folderTitle { flex: 1; min-width: 0; }
+.folderControls { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.folder:hover { background: rgba(22,163,74,.08); }
+/* стрелка */
+.arrowIcon {
+    width: 14px; height: 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: currentColor;
+    transform: rotate(90deg);                /* вниз по умолчанию */
+    transition: transform .2s ease;
+    flex-shrink: 0;
+}
+
+.node.collapsed .arrowIcon { transform: rotate(0deg); } /* вправо */
+.folderContent { margin: 0; padding: 4px 6px 6px 24px; }
+.node.collapsed .folderContent {
+    display: none;
+}
+
+.pinBtn {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+    color: #b6b6b6;     /* серый по умолчанию */
+    opacity: 0.4;       /* светлый по умолчанию */
+    transition: color 0.2s, opacity 0.2s;
+}
+
+.pinBtn.active  { color: #cecccc; opacity: 1; }
+.pinBtn:hover { color: #dc2626; } /* красный при наведении */
+
+.arrowIcon svg { fill: currentColor; }
+
+.unpinBtn {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--muted);
+    opacity: 0.6;
+    cursor: pointer;
+    padding: 2px;
+    transition: color .2s, opacity .2s;
+}
+.unpinBtn.active { opacity: 1; color: var(--err); }
+.unpinBtn:hover  { opacity: 1; color: #dc2626; }  /* красный при наведении */
+
+
+.clearPinsBtn {
+    order: 2;
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    cursor: pointer;
+    color: #9ca3af;
+    line-height: 1;
+}
+.clearPinsBtn:hover { color: #dc2626; }
+
+/* === Empty State === */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    gap: 12px;
+}
+
+.empty-state .empty-img {
+    max-width: 180px;
+    height: auto;
+    display: none;
+}
+
+/* по умолчанию (светлая тема) */
+[data-theme="light"] .empty-img.light { display: block; }
+[data-theme="dark"]  .empty-img.dark  { display: block; }
+
+.empty-state .empty-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+}

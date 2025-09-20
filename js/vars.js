@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { $, el, showAlert, highlightMissingVars, updateVarsBtn, renderUrlWithVars, } from './ui.js';
 import { setGlobalBearer, loadJson, clearLocalStorage, getVal } from './config.js';
 import { updateAuthUI, clearAuthUI } from './auth.js';
-import { renderTree, updateEnvDropdown } from './sidebar.js';
+import { renderTree, updateEnvDropdown, setPinnedIds } from './sidebar.js';
 import { openRequest } from './feature.js';
 import { highlightJSON, saveSelection, restoreSelection } from './ui.js';
 
@@ -366,6 +366,7 @@ export function initResetModal() {
         resetFull.addEventListener('click', () => {
             clearLocalStorage(['pm_env_', 'pm_req_'], ['selected_env', 'global_bearer']);
             setGlobalBearer('');
+            setPinnedIds([]);
             updateAuthUI();
 
             resetModal.hidden = true;
