@@ -677,11 +677,31 @@ export function openRequest(item, forceDefaults = false) {
     console.log("Events for", item.name, item.event);
 
 }
-
+function toggleWelcomeCard(show) {
+    const card = document.getElementById('welcomeCard');
+    if (card) {
+        card.hidden = !show;   // проще чем менять display
+    }
+}
 
 export async function bootApp({ collectionPath, autoOpenFirst }) {
+    let collection = null;
 
-    const collection = await loadJson(collectionPath);
+    try {
+        collection = await loadJson(collectionPath);
+    } catch (err) {
+        console.error("Failed to load collection", err);
+        toggleWelcomeCard(true);   // показать welcome
+        return;
+    }
+
+    if (!collection || !Array.isArray(collection.item) || !collection.item.length) {
+        toggleWelcomeCard(true);   // коллекция пустая → показать welcome
+        return;
+    }
+
+    // если всё ок, скрываем welcome
+    toggleWelcomeCard(false);
 
     // читаем окружение из LS или ставим dev
     let currentEnv = localStorage.getItem('selected_env') || 'dev';
