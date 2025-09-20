@@ -355,13 +355,19 @@ export function openRequest(item, forceDefaults = false) {
     );
 
 
-// Tabs (с атрибутом data-method для подсветки underline)
-    const tabs = el('div', {class:'tabs'},
-        el('div', {class:'tab active', id:'tabParams', dataset:{method}}, 'Params'),
-        el('div', {class:'tab', id:'tabHeaders', dataset:{method}}, 'Headers'),
-        el('div', {class:'tab', id:'tabAuth', dataset:{method}}, 'Authorization'),
-        el('div', {class:'tab', id:'tabScripts', dataset:{method}}, 'Scripts')
+// Tabs
+    const tabs = el('div', {class:'tabsBar'},
+        el('div', {class:'tabs'},
+            el('div', {class:'tab active', id:'tabParams', dataset:{method}}, 'Params'),
+            el('div', {class:'tab', id:'tabHeaders', dataset:{method}}, 'Headers'),
+            el('div', {class:'tab', id:'tabAuth', dataset:{method}}, 'Authorization'),
+            el('div', {class:'tab', id:'tabScripts', dataset:{method}}, 'Scripts')
+        ),
+        el('div', {class:'tabsTools'},
+            el('button', {id:'curlBtn', class:'btnCurl'}, 'Copy cURL')
+        )
     );
+
 
     const paramsPane = el('div', {class:'tabPane active', id:'paneParams'});
     const headersPane= el('div', {class:'tabPane',        id:'paneHeaders'});
@@ -370,10 +376,10 @@ export function openRequest(item, forceDefaults = false) {
 
 // Params/Headers
     const paramsTable = buildKVTable(paramsInit);
-    paramsPane.append(el('div', {class:'kvs'}, paramsTable, el('div',{class:'kvHint'},'Add or change query parameters')));
+    paramsPane.append(el('div', {class:'kvs'}, paramsTable));
 
     const headersTable = buildKVTable(headersInit);
-    headersPane.append(el('div', {class:'kvs'}, headersTable, el('div',{class:'kvHint'},'Request headers')));
+    headersPane.append(el('div', {class:'kvs'}, headersTable));
 // update URL
     ['input','change'].forEach(ev=>{
         paramsPane.addEventListener(ev, () => {
@@ -393,7 +399,7 @@ export function openRequest(item, forceDefaults = false) {
     authPane.append(
         el('div', {class:'authRow'}, el('div', {class:'muted'}, 'Auth type'), authTypeSel),
         el('div', {class:'authRow'}, el('div', {class:'muted'}, 'Token'), authTokenInp),
-        el('div', {class:'kvHint'}, 'If there is no "Authorization" header, the token will be added automatically (Authorization tab > Global).')
+        el('div', {class:'kvHint'}, 'Token from Authorization tab is used for all requests.')
     );
 
 // Scripts
@@ -458,10 +464,13 @@ export function openRequest(item, forceDefaults = false) {
 
 // Actions
     const actions = el('div', {class:'actions'});
-//const sendBtn = el('button', {class:'send', id:'sendBtn'}, 'Send');
-    const curlBtn = el('button', {id:'curlBtn'}, 'Copy cURL');
-    const resetBtn= el('button', {id:'resetBtn', class:'reset', title:'Reset local changes for this request'}, 'Reset to defaults');
-    actions.append(curlBtn, resetBtn); // ←  sendBtn
+    const resetBtn= el('button', {
+        id:'resetBtn',
+        class:'reset',
+        title:'Reset local changes for this request'
+    }, 'Reset to defaults');
+    actions.append(resetBtn);
+
 
 // mount card
     card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);

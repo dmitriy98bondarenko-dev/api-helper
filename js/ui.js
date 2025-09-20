@@ -2,29 +2,34 @@
 export const $ = sel => document.querySelector(sel);
 import { state } from './state.js';
 export const el = (tag, attrs = {}, ...children) => {
-  const n = document.createElement(tag);
-  const boolAttrs = new Set([
-    'checked', 'disabled', 'readonly', 'required', 'selected', 'multiple', 'hidden', 'open'
-  ]);
+    const ns = "http://www.w3.org/2000/svg";
 
-  Object.entries(attrs).forEach(([k, v]) => {
-    if (k === 'class') {
-      n.className = v;
-    } else if (k === 'dataset') {
-      Object.assign(n.dataset, v);
-    } else if (k.startsWith('on') && typeof v === 'function') {
-      n.addEventListener(k.slice(2), v);
-    } else if (boolAttrs.has(k)) {
-      n[k] = !!v;
-      if (v) n.setAttribute(k, '');
-      else n.removeAttribute(k);
-    } else {
-      n.setAttribute(k, v);
-    }
-  });
+    // SVG-теги всегда создаём через namespace
+    const svgTags = ['svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse', 'g', 'defs', 'clipPath', 'use'];
 
-  children.forEach(c => n.append(c));
-  return n;
+    const n = svgTags.includes(tag)
+        ? document.createElementNS(ns, tag)
+        : document.createElement(tag);
+
+    // Применяем атрибуты
+    Object.entries(attrs).forEach(([k, v]) => {
+        if (k === 'class') {
+            n.className = v;
+        } else if (k === 'dataset') {
+            Object.entries(v).forEach(([dk, dv]) => n.dataset[dk] = dv);
+        } else if (k.startsWith('on') && typeof v === 'function') {
+            n.addEventListener(k.slice(2), v);
+        } else {
+            n.setAttribute(k, v);
+        }
+    });
+
+    // Добавляем детей
+    children.forEach(c => {
+        if (c) n.append(c);
+    });
+
+    return n;
 };
 
 export function debounce(fn, ms = 250) {
@@ -497,9 +502,10 @@ export function showAlert(message, type = 'success') {
     if (!container) return;
 
     const icon = el('div', { class: 'alert__icon' },
-        el('svg', { xmlns: 'http://www.w3.org/2000/svg', width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none' },
+        el('svg', { xmlns: 'http://www.w3.org/2000/svg', width: 24, height: 24, viewBox: '0 0 24 24' },
             el('path', {
-                d: 'm13 13h-2v-6h2zm0 4h-2v-2h2zm-1-15c-1.3 0-2.6.26-3.8.76-1.2.5-2.3 1.24-3.2 2.16-1.87 1.88-2.93 4.42-2.93 7.07 0 2.65 1.06 5.2 2.93 7.07.93.93 2 1.67 3.2 2.17 1.2.5 2.5.76 3.8.76 2.65 0 5.2-1.06 7.07-2.93 1.88-1.87 2.93-4.42 2.93-7.07 0-1.31-.26-2.61-.76-3.83-.5-1.21-1.24-2.31-2.17-3.24-.93-.93-2-1.67-3.24-2.17-1.21-.5-2.51-.76-3.83-.76z'
+                d: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15h-1v-6h2v6h-1zm0-8h-1V7h2v2h-1z',
+                fill: '#fff'
             })
         )
     );
@@ -507,8 +513,11 @@ export function showAlert(message, type = 'success') {
     const title = el('div', { class: 'alert__title' }, message);
 
     const closeBtn = el('div', { class: 'alert__close' },
-        el('svg', { xmlns: 'http://www.w3.org/2000/svg', width: 20, height: 20, viewBox: '0 0 20 20' },
-            el('path', { d: 'm15.8 5.34-1.18-1.18-4.65 4.66-4.66-4.66-1.18 1.18 4.66 4.66-4.66 4.66 1.18 1.18 4.66-4.66 4.65 4.66 1.18-1.18-4.65-4.66z' })
+        el('svg', { xmlns: 'http://www.w3.org/2000/svg', width: 20, height: 20, viewBox: '0 0 20 20', fill: 'currentColor' },
+            el('path', {
+                d: 'm15.8 5.34-1.18-1.18-4.65 4.66-4.66-4.66-1.18 1.18 4.66 4.66-4.66 4.66 1.18 1.18 4.66-4.66 4.65 4.66 1.18-1.18-4.65-4.66z',
+                fill: '#fff'
+            })
         )
     );
 
@@ -520,7 +529,7 @@ export function showAlert(message, type = 'success') {
     closeBtn.onclick = () => alertBox.remove();
 
     // Автоматически убрать через 3 сек
-    setTimeout(() => alertBox.remove(), 3000);
+    setTimeout(() => alertBox.remove(), 50000);
 }
 
 export function updateVarsBtn() {
