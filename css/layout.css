@@ -175,7 +175,7 @@ html[data-env="prod"]    #varsBtn { border-color: #dc2626; color: #dc2626; }
     line-height: 28px;
     padding: 0 1rem;
     padding-left: 2.5rem;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
     border-radius: 8px;
     outline: none;
     background-color: #f3f3f4;
@@ -188,9 +188,36 @@ html[data-env="prod"]    #varsBtn { border-color: #dc2626; color: #dc2626; }
 .search:focus,
 search:hover {
     outline: none;
-    border-color: rgba(234, 226, 183, 0.4);
+    border-color: rgb(182, 182, 182);
     background-color: #fff;
     box-shadow: 0 0 0 4px rgb(234 226 183 / 10%);
+}
+.searchIcon {
+    position: absolute;
+    top: 50%;
+    left: 10px;              /* позиция иконки внутри поля */
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: var(--muted, #666); /* можно использовать токен цвета */
+    pointer-events: none;      /* чтобы клики проходили к инпуту */
+}
+.clearIcon {
+    position: absolute;
+    top: 50%;
+    right: 0.9rem;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #9e9ea7;
+    cursor: pointer;
+    display: none; /* по умолчанию скрыта */
+    padding: 4px;
+    box-sizing: content-box;
+}
+search:focus ~ .searchIcon,
+.search:focus ~ .clearIcon {
+    color: #0d0c22; /* или var(--accent) */
 }
 .pane {
     max-width: 1100px;
