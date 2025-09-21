@@ -57,3 +57,24 @@ export function clearLocalStorage(prefixes = [], exactKeys = []) {
 export function getVal(v) {
     return v?.currentValue ?? v?.value ?? v?.initialValue ?? '';
 }
+// === Request timeout helpers ===
+const REQUEST_TIMEOUT_MS = 15000; // 15s — при желании вынеси в конфиг
+
+export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    const options = { ...opts, signal: controller.signal };
+
+    return fetch(url, options)
+        .finally(() => clearTimeout(timer));
+}
+// === Limit stored response body to prevent LS overflow ===
+const RESPONSE_BODY_MAX = 512 * 1024; // 512 KB — подбирается под твои нужды
+
+export function clampStr(s, max = RESPONSE_BODY_MAX) {
+    if (typeof s !== 'string') s = String(s ?? '');
+    if (s.length <= max) return s;
+    const cut = s.slice(0, max);
+    const note = `\n/* truncated: ${s.length - max} bytes not stored */`;
+    return cut + note;
+}

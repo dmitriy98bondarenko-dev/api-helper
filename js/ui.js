@@ -13,7 +13,7 @@ export const el = (tag, attrs = {}, ...children) => {
 
     // Применяем атрибуты
     Object.entries(attrs).forEach(([k, v]) => {
-        if (k === 'class') {
+        if (k === 'class' || k === 'className') {
             n.className = v;
         } else if (k === 'dataset') {
             Object.entries(v).forEach(([dk, dv]) => n.dataset[dk] = dv);
@@ -109,74 +109,128 @@ export function buildKVTable(rows, { onChange } = {}) {
   return t;
 }
 
-export function appendRow(tb, row, isNew = false, onChange) {
-  const tr = el('tr');
+export function appendRow(tb, row = {}, isNew = false, onChange) {
+    const tr = el('tr');
 
-  const cb = el('input', {
-    type: 'checkbox',
-    'data-field': 'enabled',
-    checked: row.enabled === true
-  });
+    const cb = el('input', {
+        type: 'checkbox',
+        'data-field': 'enabled',
+        // по умолчанию выкл; включим ниже только если и enabled=true, и оба поля непустые
+        checked: false
+    });
 
-  const keyInp = el('input', { value: row.key ?? '', 'data-field': 'key', placeholder: isNew ? 'key' : '' });
-  const valInp = el('input', { value: row.value ?? '', 'data-field': 'value', placeholder: isNew ? 'value' : '' });
+    const keyInp = el('input', {
+        value: row.key ?? '',
+        'data-field': 'key',
+        placeholder: isNew ? 'key' : ''
+    });
 
-  const onInput = () => {
-    const has = (keyInp.value.trim() || valInp.value.trim());
-    cb.checked = !!has;
+    const valInp = el('input', {
+        value: row.value ?? '',
+        'data-field': 'value',
+        placeholder: isNew ? 'value' : ''
+    });
 
-    if (isNew && has && tr === tb.lastElementChild) {
-      appendRow(tb, { key: '', value: '', enabled: false }, true, onChange);
+    // инициализация чекбокса для уже существующих строк:
+    const initKeyFilled = String(row.key ?? '').trim().length > 0;
+    const initValFilled = String(row.value ?? '').trim().length > 0;
+    if (row.enabled === true && initKeyFilled && initValFilled) {
+        cb.checked = true;
     }
-    if (onChange) onChange();
-  };
 
-  keyInp.addEventListener('input', onInput);
-  valInp.addEventListener('input', onInput);
-  cb.addEventListener('change', () => onChange && onChange());
+    const removeBtn = el('button', {
+        class: 'varRemove',
+        title: 'Delete row',
+        onclick: () => {
+            tr.remove();
+            onChange && onChange();
+        }
+    }, '✖');
 
-  const removeBtn = el('button', {
-    class: 'varRemove',
-    title: 'Delete row',
-    onclick: () => {
-      tr.remove();
-      if (onChange) onChange();
+    tr.append(
+        el('td', { class: 'kvOn' }, el('div', { class: 'cell' }, cb)),
+        el('td', {}, el('div', { class: 'cell' }, keyInp)),
+        el('td', {}, el('div', { class: 'cell' }, valInp)),
+        el('td', {}, el('div', { class: 'cell' }, removeBtn))
+    );
+
+    tb.append(tr);
+
+    function keyValFilled() {
+        return keyInp.value.trim().length > 0 && valInp.value.trim().length > 0;
     }
-  }, '✖');
 
-  tr.append(
-    el('td', { class: 'kvOn' }, el('div', { class: 'cell' }, cb)),
-    el('td', {}, el('div', { class: 'cell' }, keyInp)),
-    el('td', {}, el('div', { class: 'cell' }, valInp)),
-    el('td', {}, el('div', { class: 'cell' }, removeBtn))
-  );
+    function enforce(createNext = false) {
+        const both = keyValFilled();
 
-  tb.append(tr);
+        // правило: если хотя бы одно поле пусто — чекбокс всегда OFF
+        if (!both) {
+            cb.checked = false;
+        } else {
+            // когда оба заполнены — можно включать чекбокс
+            // автоподстановка ON только если пользователь ещё не трогал чекбокс
+            if (!cb._touched) cb.checked = true;
+        }
+
+        // автодобавление новой строки — только если это «новая» строка,
+        // она последняя и оба поля заполнены
+        if (isNew && both && tr === tb.lastElementChild && createNext) {
+            addNewRow(tb, onChange);
+        }
+
+        onChange && onChange();
+    }
+
+    keyInp.addEventListener('input', () => enforce(true));
+    valInp.addEventListener('input', () => enforce(true));
+
+    cb.addEventListener('change', () => {
+        // не даём включить, если поля не заполнены
+        if (!keyValFilled()) {
+            cb.checked = false;
+        } else {
+            cb._touched = true; // помечаем, что юзер вручную менял чекбокс
+        }
+        onChange && onChange();
+    });
 }
 
 export function addNewRow(tb, onChange) {
-  const trNew = el('tr');
-  const cbNew = el('input', { type: 'checkbox', 'data-field': 'enabled', checked: false });
-  const keyNew = el('input', { 'data-field': 'key', placeholder: 'key' });
-  const valNew = el('input', { 'data-field': 'value', placeholder: 'value' });
+    const trNew = el('tr');
 
-  const onInput = () => {
-    const has = (keyNew.value.trim() || valNew.value.trim());
-    cbNew.checked = !!has;
-    if (has && trNew === tb.lastElementChild) addNewRow(tb, onChange);
-    if (onChange) onChange();
-  };
-  keyNew.addEventListener('input', onInput);
-  valNew.addEventListener('input', onInput);
-  cbNew.addEventListener('change', () => onChange && onChange());
+    const cbNew = el('input', {
+        type: 'checkbox',
+        'data-field': 'enabled',
+        checked: false
+    });
 
-  trNew.append(
-    el('td', { class: 'kvOn' }, el('div', { class: 'cell' }, cbNew)),
-    el('td', {}, el('div', { class: 'cell' }, keyNew)),
-    el('td', {}, el('div', { class: 'cell' }, valNew)),
-    el('td', {}, '')
-  );
-  tb.append(trNew);
+    const keyNew = el('input', { 'data-field': 'key', placeholder: 'key' });
+    const valNew = el('input', { 'data-field': 'value', placeholder: 'value' });
+
+    const onInput = () => {
+        const keyFilled = keyNew.value.trim().length > 0;
+        const valFilled = valNew.value.trim().length > 0;
+
+        cbNew.checked = keyFilled && valFilled;
+        if (cbNew.checked && trNew === tb.lastElementChild) {
+            addNewRow(tb, onChange);
+        }
+
+        if (onChange) onChange();
+    };
+
+    keyNew.addEventListener('input', onInput);
+    valNew.addEventListener('input', onInput);
+    cbNew.addEventListener('change', () => onChange && onChange());
+
+    trNew.append(
+        el('td', { class: 'kvOn' }, el('div', { class: 'cell' }, cbNew)),
+        el('td', {}, el('div', { class: 'cell' }, keyNew)),
+        el('td', {}, el('div', { class: 'cell' }, valNew)),
+        el('td', {}, '')
+    );
+
+    tb.append(trNew);
 }
 
 export function tableToSimpleArray(tbody) {
@@ -229,12 +283,13 @@ function syntaxHighlight(json) {
 function buildRespTools(bodyText) {
     const fieldInp = el('input', {
         id: 'copyFieldInp',
-        placeholder: 'Field to copy (e.g., access_token)',
-        style: 'flex:1; padding:4px;'
+        class: 'copyFieldInp',
+        placeholder: 'Field to copy (e.g., access_token)'
     });
 
     const copyFieldBtn = el('button', {
         id: 'copyFieldBtn',
+        class: 'respBtn',
         onclick: () => {
             try {
                 const parsed = JSON.parse(bodyText);
@@ -249,28 +304,39 @@ function buildRespTools(bodyText) {
                 showAlert('Response is not valid JSON', 'error');
             }
         }
-    }, 'Copy field');
+    }, el('span', { class: 'respBtnText' }, 'Copy field')
+    );
 
     const copyBodyBtn = el('button', {
         id: 'copyBodyBtn',
+        class: 'respBtn',
         onclick: () => {
             navigator.clipboard.writeText(bodyText || '');
             showAlert('Body copied', 'success');
         }
-    }, 'Copy body');
+    }, el('span', { class: 'respBtnText' }, 'Copy body')
+    );
 
     const copyAllBtn = el('button', {
         id: 'copyAllBtn',
+        class: 'respBtn',
         onclick: () => {
             const text = document.querySelector('#resPane pre.body')?.innerText || '';
             navigator.clipboard.writeText(text);
             showAlert('All response copied', 'success');
         }
-    }, 'Copy all');
-
-    return el('div', { class: 'respTools', style: 'display:flex; gap:6px; margin:6px 0;' },
-        fieldInp, copyFieldBtn, copyBodyBtn, copyAllBtn
+    }, el('span', { class: 'respBtnText' }, 'Copy all')
     );
+
+    return el('div', { class: 'respToolsWrap' },
+        el('div', { class: 'respTools' },
+            fieldInp,
+            copyFieldBtn,
+            copyBodyBtn,
+            copyAllBtn
+        )
+    );
+
 }
 
 // Рендер основного ответа
@@ -292,7 +358,9 @@ export function renderResponse(res, text, ms, url) {
     const header = el('div', { class: 'respHeader' },
         el('span', { class: 'statusPill ' + (res.status >= 200 && res.status < 300 ? 'ok' : 'err') }, res.status),
         el('span', { class: 'respMeta' }, `${ms.toFixed(0)} ms`),
-        el('span', { class: 'respUrl' }, url || '')
+        el('span', { class: 'respUrl' },
+            el('span', { class: 'respUrlText' }, url || '')
+        )
     );
 
     // ---------- Body ----------
@@ -307,6 +375,10 @@ export function renderResponse(res, text, ms, url) {
     }
     const bodyPre = el('pre', { class: 'body' });
     bodyPre.innerHTML = highlighted;
+
+// 👉 оборачиваем в карточку
+    const bodyWrap = el('div', { class: 'respBodyWrap' }, bodyPre);
+
 
     // ---------- Headers ----------
     const headersList = Object.entries(res.headers ? Object.fromEntries(res.headers) : {})
@@ -328,7 +400,7 @@ export function renderResponse(res, text, ms, url) {
     );
 
     const tabPanes = el('div', { class: 'tabPanes' },
-        el('div', { class: 'tabPane active', id: 'tab-body' }, tools, bodyPre),
+        el('div', { class: 'tabPane active', id: 'tab-body' }, tools, bodyWrap),
         el('div', { class: 'tabPane', id: 'tab-headers' }, headersPre),
         el('div', { class: 'tabPane', id: 'tab-auth' }, authPre)
     );
@@ -371,12 +443,17 @@ export function renderResponseSaved(saved) {
     if (!pane) return;
     pane.innerHTML = '';
 
+    // ---------- Заголовок ----------
+    const title = el('div', { class: 'respTitle' }, 'Response');
+
+    // ---------- Header ----------
     const header = el('div', { class: 'respHeader' },
-        el('span', { class: 'pill' }, `${saved.status} ${saved.statusText}`),
-        el('span', { class: 'rightInfo' }, `${saved.timeMs} ms`),
-        el('span', { class: 'rightInfo' }, saved.url || '')
+        el('span', { class: 'statusPill ' + (saved.status >= 200 && saved.status < 300 ? 'ok' : 'err') }, saved.status),
+        el('span', { class: 'respMeta' }, `${saved.timeMs.toFixed(0)} ms`),
+        el('span', { class: 'respUrl' }, saved.url || '')
     );
 
+    // ---------- Body ----------
     let highlighted, pretty;
     try {
         const json = JSON.parse(saved.bodyText || '');
@@ -386,18 +463,41 @@ export function renderResponseSaved(saved) {
         pretty = saved.bodyText || '';
         highlighted = syntaxHighlight(pretty);
     }
-
     const bodyPre = el('pre', { class: 'body' });
     bodyPre.innerHTML = highlighted;
-    const bodyWrap = el('div', { class: 'respBody' }, bodyPre);
 
-    const headersPre = el('pre', { class: 'headers' },
-        Object.entries(saved.headers || {}).map(([k, v]) => `${k}: ${v}`).join('\n')
-    );
+    // ---------- Headers ----------
+    const headersList = Object.entries(saved.headers || {}).map(([k, v]) => `${k}: ${v}`).join('\n');
+    const headersPre = el('pre', { class: 'headers' }, headersList);
 
+    // ---------- Tools ----------
     const tools = buildRespTools(pretty);
 
-    pane.append(header, tools, bodyWrap, headersPre);
+    // ---------- Tabs ----------
+    const tabs = el('div', { class: 'tabs' },
+        el('div', { class: 'tab active', dataset: { tab: 'body' }, onclick: () => switchTab('body') }, 'Body'),
+        el('div', { class: 'tab', dataset: { tab: 'headers' }, onclick: () => switchTab('headers') }, 'Headers'),
+        el('div', { class: 'tab', dataset: { tab: 'auth' }, onclick: () => switchTab('auth') }, 'Authentication')
+    );
+
+    const authPre = el('pre', { class: 'auth' }, '— no token —'); // можно потом добавить извлечение токена
+
+    const tabPanes = el('div', { class: 'tabPanes' },
+        el('div', { class: 'tabPane active', id: 'tab-body' }, tools, bodyPre),
+        el('div', { class: 'tabPane', id: 'tab-headers' }, headersPre),
+        el('div', { class: 'tabPane', id: 'tab-auth' }, authPre)
+    );
+
+    const card = el('div', { class: 'respCard' },
+        title, header, tabs, tabPanes
+    );
+
+    pane.append(card);
+
+    function switchTab(tab) {
+        pane.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+        pane.querySelectorAll('.tabPane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+    }
 }
 export function highlightJSON(text) {
     if (!text) return "";
@@ -529,7 +629,7 @@ export function showAlert(message, type = 'success') {
     closeBtn.onclick = () => alertBox.remove();
 
     // Автоматически убрать через 3 сек
-    setTimeout(() => alertBox.remove(), 50000);
+    setTimeout(() => alertBox.remove(), 3000);
 }
 
 export function updateVarsBtn() {
@@ -544,3 +644,20 @@ export function updateVarsBtn() {
     btn.textContent = `Environment Variables (${active}/${total})`;
 }
 
+const searchInput = document.getElementById('search');
+const clearBtn = document.getElementById('clearSearch');
+
+// показываем крестик только если есть текст
+searchInput.addEventListener('input', () => {
+    clearBtn.style.display = searchInput.value ? 'block' : 'none';
+});
+
+// очистка по клику
+clearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    clearBtn.style.display = 'none';
+    searchInput.focus();
+    // если есть логика фильтра → дернуть её тут
+    const event = new Event('input');
+    searchInput.dispatchEvent(event);
+});

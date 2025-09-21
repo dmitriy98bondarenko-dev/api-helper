@@ -6,7 +6,7 @@ import {
     buildKVTable, tableToSimpleArray,
     renderResponse, renderResponseSaved
 } from './ui.js';
-import { getGlobalBearer, loadReqState, saveReqState, clearReqState, loadScriptsLegacy } from './config.js';
+import { getGlobalBearer, loadReqState, saveReqState, clearReqState, loadScriptsLegacy, fetchWithTimeout, clampStr } from './config.js';
 import { flattenItems, renderTree, setActiveRow, normalizeUrl } from './sidebar.js';
 
 import { buildVarMap, buildVarsTableBody, initVarsModal, initResetModal, updateVarsBtnCounter, initVarEditModal } from './vars.js';
@@ -31,22 +31,21 @@ const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, state.VARS);
 
 function safeBuildUrl(url, queryArr){
     const raw = url || '';
-    const [preHash, hashPart=''] = raw.split('#');
-    const [base, qStr=''] = preHash.split('?');
-    const params = new URLSearchParams(qStr);
-    (queryArr||[]).forEach(p => {
-        const key = (p.key||'').trim();
-        if (!key) return;
-        if (p.enabled) {
-            params.set(key, resolveVars(String(p.value ?? '')));
-        } else {
-            params.delete(key);
-        }
-    });
+    const hashIdx = raw.indexOf('#');
+    const [preHash, hashPart] = hashIdx>=0 ? [raw.slice(0,hashIdx), raw.slice(hashIdx+1)] : [raw,''];
+    const qIdx = preHash.indexOf('?');
+    const base = qIdx>=0 ? preHash.slice(0,qIdx) : preHash;
 
-    const qs = params.toString();
-    return base + (qs ? '?' + qs : '') + (hashPart ? '#' + hashPart : '');
+    const enabled = (queryArr||[]).filter(p => (p?.key||'').trim() && p.enabled!==false);
+    const qs = enabled.map(p => {
+        const k = encodeURIComponent(p.key.trim());
+        const v = resolveVars(String(p.value ?? ''));
+        return v==='' ? k : `${k}=${encodeURIComponent(v)}`;
+    }).join('&');
+
+    return base + (qs ? `?${qs}` : '') + (hashPart ? `#${hashPart}` : '');
 }
+
 
 
 
@@ -61,16 +60,25 @@ function detectContentType(body){
     if (/^--?[-\w]+/i.test(s) && /content-disposition/i.test(s)) return 'multipart/form-data';
     return null;
 }
-// ==== scripts sandbox ====
+
+// ==== postman scripts ====
 function runUserScript(code, ctx){
     const pm = makePmAdapter(ctx);
-    const fn = new Function('ctx', 'pm', `
-    "use strict";
-    const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) };
-    ${code}
-  `);
-    fn(ctx, pm);
+    try {
+        const fn = new Function('ctx', `
+            "use strict";
+            const pm = arguments[1]; 
+            const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) };
+            ${code}
+        `);
+        fn(ctx, pm);
+    } catch (err) {
+        console.error("Script execution error:", err);
+        ctx._logs.push("Script error: " + err.message);
+    }
 }
+
+
 
 function makePreCtx({method, url, params, headers, body}){
     const ctx = {
@@ -112,6 +120,10 @@ function makePmAdapter(ctx){
 
         // пересобираем карту VARS из ENV/collection
         buildVarMap();
+        try {
+            const currentEnv = localStorage.getItem('selected_env') || 'dev';
+            localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+        } catch {}
     };
 
     const getEnv = (key) => {
@@ -154,7 +166,9 @@ function makePmAdapter(ctx){
 
 function getInitialStateForItem(item, forceDefaults = false) {
     const id = item.id;
-    const saved = forceDefaults ? null : loadReqState(id);
+    const tmpSaved = loadReqState(id);
+    const saved = (forceDefaults || !tmpSaved) ? null : tmpSaved;
+
 
     const methodOrig = String(item.request.method || 'GET').toUpperCase();
     const urlRaw     = normalizeUrl(item.request.url);
@@ -164,13 +178,21 @@ function getInitialStateForItem(item, forceDefaults = false) {
 
     const paramsInit = saved?.params ?? (
         (typeof item.request.url==='object' && Array.isArray(item.request.url.query))
-            ? item.request.url.query.map(q=>({key:q.key, value: resolveVars(q.value??''), enabled: q.disabled!==true }))
+            ? item.request.url.query.map(q => ({
+                key: q.key,
+                value: resolveVars(q.value ?? ''),
+                enabled: q.disabled !== true
+            }))
             : []
     );
 
     let headersInit = saved?.headers ?? (
         Array.isArray(item.request.header)
-            ? item.request.header.map(h=>({key:h.key, value: resolveVars(h.value??''), enabled: h.disabled!==true }))
+            ? item.request.header.map(h => ({
+                key: h.key,
+                value: resolveVars(h.value ?? ''),
+                enabled: h.disabled !== true
+            }))
             : []
     );
 
@@ -375,11 +397,12 @@ export function openRequest(item, forceDefaults = false) {
     const scriptsPane= el('div', {class:'tabPane',        id:'paneScripts'});
 
 // Params/Headers
-    const paramsTable = buildKVTable(paramsInit);
+    const paramsTable = buildKVTable(paramsInit, { onChange: debSave });
     paramsPane.append(el('div', {class:'kvs'}, paramsTable));
 
-    const headersTable = buildKVTable(headersInit);
+    const headersTable = buildKVTable(headersInit, { onChange: debSave });
     headersPane.append(el('div', {class:'kvs'}, headersTable));
+
 // update URL
     ['input','change'].forEach(ev=>{
         paramsPane.addEventListener(ev, () => {
@@ -529,7 +552,8 @@ export function openRequest(item, forceDefaults = false) {
             const obj = JSON.parse(src);
             const beautified = JSON.stringify(obj, null, 2);
 
-            bodyEditor.textContent = beautified;   // ✅ чистый текст
+            bodyEditor.textContent = beautified;
+            bodyEditor.innerHTML = highlightJSON(beautified);// ✅ чистый текст
             saveReqState(state.CURRENT_REQ_ID, { body: beautified });
         } catch {
             showAlert('Body is not valid JSON', 'error');
@@ -546,22 +570,23 @@ export function openRequest(item, forceDefaults = false) {
 
 
 // ==== SEND ====
+    // ==== SEND (with timeout & safe cleanup) ====
+    // ==== SEND (with timeout & safe cleanup) ====
     $('#sendBtn').onclick = async ()=>{
         debSave();
+
+        const cleanup = () => { showLoader(false); $('#sendBtn').disabled = false; };
+
         const params = tableToSimpleArray(paramsTable.tBodies[0]);
         const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
         let headers  = Object.fromEntries(hdrArr.filter(x=>x.key).map(x=>[x.key, resolveVars(x.value)]));
 
         let method = getSelectedMethod();
-        let finalUrl = resolveVars(
-            safeBuildUrl($('#urlInp').value.trim(), params)
-        );
+        let finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), params));
         let body = resolveVars($('#bodyRawArea').textContent || '');
         const { type: authType, token: authToken } = getAuthData();
 
-        // Inject Authorization if missing
-        const hasAuth = Object.keys(headers).some(h=>h.toLowerCase()==='authorization');
-        if (!hasAuth){
+        if (!Object.keys(headers).some(h=>h.toLowerCase()==='authorization')){
             if (authType==='bearer' && authToken){
                 headers['Authorization'] = 'Bearer ' + authToken;
             } else if (getGlobalBearer()){
@@ -569,13 +594,12 @@ export function openRequest(item, forceDefaults = false) {
             }
         }
 
-        // Auto Content-Type
         if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
             const ct = detectContentType(body);
             if (ct) headers['Content-Type'] = ct;
         }
 
-        // PRE
+        // PRE scripts
         const preCode = preTA.value.trim();
         if (preCode){
             try{
@@ -585,54 +609,148 @@ export function openRequest(item, forceDefaults = false) {
                 finalUrl = ctx.request.url;
                 headers  = ctx.request.headers;
                 body     = ctx.request.body;
-            }catch(e){ renderResponse(null, 'PRE error: '+e.message, 0, finalUrl); return; }
+            }catch(e){
+                renderResponse(null, 'PRE error: '+e.message, 0, finalUrl);
+                return;
+            }
         }
 
         showLoader(true); $('#sendBtn').disabled = true;
         const started = performance.now();
-        let res, text;
-        try{
-            res = await fetch(finalUrl, { method, headers, body: (method==='GET'||method==='HEAD')?undefined:body });
-            text = await res.text();
-        }catch(e){
-            const ms = performance.now()-started;
-            renderResponse(null, String(e), ms, finalUrl);
+
+        try {
+            let res = await fetchWithTimeout(finalUrl, {
+                method,
+                headers,
+                body: (method==='GET'||method==='HEAD') ? undefined : body
+            });
+            let text = await res.text();
+
+            // POST scripts
             const postCode = postTA.value.trim();
             if (postCode){
-                try{ const ctxPost = makePostCtx({request:{method,url:finalUrl,headers,body}, response:null, error:String(e)}); runUserScript(postCode, ctxPost); }catch(_){}
+                try {
+                    const ctxPost = makePostCtx({
+                        request:{method,url:finalUrl,headers,body},
+                        response:{ status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
+                    });
+                    runUserScript(postCode, ctxPost);
+                    if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') {
+                        text = ctxPost.response.bodyText;
+                    }
+                } catch(_) {}
             }
-            saveReqState(state.CURRENT_REQ_ID, { response: { status:0, statusText:'Network error', headers:{}, bodyText:String(e), url:finalUrl, timeMs:ms }});
-            showLoader(false); $('#sendBtn').disabled = false;
-            return;
-        }
 
-        // POST
-        const postCode = postTA.value.trim();
-        if (postCode){
-            try{
-                const ctxPost = makePostCtx({
-                    request:{method,url:finalUrl,headers,body},
-                    response:{ status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
+            const ms = performance.now() - started;
+
+// если сервер ответил ошибкой (например 503)
+            if (!res.ok) {
+                showAlert('Request failed', 'error');
+
+                // если пустое тело — подставляем statusText
+                if (!text.trim()) {
+                    text = res.statusText || 'Error';
+                }
+            }
+
+// рисуем блок респонза всегда
+            renderResponse(res, text, ms, finalUrl);
+
+            const respObj = {
+                status: res.status,
+                statusText: res.statusText,
+                headers: Object.fromEntries(res.headers.entries()),
+                bodyText: clampStr(text),
+                url: finalUrl,
+                timeMs: ms
+            };
+            saveReqState(state.CURRENT_REQ_ID, { response: respObj });
+        } catch(e) {
+            const ms = performance.now() - started;
+            let errMsg = String(e);
+            let statusText = 'Network error';
+
+            if (e && (e.name === 'AbortError' || errMsg.includes('aborted'))) {
+                errMsg = 'Request timed out';
+                statusText = 'Timeout';
+            }
+            else if (errMsg.includes('Failed to fetch')) {
+                // Сами эмулируем ответ 503
+                errMsg = 'Request blocked by CORS or network error';
+                statusText = 'Service Unavailable';
+
+                const fakeRes = {
+                    ok: false,
+                    status: 503,
+                    statusText,
+                    headers: new Headers(),
+                    url: finalUrl
+                };
+
+                renderResponse(fakeRes, 'Service Unavailable', ms, finalUrl);
+
+                saveReqState(state.CURRENT_REQ_ID, {
+                    response: {
+                        status: fakeRes.status,
+                        statusText: fakeRes.statusText,
+                        headers: {},
+                        bodyText: 'Service Unavailable',
+                        url: finalUrl,
+                        timeMs: ms
+                    }
                 });
-                runUserScript(postCode, ctxPost);
-                if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') text = ctxPost.response.bodyText;
-            }catch(e){ /* ignore */ }
+
+                showAlert('Request failed (CORS/network)', 'error');
+                return;
+            }
+
+
+            // показываем короткий алерт
+            showAlert('Request failed', 'error');
+
+            // формируем фейковый ответ для блока Response
+            const fakeRes = {
+                ok: false,
+                status: 0,
+                statusText,
+                headers: new Headers(),
+                url: finalUrl
+            };
+
+            renderResponse(fakeRes, errMsg, ms, finalUrl);
+
+            // если есть post-script
+            const postCode = postTA.value.trim();
+            if (postCode){
+                try {
+                    const ctxPost = makePostCtx({
+                        request:{method,url:finalUrl,headers,body},
+                        response:{
+                            status: fakeRes.status,
+                            statusText: fakeRes.statusText,
+                            headers: {},
+                            bodyText: errMsg
+                        },
+                        error: errMsg
+                    });
+                    runUserScript(postCode, ctxPost);
+                } catch(_) {}
+            }
+
+            saveReqState(state.CURRENT_REQ_ID, {
+                response: {
+                    status: fakeRes.status,
+                    statusText,
+                    headers: {},
+                    bodyText: errMsg,
+                    url: finalUrl,
+                    timeMs: ms
+                }
+            });
+            return;
+        } finally {
+            cleanup();
         }
-
-        const ms = performance.now()-started;
-        renderResponse(res, text, ms, finalUrl);
-
-        const respObj = {
-            status: res.status,
-            statusText: res.statusText,
-            headers: Object.fromEntries(res.headers.entries()),
-            bodyText: text,
-            url: finalUrl,
-            timeMs: ms
-        };
-        saveReqState(state.CURRENT_REQ_ID, { response: respObj });
-
-        showLoader(false); $('#sendBtn').disabled = false;
     };
 
 // cURL
@@ -673,8 +791,6 @@ export function openRequest(item, forceDefaults = false) {
     } else {
         $('#resPane').innerHTML = '';
     }
-// logs DELETE
-    console.log("Events for", item.name, item.event);
 
 }
 function toggleWelcomeCard(show) {
@@ -849,8 +965,8 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
 
         // закрывать при клике вне
-        document.addEventListener('click', (e) => {
-            if (!envDropdown.contains(e.target)) {
+        document.addEventListener('keydown', (e)=>{
+            if (e.key==='Escape') {
                 envList.style.display = 'none';
                 envCurrent.querySelector('.arrow').textContent = '▼';
             }
@@ -860,9 +976,20 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
 
     if (autoOpenFirst && state.ITEMS_FLAT[0]) {
-        openRequest(state.ITEMS_FLAT[0]);
-        // и можно подсветить активный
+        // open first request
+        openRequest(state.ITEMS_FLAT[0], true); // forceDefaults = true → не подтягивает старый response
+        // clear responce
+        const resPane = $('#resPane');
+        if (resPane) resPane.innerHTML = '';
+        // show active
         const firstRow = document.querySelector(`.op[data-req-id="${state.ITEMS_FLAT[0].id}"]`);
         if (firstRow) setActiveRow(firstRow);
     }
+
+    Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('pm_req_')) {
+            localStorage.removeItem(k);
+        }
+    });
+
 }

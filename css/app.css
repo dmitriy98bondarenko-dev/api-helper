@@ -483,16 +483,6 @@
     color: #555;
 }
 
-.respUrl {
-    color: #374151;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
-}
-
 pre.headers {
     background: #f9fafb;
     border: 1px solid var(--divider);
@@ -505,7 +495,8 @@ pre.headers {
 /* Response card */
 .respCard { background: var(--panel); border:1px solid var(--divider); border-radius:8px; margin:12px 0; }
 
-.tabPanes { padding: 12px; }
+.tabPanes { padding: 6px;
+color: #fff0f0}
 
 .tabPane { display:none; }
 .tabPane.active { display:block; }
