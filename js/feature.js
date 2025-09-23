@@ -196,19 +196,18 @@ function getInitialStateForItem(item, forceDefaults = false) {
             : []
     );
 
-    // auto Authorization (если нет сохранённого)
-    if (!saved?.headers){
-        const bearer = getGlobalBearer();
-        if (bearer && !headersInit.some(h=>String(h.key||'').toLowerCase()==='authorization')){
-            headersInit.unshift({key:'Authorization', value:'Bearer '+bearer, enabled:true});
-        } else if (item.request.auth && item.request.auth.type==='bearer'){
-            const token = (item.request.auth.bearer||[]).find(x=>x.key==='token')?.value
-                || state.VARS.token || state.VARS.access_token || '';
-            if (token && !headersInit.some(h=>String(h.key||'').toLowerCase()==='authorization')){
-                headersInit.unshift({key:'Authorization', value:'Bearer '+resolveVars(token), enabled:true});
-            }
+    // auto Authorization: всегда актуализируем глобальный токен
+    const bearer = getGlobalBearer();
+    if (bearer) {
+        const idx = headersInit.findIndex(h => String(h.key||'').toLowerCase() === 'authorization');
+        if (idx >= 0) {
+            headersInit[idx].value = 'Bearer ' + bearer;
+            headersInit[idx].enabled = true;
+        } else {
+            headersInit.unshift({ key: 'Authorization', value: 'Bearer ' + bearer, enabled: true });
         }
     }
+
 
     let bodyText = saved?.body;
     if (bodyText == null){
@@ -234,7 +233,10 @@ function getInitialStateForItem(item, forceDefaults = false) {
         }
     }
 
-    const auth = saved?.auth ?? { type:'bearer', token: '' };
+    // auth:
+    const globalToken = getGlobalBearer() || '';
+    const auth = saved?.auth ?? { type: 'bearer', token: globalToken };
+    if (!auth.token) auth.token = globalToken;
 
     return {
         method, methodOrig, url,
