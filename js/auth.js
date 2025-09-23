@@ -1,6 +1,9 @@
 // js/auth.js
 import { $, showAlert } from './ui.js';
 import { getGlobalBearer, setGlobalBearer } from './config.js';
+import { state } from './state.js';
+import { openRequest } from './feature.js';
+
 
 export function updateAuthUI() {
     const authBtn = $('#authBtn');
@@ -21,6 +24,7 @@ export function updateAuthUI() {
             <circle cx="12" cy="15" r="2"/>
         </svg>`;
     }
+
 }
 
 export function initAuthModal() {
@@ -53,9 +57,14 @@ export function initAuthModal() {
             showAlert('Token saved', 'success');
             updateAuthUI();
 
-            // 👉 синхронизируем с вкладкой Authorization
+            // sync with tab authorization
             const authTokenField = document.querySelector('#authTokenInp');
             if (authTokenField) authTokenField.value = token;
+
+            if (state.CURRENT_REQ_ID) {
+                const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
+                if (item) openRequest(item, true);
+            }
         });
     }
 
@@ -69,6 +78,11 @@ export function initAuthModal() {
             // 👉 чистим и на вкладке Authorization
             const authTokenField = document.querySelector('#authTokenInp');
             if (authTokenField) authTokenField.value = '';
+
+            if (state.CURRENT_REQ_ID) {
+                const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
+                if (item) openRequest(item, true);
+            }
         });
     }
 
