@@ -50,6 +50,18 @@
 			"type": "default",
 			"enabled": true
 		},
+      {
+        "key": "needAuth",
+        "value": "true",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "key": "tokenName",
+        "value": "",
+        "type": "default",
+        "enabled": true
+      },
 		{
 			"key": "adminAuthToken",
 			"value": "",

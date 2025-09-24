@@ -14,8 +14,13 @@ export const el = (tag, attrs = {}, ...children) => {
     // Применяем атрибуты
     Object.entries(attrs).forEach(([k, v]) => {
         if (k === 'class' || k === 'className') {
-            n.className = v;
-        } else if (k === 'dataset') {
+            if (n instanceof SVGElement) {
+                n.setAttribute('class', v);   // SVG
+            } else {
+                n.className = v;              // HTML
+            }
+        }
+        else if (k === 'dataset') {
             Object.entries(v).forEach(([dk, dv]) => n.dataset[dk] = dv);
         } else if (k.startsWith('on') && typeof v === 'function') {
             n.addEventListener(k.slice(2), v);
@@ -646,18 +651,16 @@ export function updateVarsBtn() {
 
 const searchInput = document.getElementById('search');
 const clearBtn = document.getElementById('clearSearch');
+if (searchInput && clearBtn) {
+    searchInput.addEventListener('input', () => {
+        clearBtn.style.display = searchInput.value ? 'block' : 'none';
+    });
+    clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearBtn.style.display = 'none';
+        searchInput.focus();
+        const event = new Event('input');
+        searchInput.dispatchEvent(event);
+    });
+}
 
-// показываем крестик только если есть текст
-searchInput.addEventListener('input', () => {
-    clearBtn.style.display = searchInput.value ? 'block' : 'none';
-});
-
-// очистка по клику
-clearBtn.addEventListener('click', () => {
-    searchInput.value = '';
-    clearBtn.style.display = 'none';
-    searchInput.focus();
-    // если есть логика фильтра → дернуть её тут
-    const event = new Event('input');
-    searchInput.dispatchEvent(event);
-});

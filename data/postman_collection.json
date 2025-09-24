@@ -48,10 +48,6 @@
                     "value": "{{user-agent}}",
                     "type": "text",
                     "disabled": true
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
                   }
                 ],
                 "body": {
@@ -99,7 +95,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -130,12 +127,7 @@
                   ]
                 },
                 "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
-                  }
-                ],
+                "header": [],
                 "url": {
                   "raw": "{{driverGatewayHost}}/api/v1/driver/configuration",
                   "host": [
@@ -148,6 +140,14 @@
                     "configuration"
                   ]
                 }
+              },
+              "response": []
+            },
+            {
+              "name": "New Request",
+              "request": {
+                "method": "GET",
+                "header": []
               },
               "response": []
             }
@@ -179,7 +179,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -203,7 +204,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -264,7 +266,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -299,7 +302,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -334,7 +338,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -375,7 +380,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -425,7 +431,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -463,7 +470,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -498,7 +506,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -549,7 +558,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -573,7 +583,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -606,7 +617,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -659,7 +671,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -715,7 +728,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -748,7 +762,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{DriverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -784,6 +799,11 @@
                 "method": "GET",
                 "header": [
                   {
+                    "key": "Authorization",
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
+                  },
+                  {
                     "key": "User-Agent",
                     "value": "UklonDriverIOS/3.108.3841079",
                     "type": "text"
@@ -793,10 +813,6 @@
                     "value": "UklonDriverAndroid/311000, samsung SM-A325F, OS Version: 11",
                     "type": "text",
                     "disabled": true
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
                   }
                 ],
                 "url": {
@@ -833,7 +849,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -859,7 +876,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -894,7 +912,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -921,7 +940,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -954,7 +974,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -987,12 +1008,7 @@
               "name": "Add payment-cards",
               "request": {
                 "method": "POST",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
-                  }
-                ],
+                "header": [],
                 "url": {
                   "raw": "{{driverGatewayHost}}/api/v1/fleets/{fleet-id}/payment-cards",
                   "host": [
@@ -1023,13 +1039,14 @@
                 "method": "GET",
                 "header": [
                   {
-                    "key": "locale",
-                    "value": "ru",
+                    "key": "Authorization",
+                    "value": "Bearer {{driverAuthToken}}",
                     "type": "text"
                   },
                   {
-                    "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "key": "locale",
+                    "value": "ru",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1096,7 +1113,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1120,7 +1138,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1159,7 +1178,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1192,7 +1212,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1270,7 +1291,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1307,7 +1329,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1331,7 +1354,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1356,7 +1380,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1390,7 +1415,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1448,7 +1474,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1663,7 +1690,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1692,7 +1720,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1716,7 +1745,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1741,7 +1771,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1766,7 +1797,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1800,7 +1832,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1837,7 +1870,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1884,7 +1918,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "url": {
@@ -1921,12 +1956,7 @@
                   ]
                 },
                 "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
-                  }
-                ],
+                "header": [],
                 "url": {
                   "raw": "{{driverGatewayHost}}/api/v1/driver-onboardings",
                   "host": [
@@ -1958,7 +1988,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1999,12 +2030,7 @@
                   ]
                 },
                 "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
-                  }
-                ],
+                "header": [],
                 "url": {
                   "raw": "{{driverGatewayHost}}/api/v2/driver-onboardings?region_id=3",
                   "host": [
@@ -2042,7 +2068,8 @@
                 "header": [
                   {
                     "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
+                    "value": "Bearer {{driverAuthToken}}",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -2078,12 +2105,7 @@
               "name": "New Request",
               "request": {
                 "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{driverAuthToken}}"
-                  }
-                ]
+                "header": []
               },
               "response": []
             }
@@ -2106,7 +2128,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer {{driverAuthToken}}",
+                "type": "text"
               }
             ],
             "url": {
@@ -2129,6 +2152,11 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{driverAuthToken}}",
+                "type": "text"
+              },
+              {
                 "key": "user-agent",
                 "value": "UklonDriverAndroid/310500, google Pixel 6a, OS Version: 14",
                 "type": "text",
@@ -2138,10 +2166,6 @@
                 "key": "user-agent",
                 "value": "UklonDriverIOS/3.106.1.3748078",
                 "type": "text"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
               }
             ],
             "body": {
@@ -2174,7 +2198,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer {{driverAuthToken}}",
+                "type": "text"
               }
             ],
             "url": {
@@ -2213,13 +2238,14 @@
             "method": "GET",
             "header": [
               {
-                "key": "User-Agent",
-                "value": "UklonDriverAndroid/311400, samsung SM-A325F, OS Version: 11",
+                "key": "Authorization",
+                "value": "Bearer {{driverAuthToken}}",
                 "type": "text"
               },
               {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "key": "User-Agent",
+                "value": "UklonDriverAndroid/311400, samsung SM-A325F, OS Version: 11",
+                "type": "text"
               }
             ],
             "url": {
@@ -2240,12 +2266,7 @@
           "name": "DO - test driver",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ],
+            "header": [],
             "url": {
               "raw": "{{driverOrderingHost}}/api/test/drivers/{{driverId}}",
               "host": [
@@ -2273,7 +2294,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer {{adminTokenDev}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -2314,7 +2336,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer {{adminTokenDev}}",
+                "type": "text"
               }
             ],
             "url": {
@@ -2340,7 +2363,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer {{adminTokenDev}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -2375,7 +2399,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer {{adminTokenDev}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -2426,12 +2451,7 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ],
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"contact\": {{AdminUsername}},  \n  \"password\": {{AdminPassword}},\n  \"grant_type\": \"password\",\n  \"refresh_token\": \"string\",\n  \"client_id\": \"f26797fdc4e14b9dba64b54a381d4097\",\n  \"client_secret\": \"OKwCEVnapZ7UOJqflaoF2iLNjtUOkrnS\",\n  \"device_id\": \"5f57b42f-901e-7d17-3164-08fefd1f1e92\",\n  \"access_token_lifetime_seconds\": 0,\n  \"refresh_token_lifetime_seconds\": 0\n}",
@@ -2462,7 +2482,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer {{adminAuthToken}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -2497,7 +2518,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer {{adminAuthToken}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -2537,7 +2559,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer ",
+                "type": "text"
               }
             ],
             "body": {
@@ -2570,7 +2593,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer ",
+                "type": "text"
               }
             ],
             "body": {
@@ -2605,12 +2629,7 @@
           "name": "Approve Payonner account",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ],
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"Payee Id\": \"56ec26ab-aec5-48f5-aa49-58d9b2efac68\",\n    \"Payoneer Id\":\"\"\n}",
@@ -2641,12 +2660,7 @@
           "name": "Decline Payonner account",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ],
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"Payee Id\": \"ec45a3ef-c4fc-4053-a388-e5ec7832eac1\",\n    \"Payoneer Id\":\"\"\n}",
@@ -2702,7 +2716,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+                "value": "Bearer {{adminAuthToken}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -2735,12 +2750,7 @@
           "name": "commission-programs/participants",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ]
+            "header": []
           },
           "response": []
         },
@@ -2748,12 +2758,7 @@
           "name": "New Request",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ]
+            "header": []
           },
           "response": []
         },
@@ -2776,12 +2781,7 @@
           ],
           "request": {
             "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ],
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id\": \"4dd769c6-2385-48cd-9a00-9e0ca6608ca1\",\n  \"name\": \"Business (all func)\",\n  \"status\": \"active\",\n  \"life_time\": {\n    \"range\": [\n      1745877600,\n      1767221999\n    ]\n  },\n  \"calculation_periods\": [\n    {\n      \"range\": [\n        1745877600,\n        1746478800\n      ]\n    },\n    {\n      \"range\": [\n        1746478800,\n        1747083600\n      ]\n    },\n    {\n      \"range\": [\n        1747083600,\n        1747688400\n      ]\n    },\n    {\n      \"range\": [\n        1747688400,\n        1748293200\n      ]\n    },\n    {\n      \"range\": [\n        1748293200,\n        1748898000\n      ]\n    },\n    {\n      \"range\": [\n        1748898000,\n        1749502800\n      ]\n    },\n    {\n      \"range\": [\n        1749502800,\n        1750107600\n      ]\n    },\n    {\n      \"range\": [\n        1750107600,\n        1750712400\n      ]\n    },\n    {\n      \"range\": [\n        1750712400,\n        1751317200\n      ]\n    },\n    {\n      \"range\": [\n        1751317200,\n        1751922000\n      ]\n    },\n    {\n      \"range\": [\n        1751922000,\n        1752526800\n      ]\n    },\n    {\n      \"range\": [\n        1752526800,\n        1753131600\n      ]\n    },\n    {\n      \"range\": [\n        1753131600,\n        1753736400\n      ]\n    },\n    {\n      \"range\": [\n        1753736400,\n        1754341200\n      ]\n    },\n    {\n      \"range\": [\n        1754341200,\n        1754946000\n      ]\n    },\n    {\n      \"range\": [\n        1754946000,\n        1755550800\n      ]\n    },\n    {\n      \"range\": [\n        1755550800,\n        1756155600\n      ]\n    },\n    {\n      \"range\": [\n        1756155600,\n        1756760400\n      ]\n    },\n    {\n      \"range\": [\n        1756760400,\n        1757365200\n      ]\n    },\n    {\n      \"range\": [\n        1757365200,\n        1757970000\n      ]\n    },\n    {\n      \"range\": [\n        1757970000,\n        1758574800\n      ]\n    },\n    {\n      \"range\": [\n        1758574800,\n        1759179600\n      ]\n    },\n    {\n      \"range\": [\n        1759179600,\n        1759784400\n      ]\n    },\n    {\n      \"range\": [\n        1759784400,\n        1760389200\n      ]\n    },\n    {\n      \"range\": [\n        1760389200,\n        1760994000\n      ]\n    },\n    {\n      \"range\": [\n        1760994000,\n        1761602400\n      ]\n    },\n    {\n      \"range\": [\n        1761602400,\n        1762207200\n      ]\n    },\n    {\n      \"range\": [\n        1762207200,\n        1762812000\n      ]\n    },\n    {\n      \"range\": [\n        1762812000,\n        1763416800\n      ]\n    },\n    {\n      \"range\": [\n        1763416800,\n        1764021600\n      ]\n    },\n    {\n      \"range\": [\n        1764021600,\n        1764626400\n      ]\n    },\n    {\n      \"range\": [\n        1764626400,\n        1765231200\n      ]\n    },\n    {\n      \"range\": [\n        1765231200,\n        1765836000\n      ]\n    },\n    {\n      \"range\": [\n        1765836000,\n        1766440800\n      ]\n    },\n    {\n      \"range\": [\n        1766440800,\n        1767045600\n      ]\n    },\n    {\n      \"range\": [\n        1767045600,\n        1767221999\n      ]\n    }\n  ],\n  \"is_auto_calculation\": true,\n  \"parameters\": {\n    \"calculation_type\": \"aggregated\",\n    \"regions\": [\n      3,\n      1\n    ],\n    \"driver_rating\": {\n      \"range\": [\n        4,\n        5\n      ]\n    },\n    \"currency\": \"UAH\",\n    \"time_zone\": \"Europe/Kiev\",\n    \"orders\": {\n      \"completed\": {\n        \"count\": [\n          {\n            \"value\": 500,\n            \"range\": [\n              1,\n              3\n            ]\n          },\n          {\n            \"value\": 1000,\n            \"range\": [\n              3,\n              7\n            ]\n          },\n          {\n            \"value\": 2000,\n            \"range\": [\n              7,\n              15\n            ]\n          }\n        ]\n      },\n      \"cancelled\": {\n        \"percent\": [\n          {\n            \"range\": [\n              0,\n              75\n            ]\n          }\n        ]\n      }\n    },\n    \"distance\": null,\n    \"time\": [\n      {\n        \"range\": [\n          \"06:00:00\",\n          \"12:00:00\"\n        ]\n      },\n      {\n        \"range\": [\n          \"16:00:00\",\n          \"21:00:00\"\n        ]\n      }\n    ],\n    \"days\": [\n      \"Monday\",\n      \"Tuesday\",\n      \"Wednesday\",\n      \"Friday\"\n    ],\n    \"order_acceptance_methods\": [\n      \"ByBroadcastFilter\",\n      \"ByChain\",\n      \"ByFastSearch\",\n      \"ByHomeFilter\",\n      \"ByOfferFilter\",\n\"ByOfferLoopFilter\"\n    ],\n    \"product_types\": [\n      \"Business\",\n      \"ComfortPlus\",\n      \"CovidProtected\",\n      \"Delivery\",\n      \"Driver\",\n      \"Help\",\n      \"Inclusive\",\n      \"Premium\",\n      \"Standard\"\n    ],\n    \"fleet_types\": [\n      \"Commercial\",\n      \"Private\",\n      \"Rental\"\n    ],\n    \"fleet_withdrawal_types\": [\n      \"IndividualEntrepreneur\",\n      \"None\",\n      \"PaymentCard\"\n    ],\n    \"branding_types\": [\n      \"Business\",\n      \"Patriotic\",\n      \"YourMove\"\n    ]\n  },\n  \"created_at\": 1745914737,\n  \"updated_at\": 1745914737,\n  \"updated_by\": \"2eec5dde-562c-4b9b-b99e-24a33a0324b2\"\n}",
@@ -2813,12 +2813,7 @@
           },
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ],
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"id\": \"4dd769c6-2385-48cd-9a00-9e0ca6608ca1\",\n  \"name\": \"Business (all func)\",\n  \"status\": \"active\",\n  \"life_time\": {\n    \"range\": [\n      1745877600,\n      1767221999\n    ]\n  },\n  \"calculation_periods\": [\n    {\n      \"range\": [\n        1745877600,\n        1746478800\n      ]\n    },\n    {\n      \"range\": [\n        1746478800,\n        1747083600\n      ]\n    },\n    {\n      \"range\": [\n        1747083600,\n        1747688400\n      ]\n    },\n    {\n      \"range\": [\n        1747688400,\n        1748293200\n      ]\n    },\n    {\n      \"range\": [\n        1748293200,\n        1748898000\n      ]\n    },\n    {\n      \"range\": [\n        1748898000,\n        1749502800\n      ]\n    },\n    {\n      \"range\": [\n        1749502800,\n        1750107600\n      ]\n    },\n    {\n      \"range\": [\n        1750107600,\n        1750712400\n      ]\n    },\n    {\n      \"range\": [\n        1750712400,\n        1751317200\n      ]\n    },\n    {\n      \"range\": [\n        1751317200,\n        1751922000\n      ]\n    },\n    {\n      \"range\": [\n        1751922000,\n        1752526800\n      ]\n    },\n    {\n      \"range\": [\n        1752526800,\n        1753131600\n      ]\n    },\n    {\n      \"range\": [\n        1753131600,\n        1753736400\n      ]\n    },\n    {\n      \"range\": [\n        1753736400,\n        1754341200\n      ]\n    },\n    {\n      \"range\": [\n        1754341200,\n        1754946000\n      ]\n    },\n    {\n      \"range\": [\n        1754946000,\n        1755550800\n      ]\n    },\n    {\n      \"range\": [\n        1755550800,\n        1756155600\n      ]\n    },\n    {\n      \"range\": [\n        1756155600,\n        1756760400\n      ]\n    },\n    {\n      \"range\": [\n        1756760400,\n        1757365200\n      ]\n    },\n    {\n      \"range\": [\n        1757365200,\n        1757970000\n      ]\n    },\n    {\n      \"range\": [\n        1757970000,\n        1758574800\n      ]\n    },\n    {\n      \"range\": [\n        1758574800,\n        1759179600\n      ]\n    },\n    {\n      \"range\": [\n        1759179600,\n        1759784400\n      ]\n    },\n    {\n      \"range\": [\n        1759784400,\n        1760389200\n      ]\n    },\n    {\n      \"range\": [\n        1760389200,\n        1760994000\n      ]\n    },\n    {\n      \"range\": [\n        1760994000,\n        1761602400\n      ]\n    },\n    {\n      \"range\": [\n        1761602400,\n        1762207200\n      ]\n    },\n    {\n      \"range\": [\n        1762207200,\n        1762812000\n      ]\n    },\n    {\n      \"range\": [\n        1762812000,\n        1763416800\n      ]\n    },\n    {\n      \"range\": [\n        1763416800,\n        1764021600\n      ]\n    },\n    {\n      \"range\": [\n        1764021600,\n        1764626400\n      ]\n    },\n    {\n      \"range\": [\n        1764626400,\n        1765231200\n      ]\n    },\n    {\n      \"range\": [\n        1765231200,\n        1765836000\n      ]\n    },\n    {\n      \"range\": [\n        1765836000,\n        1766440800\n      ]\n    },\n    {\n      \"range\": [\n        1766440800,\n        1767045600\n      ]\n    },\n    {\n      \"range\": [\n        1767045600,\n        1767221999\n      ]\n    }\n  ],\n  \"is_auto_calculation\": true,\n  \"parameters\": {\n    \"calculation_type\": \"aggregated\",\n    \"regions\": [\n      3,\n      1\n    ],\n    \"driver_rating\": {\n      \"range\": [\n        4,\n        5\n      ]\n    },\n    \"currency\": \"UAH\",\n    \"time_zone\": \"Europe/Kiev\",\n    \"orders\": {\n      \"completed\": {\n        \"count\": [\n          {\n            \"value\": 500,\n            \"range\": [\n              1,\n              3\n            ]\n          },\n          {\n            \"value\": 1000,\n            \"range\": [\n              3,\n              7\n            ]\n          },\n          {\n            \"value\": 2000,\n            \"range\": [\n              7,\n              15\n            ]\n          }\n        ]\n      },\n      \"cancelled\": {\n        \"percent\": [\n          {\n            \"range\": [\n              0,\n              75\n            ]\n          }\n        ]\n      }\n    },\n    \"distance\": null,\n    \"time\": [\n      {\n        \"range\": [\n          \"06:00:00\",\n          \"12:00:00\"\n        ]\n      },\n      {\n        \"range\": [\n          \"16:00:00\",\n          \"21:00:00\"\n        ]\n      }\n    ],\n    \"days\": [\n      \"Monday\",\n      \"Tuesday\",\n      \"Wednesday\",\n      \"Friday\"\n    ],\n    \"order_acceptance_methods\": [\n      \"ByBroadcastFilter\",\n      \"ByChain\",\n      \"ByFastSearch\",\n      \"ByHomeFilter\",\n      \"ByOfferFilter\",\n\"ByOfferLoopFilter\"\n    ],\n    \"product_types\": [\n      \"Business\",\n      \"ComfortPlus\",\n      \"CovidProtected\",\n      \"Delivery\",\n      \"Driver\",\n      \"Help\",\n      \"Inclusive\",\n      \"Premium\",\n      \"Standard\"\n    ],\n    \"fleet_types\": [\n      \"Commercial\",\n      \"Private\",\n      \"Rental\"\n    ],\n    \"fleet_withdrawal_types\": [\n      \"IndividualEntrepreneur\",\n      \"None\",\n      \"PaymentCard\"\n    ],\n    \"branding_types\": [\n      \"Business\",\n      \"Patriotic\",\n      \"YourMove\"\n    ]\n  },\n  \"created_at\": 1745914737,\n  \"updated_at\": 1745914737,\n  \"updated_by\": \"2eec5dde-562c-4b9b-b99e-24a33a0324b2\"\n}",
@@ -2852,12 +2847,7 @@
           "name": "marketing",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ],
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"phone\": \"{{driverPhone}}\",\n  \"user_id\": \"{{driverId}}\",\n  \"message\": \"test\",\n  \"locale\": \"ru\",\n  \"deliver_by\": [\n    \"tcp\"\n  ],\n  \"data\": {\n    \"additionalProp1\": \"string\",\n    \"additionalProp2\": \"string\",\n    \"additionalProp3\": \"string\"\n  },\n  \"deep_link\": \"string\",\n  \"title\": \"Title test\",\n  \"tag\": \"test tag\",\n  \"category\": \"marketing\"\n}",
@@ -2886,12 +2876,7 @@
           "name": "notification-template",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ],
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message_type\": \"payoneer_ticket_declined\",\n  \"data\": {\n    \"IBAN\": \"UA12*********************7890\"\n  },\n  \"deliver_by\": [\n    \"push\"\n  ],\n  \"locale\": \"en\",\n  \"phone\": \"{{driverPhone}}\",\n  \"user_id\": \"{{driverId}}\",\n  \"count\": 1\n}",
@@ -2919,13 +2904,43 @@
         {
           "name": "New Request",
           "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{driverAuthToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"driver_id\": \"8931f13bbedd4756a6a29e46ff9b2f55\",\n\"driver_phone\": \"380989089898\",\n\"message\": \"тест повідомлення\",\n\"message_id\": \"{{generated_guid_filter}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ]
+            },
+            "url": {
+              "raw": "https://ag.dev.uklon.net/api/v1/admin/driver-messages",
+              "protocol": "https",
+              "host": [
+                "ag",
+                "dev",
+                "uklon",
+                "net"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "driver-messages"
+              ]
+            }
           },
           "response": []
         }
@@ -2938,12 +2953,7 @@
           "name": "get sectors",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{driverAuthToken}}"
-              }
-            ],
+            "header": [],
             "url": {
               "raw": "{{searchHost}}/api/v1/regions/1/sectors",
               "host": [

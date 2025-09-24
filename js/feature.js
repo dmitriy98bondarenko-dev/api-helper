@@ -6,27 +6,16 @@ import {
     buildKVTable, tableToSimpleArray,
     renderResponse, renderResponseSaved
 } from './ui.js';
-import { getGlobalBearer, loadReqState, saveReqState, clearReqState, loadScriptsLegacy, fetchWithTimeout, clampStr } from './config.js';
+import { getGlobalBearer, loadReqState, saveReqState, clearReqState, loadScriptsLegacy, fetchWithTimeout, clampStr, getVal } from './config.js';
 import { flattenItems, renderTree, setActiveRow, normalizeUrl } from './sidebar.js';
 
 import { buildVarMap, buildVarsTableBody, initVarsModal, initResetModal, updateVarsBtnCounter, initVarEditModal } from './vars.js';
 
 import { loadJson } from './state.js';
 import { state, resolveVars } from './state.js';
+import { initSidebarNav, addHistoryEntry, renderHistory } from './history.js';
 
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, state.VARS);
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 function safeBuildUrl(url, queryArr){
@@ -62,27 +51,33 @@ function detectContentType(body){
 }
 
 // ==== postman scripts ====
-function runUserScript(code, ctx){
-    const pm = makePmAdapter(ctx);
-    try {
-        const fn = new Function('ctx', `
-            "use strict";
-            const pm = arguments[1]; 
-            const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) };
-            ${code}
-        `);
-        fn(ctx, pm);
-    } catch (err) {
-        console.error("Script execution error:", err);
-        ctx._logs.push("Script error: " + err.message);
-    }
+async function runUserScript(code, ctx){
+        const pm = makePmAdapter(ctx);
+        try {
+
+            const fn = new Function('ctx','pm', `
+    "use strict";
+    const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) };
+    ${code}
+`);
+
+            fn(ctx, pm);
+                await Promise.all(ctx._promises || []);
+            if (ctx._logs.length) {
+                console.log("Script logs:", ctx._logs);
+            }
+
+            } catch (err) {
+                console.error("Script execution error:", err);
+                ctx._logs.push("Script error: " + err.message);
+            }
 }
 
 
 
 function makePreCtx({method, url, params, headers, body}){
     const ctx = {
-        _logs: [], vars: {...state.VARS}, setVar: (k,v)=>{ state.VARS[k]=v; },
+        _logs: [], _promises: [], vars: {...state.VARS}, setVar: (k,v)=>{ state.VARS[k]=v; },
         request: { method, url, params: JSON.parse(JSON.stringify(params)), headers: JSON.parse(JSON.stringify(headers)), body },
         setHeader: (k,v)=>{ ctx.request.headers[k]=v; },
         setParam: (k,v)=>{ const p=ctx.request.params.find(x=>x.key===k); if(p) p.value=v; else ctx.request.params.push({key:k,value:v}); },
@@ -106,26 +101,21 @@ function makePostCtx({request, response, error}){
     };
     return ctx;
 }
-function makePmAdapter(ctx){
-    // быстрый доступ/синхронизация переменных окружения
+function makePmAdapter(ctx) {
+    // ---- ENV helpers ----
     const setEnv = (key, value) => {
         state.VARS[key] = value;
-
-        // в in-memory ENV
         if (!state.ENV) state.ENV = { values: [] };
         if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
         const row = state.ENV.values.find(v => v.key === key);
         if (row) { row.value = value; row.enabled = true; }
         else { state.ENV.values.push({ key, value, enabled: true }); }
-
-        // пересобираем карту VARS из ENV/collection
         buildVarMap();
         try {
             const currentEnv = localStorage.getItem('selected_env') || 'dev';
             localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
         } catch {}
     };
-
     const getEnv = (key) => {
         if (Array.isArray(state.ENV?.values)) {
             const row = state.ENV.values.find(v => v.key === key && v.enabled !== false);
@@ -134,33 +124,132 @@ function makePmAdapter(ctx){
         return state.VARS[key];
     };
 
+    // ---- Response facade (для post-сценариев) ----
     const response = {
         code: ctx.response?.status ?? 0,
         text: () => ctx.response?.bodyText ?? '',
         json: () => {
             const t = ctx.response?.bodyText ?? '';
             try { return JSON.parse(t); }
-            catch(e){ throw new Error('pm.response.json() parse error: '+e.message); }
+            catch (e) { throw new Error('pm.response.json() parse error: ' + e.message); }
         }
     };
 
+    // ---- Headers API (как в Postman) ----
+    if (!ctx.request.headers || typeof ctx.request.headers !== 'object') ctx.request.headers = {};
+    const headerAPI = {
+        add({ key, value }) {
+            if (!key) return;
+            // перетираем существующий (поведение upsert)
+            const realKey = Object.keys(ctx.request.headers).find(k => k.toLowerCase() === String(key).toLowerCase());
+            ctx.request.headers[realKey || key] = value;
+        },
+        set(key, value) { this.add({ key, value }); },
+        upsert(h) { this.add(h); },
+        remove(key) {
+            if (!key) return;
+            const realKey = Object.keys(ctx.request.headers).find(k => k.toLowerCase() === String(key).toLowerCase());
+            if (realKey) delete ctx.request.headers[realKey];
+        },
+        get(key) {
+            const realKey = Object.keys(ctx.request.headers).find(k => k.toLowerCase() === String(key).toLowerCase());
+            return realKey ? { key: realKey, value: ctx.request.headers[realKey] } : undefined;
+        },
+        toJSON() {
+            return Object.entries(ctx.request.headers).map(([k, v]) => ({ key: k, value: v }));
+        }
+    };
+
+    // ---- pm facade ----
     return {
-        environment: {
-            set: setEnv,
-            get: getEnv,
-            unset: (key) => {
+        environment: { set: setEnv, get: getEnv, unset: (key) => {
                 if (!Array.isArray(state.ENV?.values)) state.ENV.values = [];
                 const idx = state.ENV.values.findIndex(v => v.key === key);
                 if (idx >= 0) state.ENV.values.splice(idx, 1);
                 delete state.VARS[key];
                 buildVarMap();
-            }
-        },
+            }},
         variables: { get: getEnv, set: setEnv },
         globals: { get: getEnv, set: setEnv },
-        collectionVariables: { get: getEnv, set: setEnv },
-        request: ctx.request,
-        response
+        collectionVariables: {
+            get: (key) => state.COLLECTION_VARS[key],
+            set: (key, value) => { state.COLLECTION_VARS[key] = value; },
+            unset: (key) => { delete state.COLLECTION_VARS[key]; }
+        },
+
+        // даём доступ к текущему запросу и возможность менять его
+        request: {
+            get method(){ return ctx.request.method; },
+            set method(v){ ctx.request.method = String(v || 'GET').toUpperCase(); },
+            get url(){ return ctx.request.url; },
+            set url(v){ ctx.request.url = String(v || ''); },
+            headers: headerAPI,
+            body: {
+                raw(){ return ctx.request.body; },
+                setRaw(v){ ctx.request.body = v; }
+            }
+        },
+
+        response,
+
+        // --- pm.sendRequest:
+        sendRequest: async (req, cb) => {
+            let url = req.url;
+            let method = req.method || 'GET';
+            let headers = req.header ? Object.fromEntries(req.header.map(h => [h.key, h.value])) : {};
+            let body;
+
+            if (req.body) {
+                if (req.body.mode === 'raw' && typeof req.body.raw !== 'undefined') {
+                    body = req.body.raw;
+                } else if (typeof req.body === 'string') {
+                    body = req.body;
+                } else if (typeof req.body === 'object' && !req.body.mode) {
+                    body = JSON.stringify(req.body);
+                    if (!headers['Content-Type'] && !headers['content-type']) {
+                        headers['Content-Type'] = 'application/json';
+                    }
+                }
+            }
+
+            if (typeof url === 'string') url = resolveVars(url);
+
+            try {
+                const res = await fetchWithTimeout(url, { method, headers, body });
+                const text = await res.text();
+
+                const resObj = {
+                    code: res.status,
+                    status: res.statusText || String(res.status),
+                    headers: Object.fromEntries(res.headers.entries()),
+                    text: () => text,
+                    json: () => { try { return JSON.parse(text); } catch (e) { throw e; } }
+                };
+
+                ctx._logs.push(`pm.sendRequest → ${method} ${url} [${res.status}]`);
+                if (typeof cb === 'function') cb(null, resObj);
+                return resObj;
+            } catch (err) {
+                console.error("pm.sendRequest error:", err);
+                ctx._logs.push(`pm.sendRequest error: ${err.message}`);
+                if (typeof cb === 'function') cb(err);
+                throw err;
+            }
+        },
+
+
+
+        // простенькие тест-хелперы, чтобы не падало
+        test: (name, fn) => {
+            try { fn(); ctx._logs.push(`Test passed: ${name}`); }
+            catch (err) { ctx._logs.push(`Test failed: ${name} - ${err.message}`); }
+        },
+        expect: (val) => ({
+            to: {
+                equal: (exp) => { if (val !== exp) throw new Error(`Expected ${val} to equal ${exp}`); },
+                notEqual: (exp) => { if (val === exp) throw new Error(`Expected ${val} not to equal ${exp}`); }
+            }
+        })
     };
 }
 
@@ -180,7 +269,7 @@ function getInitialStateForItem(item, forceDefaults = false) {
         (typeof item.request.url==='object' && Array.isArray(item.request.url.query))
             ? item.request.url.query.map(q => ({
                 key: q.key,
-                value: resolveVars(q.value ?? ''),
+                value: String(q.value ?? ''),
                 enabled: q.disabled !== true
             }))
             : []
@@ -190,7 +279,7 @@ function getInitialStateForItem(item, forceDefaults = false) {
         Array.isArray(item.request.header)
             ? item.request.header.map(h => ({
                 key: h.key,
-                value: resolveVars(h.value ?? ''),
+                value: String(h.value ?? ''),
                 enabled: h.disabled !== true
             }))
             : []
@@ -602,20 +691,50 @@ export function openRequest(item, forceDefaults = false) {
         }
 
         // PRE scripts
-        const preCode = preTA.value.trim();
-        if (preCode){
-            try{
-                const ctx = makePreCtx({method, url:finalUrl, params, headers, body});
-                runUserScript(preCode, ctx);
-                ({method} = ctx.request);
+        const preCodeAll =
+            (state.COLLECTION_SCRIPTS?.pre || '') + '\n' + (preTA.value.trim() || '');
+
+        if (preCodeAll.trim()) {
+            try {
+                const ctx = makePreCtx({ method, url: finalUrl, params, headers, body });
+                await runUserScript(preCodeAll, ctx);
+                console.log("VARS after PRE →", JSON.stringify(state.VARS, null, 2));
+                console.log("HEADERS before rebuild →", headers);
+
+                ({ method } = ctx.request);
                 finalUrl = ctx.request.url;
                 headers  = ctx.request.headers;
                 body     = ctx.request.body;
-            }catch(e){
-                renderResponse(null, 'PRE error: '+e.message, 0, finalUrl);
+
+                // пересборка с актуальными VARS
+                const paramsAfter = tableToSimpleArray(paramsTable.tBodies[0]);
+                finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), paramsAfter));
+
+                const hdrsAfterArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h => h.enabled !== false);
+                headers = Object.fromEntries(
+                    hdrsAfterArr.filter(x => x.key).map(x => [x.key, resolveVars(x.value)])
+                );
+
+                body = resolveVars($('#bodyRawArea').textContent || '');
+
+                if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
+                    const ct = detectContentType(body);
+                    if (ct) headers['Content-Type'] = ct;
+                }
+
+                console.log("HEADERS after rebuild →", headers);
+
+                if (ctx._logs.length) {
+                    console.log("PRE script logs:", ctx._logs);
+                    showAlert("PRE logs: " + ctx._logs.join(" | "), "info");
+                }
+            }
+            catch (e) {
+                renderResponse(null, 'PRE error: ' + e.message, 0, finalUrl);
                 return;
             }
         }
+
 
         showLoader(true); $('#sendBtn').disabled = true;
         const started = performance.now();
@@ -629,16 +748,22 @@ export function openRequest(item, forceDefaults = false) {
             let text = await res.text();
 
             // POST scripts
-            const postCode = postTA.value.trim();
-            if (postCode){
+            const postCodeAll =
+                (state.COLLECTION_SCRIPTS?.post || '') + '\n' + (postTA.value.trim() || '');
+
+            if (postCodeAll.trim()) {
                 try {
                     const ctxPost = makePostCtx({
-                        request:{method,url:finalUrl,headers,body},
-                        response:{ status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
+                        request: { method, url: finalUrl, headers, body },
+                        response: { status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
                     });
-                    runUserScript(postCode, ctxPost);
+                    runUserScript(postCodeAll, ctxPost);
                     if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') {
                         text = ctxPost.response.bodyText;
+                    }
+                    if (ctxPost._logs.length) {
+                        console.log("POST script logs:", ctxPost._logs);
+                        showAlert("POST logs: " + ctxPost._logs.join(" | "), "info");
                     }
                 } catch(_) {}
             }
@@ -657,6 +782,20 @@ export function openRequest(item, forceDefaults = false) {
 
 // рисуем блок респонза всегда
             renderResponse(res, text, ms, finalUrl);
+
+            addHistoryEntry({
+                method,
+                url: finalUrl,
+                body,
+                response: {
+                    status: res.status,
+                    statusText: res.statusText,
+                    headers: Object.fromEntries(res.headers.entries()),
+                    bodyText: text,
+                    url: finalUrl,
+                    timeMs: ms
+                }
+            });
 
             const respObj = {
                 status: res.status,
@@ -788,11 +927,14 @@ export function openRequest(item, forceDefaults = false) {
     };
 
 // Show saved response if any
-    if (response){
+    if (item.response) {
+        renderResponseSaved(item.response);
+    } else if (response) {
         renderResponseSaved(response);
     } else {
         $('#resPane').innerHTML = '';
     }
+
 
 }
 function toggleWelcomeCard(show) {
@@ -850,10 +992,27 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     }
 
     state.COLLECTION = collection;
+    state.COLLECTION_VARS = {};
+      if (Array.isArray(collection.variable)) {
+              collection.variable.forEach(v => {
+                      const key = v.key ?? v.name;
+                     if (key) state.COLLECTION_VARS[key] = getVal(v);
+                  });
+          }
     state.ENV = env;
     state.ITEMS_FLAT = [];
     flattenItems(collection, []);
-
+    // collection's scripts
+    state.COLLECTION_SCRIPTS = { pre: '', post: '' };
+    if (Array.isArray(collection.event)) {
+        collection.event.forEach(ev => {
+            if (ev.listen === 'prerequest') {
+                state.COLLECTION_SCRIPTS.pre += (ev.script?.exec || []).join('\n') + '\n';
+            } else if (ev.listen === 'test') {
+                state.COLLECTION_SCRIPTS.post += (ev.script?.exec || []).join('\n') + '\n';
+            }
+        });
+    }
 
 // синхронизация ENV → VARS и UI
     buildVarMap();
@@ -871,26 +1030,30 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     }
 
 
-    // Поиск/фильтр в сайдбаре
+    // search
     {
-        let filterInp = $('#search');             // основное поле
-        if (!filterInp) filterInp = $('#searchInp'); // запасной вариант
+        let filterInp = $('#search') || $('#searchInp');
 
         if (filterInp) {
             const applyFilter = () => {
                 const v = (filterInp.value || '').trim();
-                renderTree(v, { onRequestClick: openRequest });
-            };
+                const isHistoryActive = !$('#historyPane').hidden;
+
+                if (isHistoryActive) {
+                    renderHistory(v);
+                } else {
+                    renderTree(v, { onRequestClick: openRequest }); // filter
+                }
+            }
             const deb = debounce(applyFilter, 150);
-
             filterInp.addEventListener('input', deb);
-            filterInp.addEventListener('change', deb);
-
-            // если в поле уже есть текст, сразу применим фильтр
             if (filterInp.value) applyFilter();
         }
     }
-    // --- Переключение окружения (кастомный dropdown) ---
+
+
+
+    //  env dropdown
     const envDropdown = $('#envDropdown');
     if (envDropdown) {
         const envCurrent = envDropdown.querySelector('.envCurrent');
@@ -902,14 +1065,14 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         envCurrent.className = 'envCurrent ' + currentEnv;
 
 
-        // открыть/закрыть список
+        // opens env dropdown
         envCurrent.addEventListener('click', () => {
             const isOpen = envList.style.display === 'block';
             envList.style.display = isOpen ? 'none' : 'block';
             envCurrent.querySelector('.arrow').textContent = isOpen ? '▼' : '▲';
         });
 
-        // выбор окружения
+        // select env
         envList.querySelectorAll('.envOption').forEach(opt => {
             opt.addEventListener('click', async () => {
                 const envKey = opt.dataset.value; // dev / staging / prod
@@ -918,7 +1081,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
                 if (envKey === 'staging') newPath = './data/stage_environment.json';
                 if (envKey === 'prod') newPath = './data/prod_environment.json';
 
-                // --- 1. пробуем взять из LS ---
+                // 1. пробуем взять из LS ---
                 let savedEnv = null;
                 try {
                     const raw = localStorage.getItem(`pm_env_${envKey}`);
@@ -993,5 +1156,6 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
             localStorage.removeItem(k);
         }
     });
+    initSidebarNav();
 
 }
