@@ -365,6 +365,7 @@ export function initResetModal() {
     if (resetFull) {
         resetFull.addEventListener('click', () => {
             clearLocalStorage(['pm_env_', 'pm_req_'], ['selected_env', 'global_bearer']);
+            localStorage.removeItem('req_history');
             setGlobalBearer('');
             setPinnedIds([]);
             updateAuthUI();

@@ -114,7 +114,7 @@ export function renderTree(filter = '', { onRequestClick } = {}) {
                     title: (it.name ? it.name + ' • ' : '') + (urlResolved || urlRaw || '')
                 },
                 el('div', { class: 'op-method' }, method),
-                el('div', { class: 'op-path' }, displayPath || '(no url)'),
+                el('div', { class: 'op-path' },  it.name || displayPath || '(untitled)'),
                 makePinBtn(() => {
                     removePin(it.id);
                     renderTree(filter, { onRequestClick });
@@ -182,7 +182,7 @@ export function renderTree(filter = '', { onRequestClick } = {}) {
                     title: (it.name ? it.name + ' • ' : '') + (urlResolved || urlRaw || '')
                 },
                 el('div', { class: 'op-method' }, method),
-                el('div', { class: 'op-path' }, displayPath || '(no url)'),
+                el('div', { class: 'op-path' },  it.name || displayPath || '(untitled)'),
                 makePinBtn(() => {
                     addPin(it);
                     renderTree(filter, { onRequestClick });

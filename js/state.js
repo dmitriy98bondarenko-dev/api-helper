@@ -6,6 +6,7 @@ export const state = {
     ITEMS_FLAT: [],
     CURRENT_REQ_ID: null,
     CURRENT_OP_EL: null,
+    COLLECTION_SCRIPTS: { pre: '', post: '' }
 };
 export function resolveVars(str, extra={}) {
     if(typeof str!=='string') return str;
