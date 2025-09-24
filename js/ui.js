@@ -96,7 +96,7 @@ export function renderUrlWithVars(url, varsMap) {
   });
 }
 
-// Таблички KV (Params/Headers)
+// tables KV (Params/Headers)
 export function buildKVTable(rows, { onChange } = {}) {
   const t = el('table', { class: 'kvTable' });
   t.append(el('thead', {}, el('tr', {},
@@ -117,12 +117,12 @@ export function buildKVTable(rows, { onChange } = {}) {
 export function appendRow(tb, row = {}, isNew = false, onChange) {
     const tr = el('tr');
 
+
     const cb = el('input', {
         type: 'checkbox',
         'data-field': 'enabled',
-        // по умолчанию выкл; включим ниже только если и enabled=true, и оба поля непустые
-        checked: false
     });
+    cb.checked = row.enabled === true;
 
     const keyInp = el('input', {
         value: row.key ?? '',
@@ -136,21 +136,20 @@ export function appendRow(tb, row = {}, isNew = false, onChange) {
         placeholder: isNew ? 'value' : ''
     });
 
-    // инициализация чекбокса для уже существующих строк:
-    const initKeyFilled = String(row.key ?? '').trim().length > 0;
-    const initValFilled = String(row.value ?? '').trim().length > 0;
-    if (row.enabled === true && initKeyFilled && initValFilled) {
-        cb.checked = true;
-    }
-
     const removeBtn = el('button', {
-        class: 'varRemove',
+        class: 'clearPinsBtn',
         title: 'Delete row',
         onclick: () => {
             tr.remove();
             onChange && onChange();
+            const pane = tb.closest('#paneParams');
+            if (pane) {
+                pane.dispatchEvent(new Event('change', { bubbles: true }));
+            }
         }
     }, '✖');
+
+
 
     tr.append(
         el('td', { class: 'kvOn' }, el('div', { class: 'cell' }, cb)),
@@ -165,39 +164,10 @@ export function appendRow(tb, row = {}, isNew = false, onChange) {
         return keyInp.value.trim().length > 0 && valInp.value.trim().length > 0;
     }
 
-    function enforce(createNext = false) {
-        const both = keyValFilled();
 
-        // правило: если хотя бы одно поле пусто — чекбокс всегда OFF
-        if (!both) {
-            cb.checked = false;
-        } else {
-            // когда оба заполнены — можно включать чекбокс
-            // автоподстановка ON только если пользователь ещё не трогал чекбокс
-            if (!cb._touched) cb.checked = true;
-        }
-
-        // автодобавление новой строки — только если это «новая» строка,
-        // она последняя и оба поля заполнены
-        if (isNew && both && tr === tb.lastElementChild && createNext) {
-            addNewRow(tb, onChange);
-        }
-
-        onChange && onChange();
-    }
-
-    keyInp.addEventListener('input', () => enforce(true));
-    valInp.addEventListener('input', () => enforce(true));
-
-    cb.addEventListener('change', () => {
-        // не даём включить, если поля не заполнены
-        if (!keyValFilled()) {
-            cb.checked = false;
-        } else {
-            cb._touched = true; // помечаем, что юзер вручную менял чекбокс
-        }
-        onChange && onChange();
-    });
+    keyInp.addEventListener('input', () => onChange && onChange());
+    valInp.addEventListener('input', () => onChange && onChange());
+    cb.addEventListener('change', () => onChange && onChange());
 }
 
 export function addNewRow(tb, onChange) {
@@ -220,8 +190,7 @@ export function addNewRow(tb, onChange) {
         if (cbNew.checked && trNew === tb.lastElementChild) {
             addNewRow(tb, onChange);
         }
-
-        if (onChange) onChange();
+        onChange && onChange();
     };
 
     keyNew.addEventListener('input', onInput);

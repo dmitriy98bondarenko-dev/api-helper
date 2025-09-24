@@ -37,14 +37,14 @@ export function loadScriptsLegacy(id) {
   try { return JSON.parse(localStorage.getItem(scriptsKey(id)) || '{}'); } catch { return {}; }
 }
 
-// Загрузка JSON (например для ENV по умолчанию)
+
 export async function loadJson(path) {
     const resp = await fetch(path);
     if (!resp.ok) throw new Error(`Failed to load ${path}: ${resp.status}`);
     return resp.json();
 }
 
-// Очистка localStorage по префиксам и точным ключам
+// clear localStorage
 export function clearLocalStorage(prefixes = [], exactKeys = []) {
     Object.keys(localStorage).forEach(key => {
         if (prefixes.some(p => key.startsWith(p)) || exactKeys.includes(key)) {
@@ -53,11 +53,11 @@ export function clearLocalStorage(prefixes = [], exactKeys = []) {
     });
 }
 
-// Унификация получения значения переменной
+
 export function getVal(v) {
     return v?.currentValue ?? v?.value ?? v?.initialValue ?? '';
 }
-// === Request timeout helpers ===
+// request timeout helpers
 const REQUEST_TIMEOUT_MS = 15000; // 15s — при желании вынеси в конфиг
 
 export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
@@ -68,7 +68,7 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     return fetch(url, options)
         .finally(() => clearTimeout(timer));
 }
-// === Limit stored response body to prevent LS overflow ===
+
 const RESPONSE_BODY_MAX = 512 * 1024; // 512 KB — подбирается под твои нужды
 
 export function clampStr(s, max = RESPONSE_BODY_MAX) {

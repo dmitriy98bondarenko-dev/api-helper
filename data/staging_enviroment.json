@@ -1,0 +1,135 @@
+{
+  "id": "37bc5d2f-7b6e-45b2-8c31-5ec85d0bbf42",
+  "name": "staging_enviroment",
+  "values": [
+    {
+      "key": "adminUsername",
+      "value": "admin@uklon.com.ua",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "adminPassword",
+      "value": "qa",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "driverPhone",
+      "value": "380656666666",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "driverPassword",
+      "value": "Qwerty11",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "riderUserName",
+      "value": "380935513833",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "riderPassword",
+      "value": "Qwerty11",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "corporateRiderUserName",
+      "value": "test_5@tst.com",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "corporatePassword",
+      "value": "Qwerty41",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "riderId",
+      "value": "bc4c2f51-dc8f-479c-9317-53900f7ee6c7",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "driverId",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "walletId",
+      "value": "e510e0f5-036a-46d1-a178-f17194eb6429",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "promoCodeName",
+      "value": "DRIVER",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "driverGatewayHost",
+      "value": "https://driver.staging.uklon.com.ua",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "partnersIdentityHost",
+      "value": "https://partnersidentity.staging.uklon.net",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "paymentProcessorHost",
+      "value": "https://paymentprocessor.staging.uklon.net",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "partnersHost",
+      "value": "https://partners.staging.uklon.net",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "riderGatewayHost",
+      "value": "https://rider.staging.uklon.com.ua",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "adminGatewayHost",
+      "value": "https://ag.staging.uklon.com.ua",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "identityHost",
+      "value": "https://identity2.staging.uklon.net",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "internalIdentityHost",
+      "value": "https://internalidentity.staging.uklon.net",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "orderHost",
+      "value": "rider.staging.uklon.com.ua",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2025-09-24T16:01:50.512Z",
+  "_postman_exported_using": "Postman/11.30.3"
+}
