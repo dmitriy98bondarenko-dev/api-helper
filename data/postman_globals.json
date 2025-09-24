@@ -1,0 +1,33 @@
+{
+  "id": "b9e3e1f0-f3fc-4166-803e-60714be32012",
+  "values": [
+    {
+      "key": "appUid",
+      "value": "8a51ef4027d444f7bee746e1e4fb6f51",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "clientId",
+      "value": "6289de851fc726f887af8d5d7a56c635",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "fetchAuthTokensFn",
+      "value": "function fetchAuthTokens(config) {\n    pm.sendRequest({\n        url: pm.environment.get(config.host) + '/api/v1/auth',\n        method: 'POST',\n        header: [\n            { key: 'Content-Type', value: 'application/json' }\n        ],\n        body: {\n            mode: 'raw',\n            raw: JSON.stringify({\n                contact: pm.environment.get(config.username),\n                password: pm.environment.get(config.password),\n                grant_type: \"password\",\n                device_id: pm.environment.get(\"appUid\"),\n                client_id: pm.environment.get(\"clientId\")\n            })\n        }\n    }, function (error, result) {\n        if (error) {\n            console.log(`Помилка при запиті авторизації для ${config.tokenName}:`, error);\n            return;\n        }\n\n        console.log(\"Auth response:\", result.code, result.status);\n        console.log(\"Auth body:\", result.text());\n\n        if (result.code === 200) {\n            const responseJson = result.json();\n            const token = responseJson.access_token;\n\n            if (token) {\n                pm.environment.set(config.tokenName, token);\n                console.log(`Токен ${config.tokenName} збережено:`, token);\n            } else {\n                console.log(`Токен ${config.tokenName} не знайдено.`);\n            }\n        } else {\n            console.log(`Помилка ${config.tokenName}:`, result.code, result.status);\n        }\n    });\n}\n\n\n",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "deferred_filter_id",
+      "value": "185ad2f0-bbcb-471b-add2-ad5243475331",
+      "type": "any",
+      "enabled": true
+    }
+  ],
+  "name": "Globals",
+  "_postman_variable_scope": "globals",
+  "_postman_exported_at": "2025-09-24T18:13:24.211Z",
+  "_postman_exported_using": "Postman/11.64.3"
+}

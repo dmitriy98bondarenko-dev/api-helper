@@ -12,7 +12,7 @@ import { highlightJSON, saveSelection, restoreSelection } from './ui.js';
 export function buildVarMap() {
     const map = {};
 
-    // 1. Значения из коллекции (дефолты)
+    // defaults
     if (state.COLLECTION?.variable) {
         state.COLLECTION.variable.forEach(v => {
             if (!v) return;
@@ -21,15 +21,21 @@ export function buildVarMap() {
         });
     }
 
-    // 2. Переменные из ENV (перекрывают коллекцию)
+    // variables from ENV
     if (state.ENV?.values) {
         state.ENV.values.forEach(v => {
-            if (!v || v.enabled === false) return;
+            if (!v) return;
+            if (v.enabled === false) return;
             const key = v.key ?? v.name;
-            if (key) map[key] = getVal(v); // всегда перезаписываем
+            if (key) map[key] = v.value;
         });
     }
-
+    // globals
+    if (state.GLOBALS) {
+        Object.entries(state.GLOBALS).forEach(([k,v])=>{
+            map[k] = v;
+        });
+    }
     state.VARS = map;
     updateVarsBtnCounter();
     const bodyEditor = document.querySelector('#bodyRawArea');
@@ -39,6 +45,7 @@ export function buildVarMap() {
         bodyEditor.innerHTML = highlightJSON(raw);
         restoreSelection(bodyEditor, offset);
     }
+    return map;
 }
 
 export function buildVarsTableBody() {

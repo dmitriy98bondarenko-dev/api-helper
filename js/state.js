@@ -8,6 +8,7 @@ export const state = {
     CURRENT_OP_EL: null,
     COLLECTION_SCRIPTS: { pre: '', post: '' },
     COLLECTION_VARS: {},
+    GLOBALS: {}
 };
 export function resolveVars(str, extra={}) {
     if(typeof str!=='string') return str;
