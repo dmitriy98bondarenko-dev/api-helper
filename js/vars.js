@@ -392,7 +392,6 @@ export function updateVarsBtnCounter() {
     const varsModal = $('#varsModal');
     const tb = $('#varsTable tbody');
 
-    // считаем по DOM только когда модалка реально открыта и есть строки
     const canUseDom =
         !!varsModal &&
         varsModal.hidden === false &&

@@ -53,24 +53,26 @@ function getInitialStateForItem(item, forceDefaults = false) {
     const url    = saved?.url || urlRaw;
 
     const paramsInit = saved?.params ?? (
-        (typeof item.request.url==='object' && Array.isArray(item.request.url.query))
+        (typeof item.request.url === 'object' && Array.isArray(item.request.url.query))
             ? item.request.url.query.map(q => ({
                 key: q.key,
                 value: String(q.value ?? ''),
-                enabled: q.disabled !== true
+                enabled: q.disabled === true ? false : true
             }))
             : []
     );
+
 
     let headersInit = saved?.headers ?? (
         Array.isArray(item.request.header)
             ? item.request.header.map(h => ({
                 key: h.key,
                 value: String(h.value ?? ''),
-                enabled: h.disabled !== true
+                enabled: h.disabled === true ? false : true
             }))
             : []
     );
+
 
     // auto Authorization: всегда актуализируем глобальный токен
     const bearer = getGlobalBearer();
@@ -113,6 +115,8 @@ function getInitialStateForItem(item, forceDefaults = false) {
     const globalToken = getGlobalBearer() || '';
     const auth = saved?.auth ?? { type: 'bearer', token: globalToken };
     if (!auth.token) auth.token = globalToken;
+
+    console.log("headersInit →", headersInit);
 
     return {
         method, methodOrig, url,
@@ -273,23 +277,33 @@ export function openRequest(item, forceDefaults = false) {
     const headersPane= el('div', {class:'tabPane',        id:'paneHeaders'});
     const authPane   = el('div', {class:'tabPane',        id:'paneAuth'});
     const scriptsPane= el('div', {class:'tabPane',        id:'paneScripts'});
-
 // Params/Headers
     const paramsTable = buildKVTable(paramsInit, { onChange: debSave });
     paramsPane.append(el('div', {class:'kvs'}, paramsTable));
 
-    const headersTable = buildKVTable(headersInit, { onChange: debSave });
-    headersPane.append(el('div', {class:'kvs'}, headersTable));
+// rebuild URL
+    {
+        const paramsInitial = tableToSimpleArray(paramsTable.tBodies[0]);
+        const builtUrl = safeBuildUrl(url, paramsInitial);
+        urlHidden.value = builtUrl;
+        urlDisp.innerHTML = renderUrlWithVarsLocal(builtUrl);
+    }
+
+    let headersTable = buildKVTable(headersInit, { onChange: debSave });
+    const headersBox = el('div', { class: 'kvs' }, headersTable);
+    headersPane.append(headersBox);
 
 // update URL
     ['input','change'].forEach(ev=>{
         paramsPane.addEventListener(ev, () => {
             const params = tableToSimpleArray(paramsTable.tBodies[0]);
-            $('#urlInpDisplay').innerHTML = renderUrlWithVarsLocal(
-                safeBuildUrl($('#urlInp').value.trim(), params)
-            );
+            const builtUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+            urlHidden.value = builtUrl;
+            $('#urlInpDisplay').innerHTML = renderUrlWithVarsLocal(builtUrl);
+            debSave();
         });
     });
+
 
 
 // Authorization tab
@@ -379,16 +393,13 @@ export function openRequest(item, forceDefaults = false) {
 
 // подсветка переменных
     highlightMissingVars(card, state.VARS);
-    card.addEventListener('click', (e) => {
-        const t = e.target;
-        if (t.classList.contains('var-token')) {
+    document.addEventListener('click', (e) => {
+        const t = e.target.closest('.var-token');
+        if (t && window.openVarEdit) {
             const key = t.dataset.var || t.textContent.replace(/[{}]/g,'').trim();
             if (key) window.openVarEdit(key);
         }
     });
-
-
-
 
 //  подписки на изменения
     ['input','change','keyup'].forEach(ev=>{
@@ -400,7 +411,7 @@ export function openRequest(item, forceDefaults = false) {
         bodyWrap.addEventListener(ev, debSave);
     });
 
-// --- helpers & handlers (внутри openRequest) ---
+// helpers
     function getSelectedMethod(){
         return document.querySelector('.methodDropdown')?.dataset.value || 'GET';
     }
@@ -448,8 +459,6 @@ export function openRequest(item, forceDefaults = false) {
 
 
 // ==== SEND ====
-    // ==== SEND (with timeout & safe cleanup) ====
-    // ==== SEND (with timeout & safe cleanup) ====
     $('#sendBtn').onclick = async ()=>{
         debSave();
 
@@ -485,23 +494,47 @@ export function openRequest(item, forceDefaults = false) {
             try {
                 const ctx = makePreCtx({ method, url: finalUrl, params, headers, body });
                 await runUserScript(preCodeAll, ctx);
-                console.log("VARS after PRE →", JSON.stringify(state.VARS, null, 2));
-                console.log("HEADERS before rebuild →", headers);
+
 
                 ({ method } = ctx.request);
                 finalUrl = ctx.request.url;
                 headers  = ctx.request.headers;
                 body     = ctx.request.body;
 
-                // пересборка с актуальными VARS
-                const paramsAfter = tableToSimpleArray(paramsTable.tBodies[0]);
-                finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), paramsAfter));
+                let hdrsAfterArr = tableToSimpleArray(headersTable.tBodies[0]);
 
-                const hdrsAfterArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h => h.enabled !== false);
+                const fromCtx = Array.isArray(ctx.request.headers)
+                    ? ctx.request.headers
+                    : Object.entries(ctx.request.headers || {}).map(([k, v]) => ({
+                        key: k,
+                        value: v,
+                        enabled: true
+                    }));
+
+                fromCtx.forEach(h => {
+                    if (!h || !h.key) return;
+                    const idx = hdrsAfterArr.findIndex(x => x.key.toLowerCase() === h.key.toLowerCase());
+                    if (idx === -1) {
+                        hdrsAfterArr.push({ key: h.key, value: h.value, enabled: h.enabled !== false });
+                    } else {
+                        hdrsAfterArr[idx].value = h.value;
+                        hdrsAfterArr[idx].enabled = h.enabled !== false;
+                    }
+                });
+
+                // rebuilding the table UI
+                headersTable = buildKVTable(hdrsAfterArr, { onChange: debSave });
+                headersBox.replaceChildren(headersTable);
+
+                // rebuilding headers-объект
                 headers = Object.fromEntries(
-                    hdrsAfterArr.filter(x => x.key).map(x => [x.key, resolveVars(x.value)])
+                    hdrsAfterArr.filter(h => h.enabled !== false && h.key)
+                        .map(h => [h.key, resolveVars(h.value)])
                 );
 
+                // Rebuilding URL/Body
+                const paramsAfter = tableToSimpleArray(paramsTable.tBodies[0]);
+                finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), paramsAfter));
                 body = resolveVars($('#bodyRawArea').textContent || '');
 
                 if (!Object.keys(headers).some(h => h.toLowerCase() === 'content-type')) {
@@ -556,18 +589,15 @@ export function openRequest(item, forceDefaults = false) {
             }
 
             const ms = performance.now() - started;
-
-// если сервер ответил ошибкой (например 503)
+            // if response code is 503
             if (!res.ok) {
                 showAlert('Request failed', 'error');
 
-                // если пустое тело — подставляем statusText
                 if (!text.trim()) {
                     text = res.statusText || 'Error';
                 }
             }
-
-// рисуем блок респонза всегда
+            // show response body
             renderResponse(res, text, ms, finalUrl);
 
             addHistoryEntry({
@@ -603,7 +633,7 @@ export function openRequest(item, forceDefaults = false) {
                 statusText = 'Timeout';
             }
             else if (errMsg.includes('Failed to fetch')) {
-                // Сами эмулируем ответ 503
+                // mock 503
                 errMsg = 'Request blocked by CORS or network error';
                 statusText = 'Service Unavailable';
 
@@ -632,11 +662,9 @@ export function openRequest(item, forceDefaults = false) {
                 return;
             }
 
-
-            // показываем короткий алерт
             showAlert('Request failed', 'error');
 
-            // формируем фейковый ответ для блока Response
+            // fake response
             const fakeRes = {
                 ok: false,
                 status: 0,
@@ -747,10 +775,10 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         return;
     }
 
-    // если всё ок, скрываем welcome
+    // hide if collection is already shown
     toggleWelcomeCard(false);
 
-    // читаем окружение из LS или ставим dev
+    // read env from LS
     let currentEnv = localStorage.getItem('selected_env') || 'dev';
     let savedEnv = null;
 
@@ -761,15 +789,15 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
     let env;
     if (savedEnv && Array.isArray(savedEnv.values)) {
-        // если окружение есть в LS → используем
+        // if env has in LS → use
         env = savedEnv;
     } else {
         try {
             if (currentEnv === 'dev') {
-                // для dev всегда пытаемся загрузить файл
+                // for dev always download
                 env = await loadJson('./data/dev_environment.json');
             } else {
-                // для stage/prod файла нет → создаём пустой
+                // for stage/prod if file doesnt exs → create empty
                 env = { values: [] };
                 localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(env));
             }
@@ -816,7 +844,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         });
     }
 
-// синхронизация ENV → VARS и UI
+// sync ENV → VARS and UI
     buildVarMap();
     updateVarsBtnCounter();
     renderTree('', { onRequestClick: openRequest });
@@ -883,7 +911,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
                 if (envKey === 'staging') newPath = './data/staging_enviroment.json';
                 if (envKey === 'prod') newPath = './data/prod_environment.json';
 
-                // 1. пробуем взять из LS ---
+                //  try LS
                 let savedEnv = null;
                 try {
                     const raw = localStorage.getItem(`pm_env_${envKey}`);
@@ -891,10 +919,10 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
                 } catch {}
 
                 if (savedEnv && Array.isArray(savedEnv.values)) {
-                    // --- 2. если есть кастомное окружение — используем его ---
+                    // if env
                     state.ENV = savedEnv;
                 } else {
-                    // --- 3. иначе пробуем загрузить JSON ---
+                    // if not try load from file
                     try {
                         const newEnv = await loadJson(newPath);
                         state.ENV = newEnv;
@@ -906,7 +934,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
                     }
                 }
 
-                // --- 4. обновляем LS и UI ---
+                // update LS and UI
                 localStorage.setItem('selected_env', envKey);
 
                 buildVarMap();
@@ -931,7 +959,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         });
 
 
-        // закрывать при клике вне
+        // close env dropdown
         document.addEventListener('keydown', (e)=>{
             if (e.key==='Escape') {
                 envList.style.display = 'none';
@@ -939,7 +967,6 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
             }
         });
     }
-
 
 
     if (autoOpenFirst && state.ITEMS_FLAT[0]) {

@@ -105,28 +105,36 @@ export function makePmAdapter(ctx) {
         }
     };
 
+     //  Headers API (как в Postman)
     // ---- Headers API (как в Postman) ----
-    if (!ctx.request.headers || typeof ctx.request.headers !== 'object') ctx.request.headers = {};
+    if (!Array.isArray(ctx.request.headers)) ctx.request.headers = [];
+
     const headerAPI = {
         add({ key, value }) {
             if (!key) return;
-            // перетираем существующий (поведение upsert)
-            const realKey = Object.keys(ctx.request.headers).find(k => k.toLowerCase() === String(key).toLowerCase());
-            ctx.request.headers[realKey || key] = value;
+            // ищем существующий хедер (case-insensitive)
+            const idx = ctx.request.headers.findIndex(h => String(h.key).toLowerCase() === String(key).toLowerCase());
+            if (idx >= 0) {
+                ctx.request.headers[idx].value = value;
+                ctx.request.headers[idx].enabled = true;
+            } else {
+                ctx.request.headers.push({ key, value, enabled: true });
+            }
         },
         set(key, value) { this.add({ key, value }); },
         upsert(h) { this.add(h); },
         remove(key) {
             if (!key) return;
-            const realKey = Object.keys(ctx.request.headers).find(k => k.toLowerCase() === String(key).toLowerCase());
-            if (realKey) delete ctx.request.headers[realKey];
+            ctx.request.headers = ctx.request.headers.filter(
+                h => String(h.key).toLowerCase() !== String(key).toLowerCase()
+            );
         },
         get(key) {
-            const realKey = Object.keys(ctx.request.headers).find(k => k.toLowerCase() === String(key).toLowerCase());
-            return realKey ? { key: realKey, value: ctx.request.headers[realKey] } : undefined;
+            const row = ctx.request.headers.find(h => String(h.key).toLowerCase() === String(key).toLowerCase());
+            return row ? { key: row.key, value: row.value } : undefined;
         },
         toJSON() {
-            return Object.entries(ctx.request.headers).map(([k, v]) => ({ key: k, value: v }));
+            return ctx.request.headers.map(h => ({ key: h.key, value: h.value }));
         }
     };
 
