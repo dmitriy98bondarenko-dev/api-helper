@@ -119,7 +119,7 @@ search:focus ~ .searchIcon,
 }
 
 .history-col {
-    width: 300px;              /* фиксированная ширина */
+    width: 300px;
     border-right: 1px solid var(--divider);
     background: var(--panel);
     display: flex;
@@ -131,33 +131,74 @@ search:focus ~ .searchIcon,
     overflow-y: auto;
     padding: 4px;
 }
-
 .navSwitch {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    padding: 12px 0;
+    gap: 8px;
+    padding: 16px 0;
     border-right: 1px solid var(--divider);
     background: var(--panel);
-    height: 100%;         /* растянуть по высоте aside */
+    height: 100%;
 }
 
 .navBtn {
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
     background: transparent;
     cursor: pointer;
+    position: relative;
+    color: var(--muted);
+    transition: color 0.2s ease, background 0.2s ease;
+    border-radius: 4px; /* меньше скругление */
+}
+
+
+.navBtn svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 1.8;
+    transition: stroke 0.2s ease;
+}
+
+.navBtn:hover {
+    background: var(--soft);
+    color: var(--fg);
 }
 
 .navBtn.active {
-    background: var(--soft);
-    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--fg);
 }
+
+[data-theme="dark"] .navBtn.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.navBtn.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;              /* тянем на всю высоту */
+    bottom: 0;
+    width: 3px;
+    border-radius: 0 2px 2px 0; /* лёгкое закругление только справа */
+    background: #6366F1;
+}
+
+.navBtn.active svg {
+    stroke: #0a0d14;
+}
+
+[data-theme="dark"] .navBtn.active svg {
+    stroke: #fff; /* белые иконки в темной теме */
+}
+
 .historyGroup {
     margin: 10px 0;
 }
@@ -334,3 +375,40 @@ search:focus ~ .searchIcon,
 .toggleArrow.collapsed {
     transform: rotate(-90deg);
 }
+
+.pinBtn {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+    color: #cecccc;
+    opacity: 0.4;
+    transition: color 0.2s, opacity 0.2s;
+}
+
+.pinBtn.active  { color: #cecccc; opacity: 1; }
+.pinBtn:hover { color: #dc2626; }
+
+.arrowIcon svg { fill: currentColor; }
+
+.unpinBtn {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--muted);
+    opacity: 0.6;
+    cursor: pointer;
+    padding: 2px;
+    transition: color .2s, opacity .2s;
+}
+.unpinBtn.active { opacity: 1; color: var(--err); }
+.unpinBtn:hover  { opacity: 1; color: #dc2626; }  /* красный при наведении */
+

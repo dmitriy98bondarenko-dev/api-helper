@@ -1,0 +1,108 @@
+button.send {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 12px 18px;
+    border: none;
+    border-radius: 6px;
+
+    background-color: #0b6cff;
+    outline: 2px solid #0b6cff;
+    outline-offset: -2px;
+
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, outline 0.3s ease;
+}
+
+button.send .text {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    transition: color 0.3s ease;
+}
+
+button.send svg {
+    width: 20px;
+    height: 20px;
+    stroke: #fff;
+    transition: stroke 0.3s ease;
+}
+
+button.send:hover {
+    color: #fff;
+    background-color: #0051cd;
+    outline-color: #0051cd;
+}
+
+.send.button:hover .text {
+    color: #0b6cff;
+}
+.ctDropdown {
+    position: relative;
+    display: inline-block;
+    min-width: 200px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.ctCurrent {
+    background: var(--panel);
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ctCurrent:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(11,108,255,0.1);
+}
+
+.ctArrow {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 8px;
+    transition: transform 0.2s ease;
+}
+
+.ctDropdown.open .ctArrow {
+    transform: rotate(180deg);
+}
+
+.ctList {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--panel);
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    z-index: 20;
+    overflow: hidden;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.ctOption {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ctOption:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+

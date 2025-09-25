@@ -177,7 +177,7 @@
     box-sizing: border-box;
     transition: border-color 0.2s, color 0.2s;/* ---------- Theme tokens ---------- */
     :root{
-        --bg:#f6f8fb; --panel:#ffffff; --muted:#6b7280; --fg:#0a0d14; --accent:#0b6cff;
+        --bg:#f6f8fb; --panel:#ffffff; --muted:#6b7280; --fg:#0a0d14; --accent: #6c6c70;
         --ok:#16a34a; --warn:#b45309; --err:#dc2626; --divider:#e5e7eb; --code:#0f172a;
         --soft:#f9fafb; --ink:#0b1220; --pill:#ffffff;
         --chip-bg:#f3f4f6; --chip-bg-2:#ffefd2; --chip-fg:#8a5a00;
@@ -196,7 +196,7 @@
         --fg:#e5e7eb;
         --ink:#f9fafb;
         --divider:#2d3748;
-        --accent:#3b82f6;
+        --accent: #6c6c70;
 
         --ok:#22c55e;
         --warn:#eab308;
@@ -532,70 +532,6 @@ pre {
     white-space: nowrap;
     border: 0;
 }
-/* === Modal for variable edit (styled, как на скрине 2) === */
-#varEditModal.modal {
-    background: rgba(2, 6, 23, .58);
-    backdrop-filter: saturate(1.2) blur(2px);
-}
-html:has(#varEditModal:not([hidden])) { overflow: hidden; }
-
-#varEditModal .modalCard {
-    width: 420px;
-    max-width: 92vw;
-    padding: 20px 24px;
-    border-radius: 12px;
-    border: 1px solid var(--divider);
-    background: var(--panel);
-    box-shadow: 0 20px 60px rgba(0,0,0,.18);
-}
-
-#varEditModal .modalCard h3 {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0 0 14px 0;
-    color: var(--ink);
-}
-
-#varEditModal .row {
-    display: block;
-    margin: 10px 0;
-}
-#varEditModal .row input {
-    width: 100%;
-    height: 44px;
-    padding: 10px 12px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 14px;
-    border-radius: 8px;
-    border: 1px solid var(--divider);
-    background: #0000;
-    color: var(--fg);
-}
-
-#varEditModal .modalActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 18px;
-}
-#varEditModal .modalActions button {
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-}
-#varEditModal #varEditCancel {
-    background: var(--panel);
-    color: var(--fg);
-    border: 1px solid var(--divider);
-}
-#varEditModal #varEditSave {
-    background: #10b981;
-    color: #fff;
-    border: none;
-}
-#varEditModal #varEditSave:hover { filter: brightness(1.05); }
 
 /* общий JSON стиль */
 .json-key    { color:#569CD6; font-weight:500; }

@@ -3,7 +3,7 @@
     /* Базовые цвета */
     --bg:#f6f8fb; --panel:#fff; --soft:#f9fafb;
     --fg:#0a0d14; --ink:#0b1220; --muted:#6b7280;
-    --accent:#0b6cff; --divider:#e5e7eb; --code:#0f172a;
+    --accent: #6c6c70; --divider:#e5e7eb; --code:#0f172a;
 
     /* Состояния */
     --ok:#16a34a; --warn:#b45309; --err:#dc2626;
@@ -25,7 +25,7 @@
     /* Базовые цвета */
     --bg:#0d1117; --panel:#161b22; --soft:#1f2937;
     --fg:#e5e7eb; --ink:#f9fafb; --muted:#9ca3af;
-    --accent:#3b82f6; --divider: #2d4448;
+    --accent: #6c6c70; --divider: #2d4448;
 
     /* Состояния */
     --ok:#22c55e; --warn:#eab308; --err:#f87171;

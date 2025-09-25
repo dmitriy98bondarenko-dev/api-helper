@@ -38,13 +38,6 @@ export function buildVarMap() {
     }
     state.VARS = map;
     updateVarsBtnCounter();
-    const bodyEditor = document.querySelector('#bodyRawArea');
-    if (bodyEditor) {
-        const raw = bodyEditor.textContent || '';
-        const offset = saveSelection(bodyEditor);
-        bodyEditor.innerHTML = highlightJSON(raw);
-        restoreSelection(bodyEditor, offset);
-    }
     return map;
 }
 
@@ -174,6 +167,7 @@ function refreshVarsUI() {
     if (typeof updateVarsBtn === 'function') updateVarsBtn();
     updateVarsBtnCounter();
     syncRemoveButtons();
+    refreshBodyEditorHighlight();
 }
 
 function saveEnvToLocal() {
@@ -249,7 +243,7 @@ export function initVarsModal() {
             valInp.addEventListener('input', autoToggle);
 
             const delBtn = el('button', {
-                class: 'varRemove',
+                class: 'clearPinsBtn',
                 title: 'Delete',
                 onclick: () => {
                     tr.remove();                 // временные строки просто убираем из DOM
@@ -305,6 +299,8 @@ export function initVarsModal() {
                     buildVarsTableBody();
 
                     showAlert(`Imported ${json.values.length} variables`, 'success');
+                    jsonDropdown.classList.remove('open');
+                    dropdownContent.style.display = 'none';
                 } catch (err) {
                     console.error(err);
                     showAlert('Failed to import JSON: ' + err.message, 'error');
@@ -355,6 +351,8 @@ export function initResetModal() {
             buildVarMap();
             updateVarsBtnCounter();
             refreshCurrentRequest();
+            refreshBodyEditorHighlight();
+            highlightMissingVars(document, state.VARS);
 
             resetModal.hidden = true;
             showAlert('Environments and authorization reset. Default DEV loaded.', 'success');
@@ -379,6 +377,8 @@ export function initResetModal() {
 
             resetModal.hidden = true;
             updateVarsBtnCounter();
+            refreshBodyEditorHighlight();
+            highlightMissingVars(document, state.VARS);
             showAlert('Full reset completed. Please reload the page…', 'success');
 
             setTimeout(() => location.reload(), 500);
@@ -513,4 +513,65 @@ export function initVarEditModal() {
 
     // expose globally, чтобы вызывать из feature.js
     window.openVarEdit = openVarEdit;
+}
+// --- JSON dropdown menu ---
+const varsImportBtn = document.querySelector('#varsImportBtn');
+const varsExportBtn = document.querySelector('#varsExportBtn');
+const jsonDropdown = document.querySelector('.dropdown');
+const jsonMenuBtn  = jsonDropdown?.querySelector('.jsonMenuBtn'); // берем именно внутри dropdown
+const dropdownContent = jsonDropdown?.querySelector('.dropdown-content');
+
+if (jsonDropdown && jsonMenuBtn && dropdownContent) {
+    jsonMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        jsonDropdown.classList.toggle('open');
+        dropdownContent.style.display = jsonDropdown.classList.contains('open') ? 'flex' : 'none';
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!jsonDropdown.contains(e.target)) {
+            jsonDropdown.classList.remove('open');
+            dropdownContent.style.display = 'none';
+        }
+    });
+}
+
+// --- Export JSON ---
+if (varsExportBtn) {
+    varsExportBtn.addEventListener('click', () => {
+        const currentEnv = localStorage.getItem('selected_env') || 'dev';
+        const env = { values: state.ENV?.values || [] };
+        const blob = new Blob([JSON.stringify(env, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${currentEnv}_environment.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        showAlert(`Exported ${currentEnv}_environment.json`, 'success');
+        jsonDropdown.classList.remove('open');
+        dropdownContent.style.display = 'none';
+    });
+}
+
+// --- Modal close buttons ---
+document.querySelectorAll('.modalClose').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const modal = btn.closest('.modal');
+        if (modal) modal.hidden = true;
+    });
+});
+
+// Highlight Request Body
+export function refreshBodyEditorHighlight() {
+    const bodyEditor = document.querySelector('#bodyRawArea');
+    if (!bodyEditor) return;
+
+    const raw = bodyEditor.textContent || '';
+    const offset = saveSelection(bodyEditor);
+    bodyEditor.innerHTML = highlightJSON(raw);
+    restoreSelection(bodyEditor, offset);
 }

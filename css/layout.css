@@ -1,4 +1,3 @@
-/* === Base === */
 * { box-sizing: border-box; }
 
 body {
@@ -185,23 +184,26 @@ textarea.code {
 }
 .kvs { padding: 10px 12px; }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    background: transparent;
+
+th:last-child, td:last-child {
+    width: 40px;
+    text-align: center;
+    padding: 0;
 }
-th, td {
-    padding: 8px;
-    border-bottom: 1px solid var(--divider);
+
+td:last-child button.varRemove {
+    background: none;
+    border: none;
+    color: #dc2626;
+    font-size: 16px;
+    cursor: pointer;
+    line-height: 1;
 }
-th {
-    color: var(--muted);
-    background: var(--soft);
-    text-align: left;
-    position: sticky; top: 0; z-index: 2;
-    box-shadow: 0 2px 0 var(--divider);
+
+td:last-child button.varRemove:hover {
+    filter: brightness(0.9);
 }
+
 .actions {
     display: flex; gap: 8px;
     padding: 10px 12px;
@@ -354,43 +356,6 @@ th {
 .node.collapsed .folderContent {
     display: none;
 }
-
-.pinBtn {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    border: none;
-    background: transparent;
-    font-size: 16px;
-    line-height: 1;
-    padding: 0 4px;
-    cursor: pointer;
-    color: #b6b6b6;     /* серый по умолчанию */
-    opacity: 0.4;       /* светлый по умолчанию */
-    transition: color 0.2s, opacity 0.2s;
-}
-
-.pinBtn.active  { color: #cecccc; opacity: 1; }
-.pinBtn:hover { color: #dc2626; } /* красный при наведении */
-
-.arrowIcon svg { fill: currentColor; }
-
-.unpinBtn {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    color: var(--muted);
-    opacity: 0.6;
-    cursor: pointer;
-    padding: 2px;
-    transition: color .2s, opacity .2s;
-}
-.unpinBtn.active { opacity: 1; color: var(--err); }
-.unpinBtn:hover  { opacity: 1; color: #dc2626; }  /* красный при наведении */
-
 
 .clearPinsBtn {
     order: 2;

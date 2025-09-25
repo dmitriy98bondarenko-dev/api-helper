@@ -254,6 +254,7 @@ export function openRequest(item, forceDefaults = false) {
         // --- URL (editable + hidden) ---
         el('div', { class: 'urlWrap' }, urlDisp, urlHidden),
 
+
         // --- Send button ---
         el('button', { id: 'sendBtn', class: 'send' }, 'Send')
     );
@@ -330,6 +331,49 @@ export function openRequest(item, forceDefaults = false) {
 
 // Body
     const bodyWrap = el('div', {class:'reqBodyWrap'});
+    // список Content-Type'ов
+    const ctOptions = [
+        { value: 'auto', label: 'Auto detect' },
+        { value: 'application/json', label: 'JSON' },
+        { value: 'application/x-www-form-urlencoded', label: 'Form URL Encoded' },
+        { value: 'multipart/form-data', label: 'Multipart Form Data' },
+        { value: 'text/plain', label: 'Text' },
+        { value: 'application/xml', label: 'XML' },
+        { value: 'application/octet-stream', label: 'Binary' }
+    ];
+
+// контейнер
+    const ctWrap = el('div', { class: 'ctDropdown', dataset: { value: 'auto' } });
+
+// выбранный элемент + стрелка
+    const ctCurrent = el('div', { class: 'ctCurrent' },
+        'Auto detect ',
+        el('span', { class: 'ctArrow' }, '▼')
+    );
+    ctWrap.append(ctCurrent);
+
+// список
+    const ctList = el('div', { class: 'ctList', style: 'display:none;' });
+    ctOptions.forEach(opt => {
+        const optEl = el('div', {
+            class: 'ctOption',
+            onclick: () => {
+                ctCurrent.childNodes[0].textContent = opt.label + ' '; // обновляем текст (до стрелки)
+                ctWrap.dataset.value = opt.value;
+                ctList.style.display = 'none';
+                ctCurrent.querySelector('.ctArrow').textContent = '▼';
+            }
+        }, opt.label);
+        ctList.append(optEl);
+    });
+    ctWrap.append(ctList);
+
+// поведение (открыть/закрыть)
+    ctCurrent.onclick = () => {
+        const isOpen = ctList.style.display === 'block';
+        ctList.style.display = isOpen ? 'none' : 'block';
+        ctCurrent.querySelector('.ctArrow').textContent = isOpen ? '▼' : '▲';
+    };
     const bodyToolbar = el('div', {class:'reqBodyToolbar'},
         el('span', {}, 'Request body'),
         el('button', {class:'beautify', id:'beautifyBtn'}, 'Beautify JSON'),
@@ -340,6 +384,7 @@ export function openRequest(item, forceDefaults = false) {
                 saveReqState(state.CURRENT_REQ_ID, { body: '' });
             }
         }, 'Clear'),
+        ctWrap,
         el('span', {class:'small muted'}, '(Content-Type will be set automatically if missing)')
     );
 
@@ -482,9 +527,11 @@ export function openRequest(item, forceDefaults = false) {
         }
 
         if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
-            const ct = detectContentType(body);
+            const ctSelVal = document.querySelector('.ctDropdown')?.dataset.value || 'auto';
+            const ct = ctSelVal === 'auto' ? detectContentType(body) : ctSelVal;
             if (ct) headers['Content-Type'] = ct;
         }
+
 
         // PRE scripts
         const preCodeAll =
@@ -986,5 +1033,16 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         }
     });
     initSidebarNav();
+// close all dropdowns on tap
+    document.addEventListener('click', (e) => {
+        document.querySelectorAll('.methodDropdown, .envDropdown, .ctDropdown, .dropdown').forEach(drop => {
+            if (!drop.contains(e.target)) {
+                const list = drop.querySelector('.methodList, .envList, .ctList, .dropdown-content');
+                const arrow = drop.querySelector('.arrow, .ctArrow');
+                if (list) list.style.display = 'none';
+                if (arrow) arrow.textContent = '▼';
+            }
+        });
+    });
 
 }
