@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="./css/alert.css">
     <link rel="stylesheet" href="./css/responce.css">
     <link rel="stylesheet" href="./css/sidebar.css">
+    <link rel="stylesheet" href="./css/modals.css">
+    <link rel="stylesheet" href="./css/requestBody.css">
 <title>API Helper</title>
 </head>
 <body>
@@ -101,7 +103,10 @@
   <!-- Authorize modal -->
   <div id="authModal" class="modal" hidden>
     <div class="modalCard">
-      <h3>Authorize</h3>
+        <div class="modalHeader">
+            <h3>Authorize</h3>
+            <button class="modalClose"aria-label="Close">&times;</button>
+        </div>
       <div class="row">
           <label for="authToken" class="visually-hidden">Bearer token</label>
           <input id="authToken" placeholder="Bearer token" />
@@ -119,17 +124,41 @@
 <!-- Variables modal -->
   <div id="varsModal" class="modal" hidden>
     <div class="modalCard">
-      <h3>Environment variables</h3>
+        <div class="modalHeader">
+            <h3>Environment variables</h3>
+            <button class="modalClose"aria-label="Close">&times;</button>
+        </div>
       <div class="kvs" style="max-height:42vh; overflow:auto; border:1px solid var(--divider); border-radius:10px">
         <table id="varsTable" class="varsTable">
           <thead>
-            <tr><th style="width:40%">Key</th><th>Value</th><th style="width:80px">On</th></tr>
+            <tr><th style="width:40%">Key</th><th>Value</th><th style="width:80px">On</th><th>Delete</th></tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
       <div class="modalActions">
-        <button id="varsImportBtn" type="button">Import JSON</button>
+          <div class="dropdown">
+              <button class="jsonMenuBtn">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
+                  </svg>
+                  JSON
+              </button>
+              <div class="dropdown-content">
+                  <button id="varsImportBtn">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                      </svg>
+                      Import JSON
+                  </button>
+                  <button id="varsExportBtn">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                      </svg>
+                      Export JSON
+                  </button>
+              </div>
+          </div>
           <button id="varsAdd" class="varAdd">+ Add variable</button>
           <button id="varsCancel">Cancel</button>
         <button id="varsSave" class="auth-ok">Save</button>
@@ -138,10 +167,12 @@
   </div>
   
 <!-- Variable edit modal -->
-  <!-- Variable edit modal -->
   <div id="varEditModal" class="modal" hidden>
       <div class="modalCard" style="max-width:420px">
-          <h3 id="varEditTitle">Edit variable</h3>
+          <div class="modalHeader">
+          <h3>Environment variables</h3>
+          <button class="modalClose"aria-label="Close">&times;</button>
+      </div>
           <div class="row">
               <input id="varEditValue" placeholder="Value…" />
           </div>
@@ -164,7 +195,10 @@
 <!-- Reset modal -->
   <div id="resetModal" class="modal" hidden>
     <div class="modalCard" style="max-width:420px;">
-      <h3>Reset options</h3>
+        <div class="modalHeader">
+            <h3>Reset options</h3>
+            <button class="modalClose" aria-label="Close">&times;</button>
+        </div>
       <p style="margin: 12px 0 18px; color:var(--muted);">
         Choose what you want to reset.
       </p>
@@ -193,6 +227,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
       </symbol>
   </svg>
+
   <script type="module" src="./js/app.js"></script>
 </body>
 </html>
