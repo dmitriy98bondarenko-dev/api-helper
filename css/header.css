@@ -1,0 +1,69 @@
+/* Базовый стиль */
+.authBtn,
+#varsBtn,
+.envCurrent {
+    border-radius: 6px 6px 6px 6px;
+    padding: 10px 16px;
+    background: #dcdcdf;
+    color: #6B7280;
+    border: none;
+    cursor: pointer;
+}
+
+/* ===== Светлая тема ===== */
+[data-theme="light"] .authBtn,
+[data-theme="light"] #varsBtn,
+[data-theme="light"] .envCurrent {
+    --btn-bg: #374151;
+    --btn-fg: #374151;
+}
+[data-theme="light"] .authBtn:hover,
+[data-theme="light"] #varsBtn:hover,
+[data-theme="light"] .envCurrent:hover {
+    background: #E5E7EB; /* hover - чуть темнее */
+}
+
+/* Активная кнопка в светлой теме */
+[data-theme="light"] .authBtn.active,
+[data-theme="light"] #varsBtn.active,
+[data-theme="light"] .envCurrent.active {
+    background: #E5E7EB; /* светло-серый */
+    border: 1px solid #D1D5DB; /* аккуратная рамка */
+    color: #111827; /* более контрастный текст */
+}
+
+/* Замочек */
+.authBtn .lockIcon {
+    width: 18px;
+    height: 18px;
+    fill: currentColor; /* по умолчанию как текст */
+    transition: fill 0.2s;
+}
+.authBtn.active .lockIcon {
+    fill: #6B7280; /* фиолетовый при активной */
+}
+
+/* ===== Тёмная тема ===== */
+[data-theme="dark"] .authBtn,
+[data-theme="dark"] #varsBtn,
+[data-theme="dark"] .envCurrent {
+
+    background: #374151;
+    color: #fff;
+}
+[data-theme="dark"] .authBtn:hover,
+[data-theme="dark"] #varsBtn:hover,
+[data-theme="dark"] .envCurrent:hover {
+    --btn-bg: #1F2937;
+    --btn-fg: #D1D5DB;
+}
+[data-theme="dark"] .authBtn.active,
+[data-theme="dark"] #varsBtn.active,
+[data-theme="dark"] .envCurrent.active {
+    background: #4B5563;
+    border: 1px solid #6B7280;
+    color: #fff;
+}
+[data-theme="dark"] .authBtn.active .lockIcon {
+    fill: #6366f1; /* тоже фиолетовый */
+}

@@ -23,6 +23,37 @@ import {
     makePostCtx
 } from './scriptEngine.js';
 
+function copyCurl(paramsTable, headersTable, getSelectedMethod) {
+    const m = getSelectedMethod();
+    const params = tableToSimpleArray(paramsTable.tBodies[0]);
+    const finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), params));
+    const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+    const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
+
+    const authTypeEl = $('#authType');
+    const authTokenEl = $('#authTokenInp');
+    const authType = authTypeEl?.value;
+    const authToken = authTokenEl?.value.trim();
+
+    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')) {
+        if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
+        else if (getGlobalBearer()) hdrs['Authorization'] = 'Bearer ' + getGlobalBearer();
+    }
+
+    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')) {
+        const ct = detectContentType($('#bodyRawArea').textContent || '');
+        if (ct) hdrs['Content-Type'] = ct;
+    }
+
+    const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').textContent || '');
+    const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
+    const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
+    const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
+
+    navigator.clipboard.writeText(cmd);
+    showAlert('cURL copied', 'success');
+}
+
 function safeBuildUrl(url, queryArr){
     const raw = url || '';
     const hashIdx = raw.indexOf('#');
@@ -200,6 +231,29 @@ export function openRequest(item, forceDefaults = false) {
         debSave();
     });
 
+    // Send button + Dropdown
+    const sendGroup = el('div', { class: 'sendGroup' },
+        el('button', { id: 'sendBtn', class: 'sendMain' }, 'Send'),
+        el('button', { id: 'sendDropdownBtn', class: 'sendDropdown' },
+            el('span', { class: 'arrow' }, '▼')
+        ),
+        el('div', { id: 'sendMenu', class: 'sendMenu', style: 'display:none;' },
+            el('div', {
+                class: 'sendMenuItem',
+                onclick: () => {
+                    copyCurl(paramsTable, headersTable, getSelectedMethod);
+                    hideSendMenu();
+                }
+            }, 'Copy cURL'),
+            el('div', {
+                class: 'sendMenuItem',
+                onclick: () => {
+                    openCurlImportModal();
+                    hideSendMenu();
+                }
+            }, 'Import cURL')
+        )
+    );
 
 // Header: Method + URL + Send
 
@@ -222,7 +276,10 @@ export function openRequest(item, forceDefaults = false) {
             const wrap = el('div', { class: 'methodDropdown' });
 
             // выбранный метод
-            const current = el('div', { class: 'methodCurrent', style: colors[method] }, method);
+            const current = el('div', { class: 'methodCurrent', style: colors[method] },
+                method + ' ',
+                el('span', { class: 'methodArrow' }, '▼')
+            );
             wrap.append(current);
 
             // список
@@ -232,10 +289,15 @@ export function openRequest(item, forceDefaults = false) {
                     class: 'methodOption',
                     style: colors[m],
                     onclick: () => {
-                        current.textContent = m;
+                        // обновляем текст метода, оставляем место для стрелки
+                        current.childNodes[0].textContent = m + ' ';
                         current.setAttribute('style', colors[m]);
                         wrap.dataset.value = m;
                         list.style.display = 'none';
+
+                        // сбросить стрелку вниз
+                        current.querySelector('.methodArrow').textContent = '▼';
+
                         debSave(); // при смене сразу сохраняем
                     }
                 }, m);
@@ -245,7 +307,9 @@ export function openRequest(item, forceDefaults = false) {
             wrap.append(list);
 
             current.onclick = () => {
-                list.style.display = (list.style.display==='none' ? 'block' : 'none');
+                const isOpen = list.style.display === 'block';
+                list.style.display = isOpen ? 'none' : 'block';
+                current.querySelector('.methodArrow').textContent = isOpen ? '▼' : '▲';
             };
 
             return wrap;
@@ -253,11 +317,9 @@ export function openRequest(item, forceDefaults = false) {
 
         // --- URL (editable + hidden) ---
         el('div', { class: 'urlWrap' }, urlDisp, urlHidden),
+        sendGroup
 
-
-        // --- Send button ---
-        el('button', { id: 'sendBtn', class: 'send' }, 'Send')
-    );
+);
 
 
 // Tabs
@@ -269,7 +331,7 @@ export function openRequest(item, forceDefaults = false) {
             el('div', {class:'tab', id:'tabScripts', dataset:{method}}, 'Scripts')
         ),
         el('div', {class:'tabsTools'},
-            el('button', {id:'curlBtn', class:'btnCurl'}, 'Copy cURL')
+
         )
     );
 
@@ -756,38 +818,6 @@ export function openRequest(item, forceDefaults = false) {
         }
     };
 
-// cURL
-    $('#curlBtn').onclick = ()=>{
-        const m = getSelectedMethod();
-        const params = tableToSimpleArray(paramsTable.tBodies[0]);
-        const finalUrl = resolveVars(
-            safeBuildUrl($('#urlInp').value.trim(), params)
-        );
-        const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
-        const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
-        const authTypeEl = $('#authType');
-        const authTokenEl = $('#authTokenInp');
-        const authType = authTypeEl.value;
-        const authToken = authTokenEl.value.trim();
-
-        if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')){
-            if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
-            else if (getGlobalBearer()) hdrs['Authorization'] = 'Bearer ' + getGlobalBearer();
-        }
-
-        if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')){
-            const ct = detectContentType($('#bodyRawArea').textContent || '');
-            if (ct) hdrs['Content-Type'] = ct;
-        }
-
-        const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').textContent || '');
-        const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
-        const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
-        const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
-        navigator.clipboard.writeText(cmd);
-        showAlert('cURL copied', 'success');
-    };
-
 // Show saved response if any
     if (item.response) {
         renderResponseSaved(item.response);
@@ -795,6 +825,23 @@ export function openRequest(item, forceDefaults = false) {
         renderResponseSaved(response);
     } else {
         $('#resPane').innerHTML = '';
+    }
+// === Send dropdown menu logic ===
+    $('#sendDropdownBtn').onclick = (e) => {
+        e.stopPropagation();
+        const menu = $('#sendMenu');
+        if (menu) {
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+    };
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.sendGroup')) hideSendMenu();
+    });
+
+    function hideSendMenu() {
+        const menu = $('#sendMenu');
+        if (menu) menu.style.display = 'none';
     }
 
 
@@ -1038,7 +1085,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         document.querySelectorAll('.methodDropdown, .envDropdown, .ctDropdown, .dropdown').forEach(drop => {
             if (!drop.contains(e.target)) {
                 const list = drop.querySelector('.methodList, .envList, .ctList, .dropdown-content');
-                const arrow = drop.querySelector('.arrow, .ctArrow');
+                const arrow = drop.querySelector('.arrow, .ctArrow, .methodArrow');
                 if (list) list.style.display = 'none';
                 if (arrow) arrow.textContent = '▼';
             }

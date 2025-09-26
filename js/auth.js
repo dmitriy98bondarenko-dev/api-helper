@@ -37,7 +37,7 @@ export function initAuthModal() {
 
     if (!authBtn || !authModal) return;
 
-    // при открытии модалки
+    // befoer open modal
     authBtn.addEventListener('click', () => {
         authModal.hidden = false;
         authTokenInp.value = getGlobalBearer() || '';
@@ -75,7 +75,7 @@ export function initAuthModal() {
             showAlert('Token cleared', 'success');
             updateAuthUI();
 
-            // 👉 чистим и на вкладке Authorization
+            // clear auth modal
             const authTokenField = document.querySelector('#authTokenInp');
             if (authTokenField) authTokenField.value = '';
 
@@ -86,11 +86,10 @@ export function initAuthModal() {
         });
     }
 
-    // обновить состояние сразу при загрузке
     updateAuthUI();
 }
 export function clearAuthUI() {
-    const authTokenInp = $('#authToken'); // модалка
+    const authTokenInp = $('#authToken');
     if (authTokenInp) authTokenInp.value = '';
 
     const authTokenField = document.querySelector('#authTokenInp'); // вкладка
