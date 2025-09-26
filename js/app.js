@@ -5,8 +5,8 @@ import { DEFAULT_COLLECTION_PATH, DEFAULT_ENV_PATH, AUTO_OPEN_FIRST } from './co
 import { bootApp } from './feature.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    initThemeUI();       // тема и переключатель
-    initAuthModal();     // 👉 инициализация Authorize модалки
+    initThemeUI();
+    initAuthModal();
 
     showLoader(true);
     try {

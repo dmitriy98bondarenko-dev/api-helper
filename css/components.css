@@ -208,41 +208,8 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
     padding: 0 18px;
     cursor: pointer;
 }
-.methodDropdown {
-    position: relative;
-    min-width: 90px;
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-}
-.methodCurrent {
-    padding: 10px 12px;
-    border-right: 1px solid var(--divider);
-    border-radius: 6px 0 0 6px;
-    text-align: center;
-}
-.methodList {
-    position: absolute;
-    top: 100%; left: 0; right: 0;
-    border: 1px solid var(--divider);
-    border-radius: 6px;
-    overflow: hidden;
-    z-index: 10;
-}
-.methodOption {
-    padding: 8px 12px;
-    font-size: 14px;
-}
-.methodOption:hover {
-    filter: brightness(1.1);
-}
-
-#urlInpDisplay {
-    outline: none;
-}
 
 /* === Hover fix (только токены) === */
-#urlInpDisplay:hover { background: none; }
 .var-token:hover { filter: brightness(1.15); }
 /* === Fix URL row layout === */
 .reqHeader {
@@ -270,12 +237,6 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
     overflow-x: auto;
     white-space: nowrap;
 }
-
-#urlInpDisplay {
-    outline: none;
-    display: inline-block;
-}
-
 .reqHeader .send {
     width: 100%;
     height: 100%;
@@ -348,6 +309,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
     background:var(--chip-bg); color:var(--fg); border:1px solid var(--divider);
     padding:8px 10px; border-radius:8px; cursor:pointer
 }
+
 /* Верхняя панель */
 .authBtn {
     display: inline-flex;
@@ -587,4 +549,62 @@ html:has(#authModal:not([hidden])){ overflow: hidden; }
 
 .btnCurl:hover {
     filter: brightness(1.05);
+}
+
+/* =================================== */
+    /* Общий стиль для кнопок верхней панели */
+.authBtn,
+#varsBtn,
+.envCurrent {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid var(--divider);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+/* ===== Светлая тема ===== */
+[data-theme="light"] .authBtn,
+[data-theme="light"] #varsBtn,
+[data-theme="light"] .envCurrent {
+    --btn-bg: #fafafa;
+    --btn-fg: #374151;
+    --divider: #d1d5db;
+}
+[data-theme="light"] .authBtn:hover,
+[data-theme="light"] #varsBtn:hover,
+[data-theme="light"] .envCurrent:hover {
+    background: #f3f4f6; /* hover светлый серый */
+}
+
+/* ===== Тёмная тема ===== */
+[data-theme="dark"] .authBtn,
+[data-theme="dark"] #varsBtn,
+[data-theme="dark"] .envCurrent {
+    --btn-bg: #1f2937;
+    --btn-fg: #d1d5db;
+    --divider: #374151;
+}
+[data-theme="dark"] .authBtn:hover,
+[data-theme="dark"] #varsBtn:hover,
+[data-theme="dark"] .envCurrent:hover {
+    background: #374151; /* hover чуть светлее */
+    color: #fff;
+}
+
+/* Активная кнопка */
+.authBtn.active,
+#varsBtn.active,
+.envCurrent.active {
+    background: #2563eb; /* синий акцент */
+    color: #fff;
+    border-color: #2563eb;
 }
