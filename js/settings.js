@@ -97,4 +97,3 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar
     });
 });
-
