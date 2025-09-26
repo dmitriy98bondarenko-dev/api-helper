@@ -2,35 +2,81 @@
 import { $, el } from './ui.js';
 import { openRequest } from './feature.js';
 import { state } from './state.js';
+import { renderTree } from './sidebar.js';
+import { initHotkeys, renderHotkeysList } from "./hotkeys.js";
 
 export function initSidebarNav() {
-    const btnFolders = $('#navFolders');
-    const btnHistory = $('#navHistory');
-    const tree = $('#tree');
-    const historyPane = $('#historyPane');
+    const btnFolders   = $('#navFolders');
+    const btnHistory   = $('#navHistory');
+    const btnSearch    = $('#navSearch');                 // 🔍 кнопка-лупа
+    const tree         = $('#tree');
+    const historyPane  = $('#historyPane');
+    const searchWrap   = document.querySelector('.searchWrap');
+    const filterInp    = document.querySelector('#search');
 
     function activate(btn) {
         [btnFolders, btnHistory].forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }
+    const getFilter = () => (filterInp?.value || '').trim();
 
+    // единая точка применения фильтра к активной вкладке
+    function applyFilterToActiveTab() {
+        const f = getFilter();
+        if (historyPane.hidden) {
+            // мы на Folders
+            renderTree(f, { onRequestClick: openRequest });
+        } else {
+            // мы на History
+            renderHistory(f);
+        }
+    }
+
+    // --- переключение вкладок ---
     btnFolders.addEventListener('click', () => {
         activate(btnFolders);
         tree.hidden = false;
         historyPane.hidden = true;
+        // запускаем после смены hidden, чтобы не перебили другие слушатели
+        requestAnimationFrame(applyFilterToActiveTab);
     });
 
     btnHistory.addEventListener('click', () => {
         activate(btnHistory);
         tree.hidden = true;
         historyPane.hidden = false;
-
-        const filterInp = document.querySelector('#search') || document.querySelector('#searchInp');
-        const v = (filterInp?.value || '').trim();
-        renderHistory(v);       // ← передаём уже введённый текст
+        requestAnimationFrame(applyFilterToActiveTab);
     });
 
+    // --- кнопка поиска в сайдбаре ---
+    btnSearch?.addEventListener('click', () => {
+        const active = btnSearch.classList.toggle('active');
+        searchWrap.hidden = !active;
 
+        if (active) {
+            filterInp?.focus();
+            applyFilterToActiveTab();                     // показать уже отфильтрованное
+        } else {
+            // выключили поиск — сбрасываем
+            if (filterInp) filterInp.value = '';
+            renderTree('', { onRequestClick: openRequest });
+            renderHistory('');
+        }
+    });
+
+    // --- live-поиск ---
+    filterInp?.addEventListener('input', applyFilterToActiveTab);
+    // --- горячие клавиши ---
+    initHotkeys({
+        btnFolders,
+        btnHistory,
+        btnSearch,
+        searchWrap,
+        filterInp,
+        btnSettings: document.getElementById("navSettings"),
+        sidebar: document.getElementById("settingsSidebar")
+    });
+    renderHotkeysList("hotkeysList");
 }
 
 export function addHistoryEntry({ method, url, body, response }) {

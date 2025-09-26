@@ -19,53 +19,79 @@
     box-sizing: border-box;
     overflow-y: auto;
 }
-/* Обёртка для поиска */
+/* обёртка */
 .searchWrap {
+    position: relative;
     width: 100%;
-    position: sticky;
-    top: 0;
-    z-index: 20;
+    padding: 8px 12px;
     background: var(--panel);
     border-bottom: 1px solid var(--divider);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-    margin: 0;
-    padding: 10px 0;
 }
 
-/* Поле поиска внутри */
+/* поле поиска */
 .search {
     width: 100%;
     height: 40px;
-    line-height: 28px;
-    padding: 0 1rem;
-    padding-left: 2.5rem;
+    padding-left: 36px;  /* место под иконку */
+    padding-right: 12px;
     border: 1px solid transparent;
     border-radius: 8px;
+    font-size: 14px;
     outline: none;
+    transition: 0.2s ease;
+}
+
+/* светлая тема */
+[data-theme="light"] .search {
     background-color: #f3f3f4;
     color: #0d0c22;
-    transition: 0.3s ease;
 }
-.search::placeholder {
+[data-theme="light"] .search::placeholder {
     color: #9e9ea7;
 }
-.search:focus,
-search:hover {
-    outline: none;
-    border-color: rgb(182, 182, 182);
+[data-theme="light"] .search:focus,
+[data-theme="light"] .search:hover {
     background-color: #fff;
-    box-shadow: 0 0 0 4px rgb(234 226 183 / 10%);
+    border-color: #b6b6b6;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
-.searchIcon {
+
+/* тёмная тема */
+[data-theme="dark"] .search {
+    background-color: #2a2a2d;
+    color: #e5e7eb;
+}
+[data-theme="dark"] .search::placeholder {
+    color: #9ca3af;
+}
+[data-theme="dark"] .search:focus,
+[data-theme="dark"] .search:hover {
+    background-color: #3a3a3d;
+    border-color: #4b5563;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+/* иконка внутри */
+.searchWrap .searchIcon {
     position: absolute;
     top: 50%;
-    left: 10px;              /* позиция иконки внутри поля */
+    left: 20px;
     transform: translateY(-50%);
     width: 18px;
     height: 18px;
-    color: var(--muted, #666); /* можно использовать токен цвета */
-    pointer-events: none;      /* чтобы клики проходили к инпуту */
+    pointer-events: none;
 }
+
+/* иконка для светлой темы */
+[data-theme="light"] .searchWrap .searchIcon {
+    color: #9e9ea7;
+}
+
+/* иконка для тёмной темы */
+[data-theme="dark"] .searchWrap .searchIcon {
+    color: #9ca3af;
+}
+
 .clearIcon {
     position: absolute;
     top: 50%;
@@ -131,6 +157,7 @@ search:focus ~ .searchIcon,
     overflow-y: auto;
     padding: 4px;
 }
+/* sidebar buttons */
 .navSwitch {
     display: flex;
     flex-direction: column;
@@ -154,7 +181,7 @@ search:focus ~ .searchIcon,
     position: relative;
     color: var(--muted);
     transition: color 0.2s ease, background 0.2s ease;
-    border-radius: 4px; /* меньше скругление */
+    border-radius: 4px;
 }
 
 
@@ -198,7 +225,57 @@ search:focus ~ .searchIcon,
 [data-theme="dark"] .navBtn.active svg {
     stroke: #fff; /* белые иконки в темной теме */
 }
+/* кнопка поиска */
+.navBtn.searchBtn {
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
+/* svg */
+.navBtn.searchBtn svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+    margin: auto;
+    transform: translate(2px, -4px); /* +1px вправо, -2px вверх */
+}
+
+/* базовый цвет (неактивный) */
+.navBtn.searchBtn .searchIcon {
+    stroke: currentColor;
+    color: var(--muted);
+}
+
+/* hover */
+.navBtn.searchBtn:hover .searchIcon {
+    color: #0a0d14;
+    stroke: #0a0d14;
+}
+[data-theme="dark"] .navBtn.searchBtn:hover .searchIcon {
+    color: #fff;
+    stroke: #fff;
+}
+
+/* активная — только подсветка */
+.navBtn.searchBtn.active {
+    background: none !important;
+    color: inherit !important;
+}
+.navBtn.searchBtn.active::before {
+    display: none !important;
+    content: none !important;
+}
+.navBtn.searchBtn.active .searchIcon {
+    color: #6366f1;
+    stroke: #6366f1;
+    font: bolder 18px sans-serif;
+}
 .historyGroup {
     margin: 10px 0;
 }
@@ -411,4 +488,5 @@ search:focus ~ .searchIcon,
 }
 .unpinBtn.active { opacity: 1; color: var(--err); }
 .unpinBtn:hover  { opacity: 1; color: #dc2626; }  /* красный при наведении */
+
 
