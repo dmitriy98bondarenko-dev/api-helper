@@ -276,6 +276,22 @@ search:focus ~ .searchIcon,
     stroke: #6366f1;
     font: bolder 18px sans-serif;
 }
+
+.searchWrap[hidden],
+.searchWrap.hidden {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+.settingsSidebar:not(.open) {
+    pointer-events: none !important;
+}
+#navSearch,
+#navSettings {
+    position: relative;
+    z-index: 1000;
+}
+
 .historyGroup {
     margin: 10px 0;
 }

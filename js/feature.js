@@ -658,7 +658,6 @@ export function openRequest(item, forceDefaults = false) {
 
                 if (ctx._logs.length) {
                     console.log("PRE script logs:", ctx._logs);
-                    showAlert("PRE logs: " + ctx._logs.join(" | "), "info");
                 }
             }
             catch (e) {
