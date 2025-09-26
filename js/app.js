@@ -1,11 +1,11 @@
 // app.js (точка входа)
-import { initThemeUI, showLoader } from './ui.js';
+import { initTheme, showLoader } from './ui.js';
 import { initAuthModal } from './auth.js';
 import { DEFAULT_COLLECTION_PATH, DEFAULT_ENV_PATH, AUTO_OPEN_FIRST } from './config.js';
 import { bootApp } from './feature.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    initThemeUI();
+    initTheme();
     initAuthModal();
 
     showLoader(true);

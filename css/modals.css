@@ -400,3 +400,216 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 .modalClose:hover {
     color: var(--fg);
 }
+/* ---------- Settings Modal ---------- */
+.settingsSidebar {
+    position: fixed;
+    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    align-items: stretch;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: flex-start;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: auto;
+    transition: opacity 0.25s ease;
+}
+.settingsSidebar.open {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+}
+.settingsSidebar:not(.open) {
+    opacity: 0;
+    pointer-events: none;
+}
+/* Контент (панель) */
+.settingsContent {
+    flex-shrink: 0;
+    width: 420px;
+    height: 100%;
+    background: var(--panel, #fff);
+    border-right: 1px solid var(--divider, #e5e7eb);
+    box-shadow: 2px 0 6px rgba(0,0,0,0.15);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    background: var(--panel, #fff);
+    border-right: 1px solid var(--divider, #e5e7eb);
+    transition: transform 0.25s ease;
+}
+.settingsSidebar.open .settingsContent {
+    transform: translateX(0);
+}
+/* Заголовок */
+.settingsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.settingsHeader h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.settingsHeader .closeSettings {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--fg, #333);
+}
+
+.settingsBody {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.settingsRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* текст слева, кнопка справа */
+    margin-bottom: 15px;
+}
+
+.settingsLabel {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--fg, #fff);
+}
+.hotkeyGroup {
+    margin-bottom: 12px;
+}
+
+.hotkeyGroup h5 {
+    margin: 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg, #333);
+}
+
+.hotkeyList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.hotkeyItem {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 13px;
+}
+
+/* контейнер с хоткеями */
+.hotkeyKeys {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+}
+
+/* кнопки */
+.hotkeyKeys kbd {
+    display: inline-block;
+    min-width: 20px;
+    padding: 3px 6px;
+    margin: 0 1px;
+    border: 1px solid var(--divider, #d1d5db);
+    border-radius: 4px;
+    background: var(--soft, #f9fafb);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: center;
+}
+
+[data-theme="dark"] .hotkeyKeys kbd {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+/* Анимация */
+
+/*
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal[hidden] {
+    display: none;
+}
+
+.modalOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+}
+
+
+.modalCard {
+    position: relative;
+    background: var(--panel, #fff);
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 640px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 2001;
+}
+
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.modalHeader h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.modalClose {
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    color: var(--fg, #333);
+}
+
+
+.modalBody {
+    font-size: 14px;
+    color: var(--fg, #444);
+}
+
+.settingsSection {
+    margin-bottom: 20px;
+}
+
+.settingsSection h4 {
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: var(--muted, #777);
+}
+ */

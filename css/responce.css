@@ -1,46 +1,89 @@
 /* RESPONCE */
 /* Контейнер */
 /* Карточка с фоном и тенью */
+/* Обёртка */
 .respToolsWrap {
-    background: #fff;
-    border: 1px solid #e5e7eb; /* светло-серый контур */
-    border-radius: 6px;
-    padding: 0;
+    background: var(--panel);
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    padding: 8px 12px;
     margin: 0;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    position: relative;
 }
 
 /* Контейнер внутри */
 .respTools {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
     align-items: center;
-    margin: 10px 5px;
+    flex-wrap: nowrap;
+    width: 100%;
 }
 
+/* Поле ввода */
 .respTools input {
-    line-height: 28px;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    outline: none;
-    background-color: #f3f3f4;
     flex: 1;
-    min-width: 220px;
-    height: 38px;
-    padding: 0 12px;
+    min-width: 200px;
+    height: 40px;
+    padding-left: 36px; /* место под иконку */
+    padding-right: 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
     font-size: 14px;
-    color: #454545;              /* тёмный текст */
-    transition: all 0.2s ease;
+    outline: none;
+    transition: 0.2s ease;
 }
 
-/* Hover / focus — только подсветка рамки */
-.respTools input:hover,
-.respTools input:focus {
-    border-color: #9e9ea7;       /* или другой цвет */
-    box-shadow: 0 0 0 2px rgba(0,122,204,0.2); /* мягкая подсветка */
-    outline: none;
+/* светлая тема */
+[data-theme="light"] .respTools input {
+    background-color: #f3f3f4;
+    color: #0d0c22;
 }
+[data-theme="light"] .respTools input::placeholder {
+    color: #9e9ea7;
+}
+[data-theme="light"] .respTools input:focus,
+[data-theme="light"] .respTools input:hover {
+    background-color: #fff;
+    border-color: #b6b6b6;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* тёмная тема */
+[data-theme="dark"] .respTools input {
+    background-color: #2a2a2d;
+    color: #e5e7eb;
+}
+[data-theme="dark"] .respTools input::placeholder {
+    color: #9ca3af;
+}
+[data-theme="dark"] .respTools input:focus,
+[data-theme="dark"] .respTools input:hover {
+    background-color: #3a3a3d;
+    border-color: #4b5563;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+/* Иконка поиска */
+.respToolsWrap .searchIcon {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+/* Цвет иконки для тем и ховера */
+[data-theme="light"] .respToolsWrap .searchIcon {
+    color: #9e9ea7;
+}
+[data-theme="dark"] .respToolsWrap .searchIcon {
+    color: #9ca3af;
+}
+
 /* Кнопки */
 .respBtn {
     appearance: none;

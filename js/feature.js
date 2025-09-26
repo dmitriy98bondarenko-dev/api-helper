@@ -8,20 +8,23 @@ import {
 } from './ui.js';
 import { getGlobalBearer, loadReqState, saveReqState, clearReqState, loadScriptsLegacy, fetchWithTimeout, clampStr, getVal } from './config.js';
 import { flattenItems, renderTree, setActiveRow, normalizeUrl } from './sidebar.js';
-
-import { buildVarMap, buildVarsTableBody, initVarsModal, initResetModal, updateVarsBtnCounter, initVarEditModal } from './vars.js';
-
+import { initHotkeys } from './hotkeys.js';
+import {
+    buildVarMap, buildVarsTableBody, initVarsModal, initResetModal,
+    updateVarsBtnCounter, initVarEditModal, toggleVarsModal
+} from './vars.js';
 import { loadJson } from './state.js';
 import { state, resolveVars } from './state.js';
 import { initSidebarNav, addHistoryEntry, renderHistory } from './history.js';
-
-const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, state.VARS);
+import { selectNextRequest, selectPrevRequest, focusSidebar, setOnRequestOpen,togglePinCurrent } from './sidebar.js';
 import {
     detectContentType,
     runUserScript,
     makePreCtx,
     makePostCtx
 } from './scriptEngine.js';
+
+const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, state.VARS);
 
 function copyCurl(paramsTable, headersTable, getSelectedMethod) {
     const m = getSelectedMethod();
@@ -1091,5 +1094,13 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
             }
         });
     });
-
+    setOnRequestOpen(openRequest);
+    initHotkeys({
+        sendBtn: document.getElementById('sendBtn'),
+        selectNextRequest,
+        selectPrevRequest,
+        focusSidebar,
+        togglePinCurrent,
+        toggleVarsModal
+    });
 }
