@@ -38,9 +38,7 @@ export async function runUserScript(code, ctx){
         }
 
     } catch (err) {
-        console.error("Script execution error:", err);
-        ctx._logs.push("Script error: " + err.message);
-    }
+        console.error("Script execution error:", err);}
 }
 
 

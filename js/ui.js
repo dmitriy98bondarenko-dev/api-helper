@@ -52,24 +52,53 @@ export function showLoader(on) {
 }
 
 // Тема (UI)
+// применяет тему
 export function applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem('ui_theme', t);
-  const sw = $('#themeToggleSwitch');
-  if (sw) sw.checked = (t === 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('ui_theme', t);
+    const sw = $('#themeToggleSwitch');
+    if (sw) sw.checked = (t === 'dark');
 }
 
-// Инициализация темы + подписка на переключатель
-export function initThemeUI() {
-  const t = localStorage.getItem('ui_theme') || 'light';
-  applyTheme(t);
-  const sw = $('#themeToggleSwitch');
-  if (sw) {
-    sw.addEventListener('change', (e) => {
-      const newTheme = e.target.checked ? 'dark' : 'light';
-      applyTheme(newTheme);
+// инициализация: выбор системной или сохранённой
+export function initTheme() {
+    const sw = $('#themeToggleSwitch');
+
+    // 1. Берём сохранённую тему или системную
+    let saved = localStorage.getItem('ui_theme');
+
+    if (!saved) {
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            saved = 'dark';
+        } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+            saved = 'light';
+        } else {
+            saved = 'dark'; // дефолтная тема — ночь
+        }
+    }
+
+    applyTheme(saved);
+
+    // 2. Реакция на ручное переключение
+    sw?.addEventListener('change', (e) => {
+        const newTheme = e.target.checked ? 'dark' : 'light';
+        applyTheme(newTheme);
     });
-  }
+
+    // 3. Реагировать на смену системной темы, если пользователь сам не задавал
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    function systemChange(e) {
+        const userPref = localStorage.getItem('ui_theme');
+        if (!userPref) {
+            applyTheme(e.matches ? 'dark' : 'light');
+        }
+    }
+
+    if (mq.addEventListener) {
+        mq.addEventListener('change', systemChange); // Chrome, FF, Safari 14+
+    } else if (mq.addListener) {
+        mq.addListener(systemChange); // Safari <14
+    }
 }
 
 // Подсветка "пропущенных" переменных в инпутах

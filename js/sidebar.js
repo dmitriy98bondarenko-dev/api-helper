@@ -1,14 +1,73 @@
 //sidebar.js
 import { $, el } from './ui.js';
 import { resolveVars, state } from './state.js';
+import { openRequest } from './feature.js';
+let onRequestOpen = null;
+export function setOnRequestOpen(fn) { onRequestOpen = fn; }
+
+function openByRow(row, forceDefaults = true) {
+    if (!row) return;
+    setActiveRow(row);
+    const reqId = row.dataset.reqId;
+    const item = state.ITEMS_FLAT.find(x => x.id === reqId);
+    if (item && onRequestOpen) onRequestOpen(item, forceDefaults);
+}
+export function focusSidebar() {
+    const tree = $('#tree');
+    if (!tree) return;
+    // делаем фокусируемым на всякий
+    if (!tree.hasAttribute('tabindex')) tree.setAttribute('tabindex','-1');
+    tree.focus();
+    if (!state.CURRENT_OP_EL) {
+        const first = tree.querySelector('.op');
+        openByRow(first);
+    }
+}
+
+export function selectNextRequest() {
+    const all = Array.from(document.querySelectorAll('#tree .op'));
+    if (!all.length) return;
+    if (!state.CURRENT_OP_EL) { openByRow(all[0]); return; }
+    const i = all.indexOf(state.CURRENT_OP_EL);
+    if (i >= 0 && i < all.length - 1) openByRow(all[i + 1]);
+}
+
+export function selectPrevRequest() {
+    const all = Array.from(document.querySelectorAll('#tree .op'));
+    if (!all.length) return;
+    if (!state.CURRENT_OP_EL) { openByRow(all[all.length - 1]); return; }
+    const i = all.indexOf(state.CURRENT_OP_EL);
+    if (i > 0) openByRow(all[i - 1]);
+}
+export function togglePinCurrent() {
+    const current = state.CURRENT_OP_EL;
+    if (!current) return;
+
+    const id = current.dataset.reqId;
+    if (!id) return;
+
+    let ids = getPinnedIds();
+    ids = ids.includes(id) ? ids.filter(p => p !== id) : ids.concat(id);
+    setPinnedIds(ids);
+
+    renderTree('', { onRequestClick: onRequestOpen });
+
+    const row = document.querySelector(`.op[data-req-id="${id}"]`);
+    if (row) setActiveRow(row);
+}
+
 
 
 // ===== Sidebar =====
 export function setActiveRow(elm){
     if (state.CURRENT_OP_EL) state.CURRENT_OP_EL.classList.remove('active');
     state.CURRENT_OP_EL = elm;
-    if (state.CURRENT_OP_EL) state.CURRENT_OP_EL.classList.add('active');
+    if (state.CURRENT_OP_EL) {
+        state.CURRENT_OP_EL.classList.add('active');
+        state.CURRENT_OP_EL.scrollIntoView({ block: 'nearest' });
+    }
 }
+
 
 export function stripPrefixFolder(name){
     return String(name||'').replace(/^DriverGateway\s*\/\s*/i,'') || 'No folder';
@@ -60,6 +119,7 @@ function makeFolderHeader({ title, controls, nodeEl }) {
 }
 
 export function renderTree(filter = '', { onRequestClick } = {}) {
+    onRequestClick = onRequestClick || onRequestOpen;
     const tree = $('#tree');
     tree.innerHTML = '';
 

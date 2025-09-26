@@ -575,3 +575,16 @@ export function refreshBodyEditorHighlight() {
     bodyEditor.innerHTML = highlightJSON(raw);
     restoreSelection(bodyEditor, offset);
 }
+
+export function toggleVarsModal() {
+    const modal = document.querySelector('#varsModal');
+    if (!modal) return;
+    if (modal.hidden) {
+        buildVarsTableBody();
+        modal.hidden = false;
+    } else {
+        modal.hidden = true;
+    }
+}
+
+
