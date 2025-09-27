@@ -1,69 +1,155 @@
-/* Базовый стиль */
+/* ===========================
+   Общий стиль для кнопок верхней панели
+   =========================== */
 .authBtn,
 #varsBtn,
 .envCurrent {
-    border-radius: 6px 6px 6px 6px;
-    padding: 10px 16px;
-    background: #dcdcdf;
-    color: #6B7280;
-    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    height: 36px;
+    padding: 0 14px;
+
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+
+    border-radius: 6px;
     cursor: pointer;
+    box-sizing: border-box;
+
+    border: 1px solid var(--divider, #d1d5db);
+    background: var(--btn-bg, #F9FAFB);
+    color: var(--btn-fg, #F9FAFB);
+
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
-/* ===== Светлая тема ===== */
+/* --- Hover --- */
+.authBtn:hover,
+#varsBtn:hover,
+.envCurrent:hover {
+    filter: brightness(1.05);
+}
+
+/* --- Активное состояние --- */
+.authBtn.active,
+#varsBtn.active,
+.envCurrent.active {
+    --btn-bg: #1f2937;
+    --btn-fg: #d1d5db;
+    --divider: #374151;
+}
+
+/*  Замочек внутри кнопки авторизации  */
+.authBtn .lockIcon {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    transition: fill 0.2s;
+}
+.authBtn.active .lockIcon {
+    fill: #fff;
+}
+
+
+/* light theme */
 [data-theme="light"] .authBtn,
 [data-theme="light"] #varsBtn,
 [data-theme="light"] .envCurrent {
-    --btn-bg: #374151;
+    --btn-bg: #F9FAFB;
     --btn-fg: #374151;
+    --divider: #d1d5db;
 }
 [data-theme="light"] .authBtn:hover,
 [data-theme="light"] #varsBtn:hover,
 [data-theme="light"] .envCurrent:hover {
-    background: #E5E7EB; /* hover - чуть темнее */
+    background: #f3f4f6;
 }
-
-/* Активная кнопка в светлой теме */
 [data-theme="light"] .authBtn.active,
 [data-theme="light"] #varsBtn.active,
 [data-theme="light"] .envCurrent.active {
-    background: #E5E7EB; /* светло-серый */
-    border: 1px solid #D1D5DB; /* аккуратная рамка */
-    color: #111827; /* более контрастный текст */
+    --btn-bg: #F9FAFB;
+    --btn-fg: #374151;
+    --divider: #d1d5db;
+    color: #111827;
+}
+[data-theme="light"] .authBtn.active .lockIcon {
+    fill: #16a34a;
 }
 
-/* Замочек */
-.authBtn .lockIcon {
-    width: 18px;
-    height: 18px;
-    fill: currentColor; /* по умолчанию как текст */
-    transition: fill 0.2s;
-}
-.authBtn.active .lockIcon {
-    fill: #6B7280; /* фиолетовый при активной */
-}
-
-/* ===== Тёмная тема ===== */
+/* dark theme */
 [data-theme="dark"] .authBtn,
 [data-theme="dark"] #varsBtn,
 [data-theme="dark"] .envCurrent {
-
-    background: #374151;
-    color: #fff;
+    --btn-bg: #1f2937;
+    --btn-fg: #d1d5db;
+    --divider: #21211F;
 }
 [data-theme="dark"] .authBtn:hover,
 [data-theme="dark"] #varsBtn:hover,
 [data-theme="dark"] .envCurrent:hover {
-    --btn-bg: #1F2937;
-    --btn-fg: #D1D5DB;
+    background: #374151;
+    color: #fff;
 }
 [data-theme="dark"] .authBtn.active,
 [data-theme="dark"] #varsBtn.active,
 [data-theme="dark"] .envCurrent.active {
-    background: #4B5563;
-    border: 1px solid #6B7280;
-    color: #fff;
+    --btn-bg: #1f2937;
+    --btn-fg: #F9FAFB;
+    --divider: #21211F;
+
 }
 [data-theme="dark"] .authBtn.active .lockIcon {
-    fill: #6366f1; /* тоже фиолетовый */
+    fill: #16a34a;
 }
+
+/* ===========================
+   Env Dropdown
+   =========================== */
+.envDropdown {
+    margin-left: 8px;
+    position: relative;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+}
+
+.envList {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 100%;
+
+    border: 1px solid var(--divider);
+    border-radius: 6px;
+    background: var(--panel);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+    z-index: 1000;
+    display: none;
+}
+
+.envOption {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    border-radius: 4px;
+}
+.envOption.dev    { color: #16a34a; }
+.envOption.staging{ color: #ca8a04; }
+.envOption.prod   { color: #dc2626; }
+
+.envOption:hover {
+    background: var(--soft);
+    filter: brightness(0.95);
+}
+
+/* Цветовое обозначение активного окружения */
+.envCurrent.dev    { border-color: #16a34a; color: #16a34a; }
+.envCurrent.staging{ border-color: #ca8a04; color: #ca8a04; }
+.envCurrent.prod   { border-color: #dc2626; color: #dc2626; }

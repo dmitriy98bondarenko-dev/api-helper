@@ -56,53 +56,6 @@ button {
 .btn:hover,
 button:hover { filter: brightness(1.05); }
 
-/* === Auth Button === */
-.authBtn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    font-weight: 600;
-    border-radius: 6px;
-    border: 2px solid #16a34a;
-    background: transparent;
-    color: #16a34a;
-    cursor: pointer;
-    transition: background .2s, color .2s;
-}
-.authBtn .lockIcon {
-    width: 18px;
-    height: 18px;
-    fill: currentColor;
-    transition: fill .2s;
-}
-.authBtn:hover { background: rgba(22,163,74,.08); }
-.authBtn.active {
-    background: #16a34a;
-    color: #fff;
-}
-.authBtn.active .lockIcon { fill: #fff; }
-
-/* === Vars Button === */
-#varsBtn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    border-radius: 6px;
-    border: 2px solid transparent;
-    background: transparent;
-    cursor: pointer;
-    transition: background .2s, color .2s, border-color .2s;
-}
-html[data-env="dev"]     #varsBtn { border-color: #16a34a; color: #16a34a; }
-html[data-env="staging"] #varsBtn { border-color: #ca8a04; color: #ca8a04; }
-html[data-env="prod"]    #varsBtn { border-color: #dc2626; color: #dc2626; }
-#varsBtn:hover { background: rgba(0,0,0,.04); }
-[data-theme="dark"] #varsBtn:hover { background: rgba(255,255,255,.05); }
-
 /* === Theme Toggle === */
 .theme-toggle {
     position: relative;

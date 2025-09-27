@@ -1,81 +1,232 @@
 /* === modals.css === */
 
-/* ---------- Modals ---------- */
-.modal{position:fixed; inset:0; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; z-index:10000}
-.modal[hidden]{display:none}
+/* ---------- Base Modals ---------- */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+.modal[hidden] { display: none; }
 
-.modalActions{display:flex; justify-content:flex-end; gap:10px; margin-top:16px}
-.modalActions button{min-width:80px; padding:8px 14px; border-radius:8px; font-size:14px}
-.auth-ok{background:#10b981; color:#fff; border:none}
-.auth-bad{background:var(--chip-bg); color:var(--fg)}
-.authState{font-size:12px; color:#065f46}
-[data-theme="dark"] .authState{color:#34d399}
+.modalCard {
+    position: relative;
+    width: 520px;
+    max-width: 90%;
+    max-height: 80vh;
+    overflow: auto;
+    background: var(--panel);
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    padding: 20px;
+}
+.modalCard .row input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--divider);
+    font-size: 14px;
+    background: transparent;
+    color: var(--fg);
+}
 
+.modalActions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 16px;
+}
 
-.modalCard{width:520px; max-width:90%; max-height:80vh; overflow:auto; background:var(--panel); border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:20px}
-.modalCard .row input{width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); font-size:14px; background:#0000; color:var(--fg)}
+.modalActions button {
+    min-width: 80px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+.auth-ok { background:#10b981; color:#fff; border:none; }
+.auth-bad { background:var(--chip-bg); color:var(--fg); }
+.authState { font-size:12px; color:#065f46; }
+[data-theme="dark"] .authState { color:#34d399; }
 
-
-#authModal .modalCard{
+/* ---------- Auth Modal ---------- */
+#authModal .modalCard {
     width: 760px;
     max-width: 92vw;
     padding: 24px 28px;
     border-radius: 14px;
-    border: 1px solid var(--divider);
     box-shadow: 0 20px 60px rgba(0,0,0,.18);
 }
-#authModal .modalCard h3{
+#authModal .modalCard h3 {
     font-size: 24px;
     line-height: 1.25;
     font-weight: 800;
-    margin: 0 0 18px 0;
+    margin: 0 0 18px;
     color: var(--ink);
 }
-#authModal .row{ display: block; padding: 0; margin: 6px 0 0 0; }
-#authModal .row::before{
-    content: "Value:";
-    display: block;
-    font-weight: 700;
-    color: var(--muted);
-    margin: 0 0 6px 0;
+#authModal .row { display:block; padding:0; margin:6px 0 0; }
+#authModal .row::before {
+    content:"Value:";
+    display:block;
+    font-weight:700;
+    color:var(--muted);
+    margin:0 0 6px;
 }
-#authModal .row input{
-    width: 100%;
-    height: 48px;
-    padding: 10px 12px;
+#authModal .row input {
+    width:100%;
+    height:48px;
+    padding:10px 12px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size:14px;
+    border-radius:10px;
+    border:1px solid var(--divider);
+    background:transparent;
+    color:var(--fg);
+}
+#authModal .authState { margin-top:12px; font-size:13px; }
+#authModal .modalActions { margin-top:18px; }
+#authModal .modalActions > div { display:flex; gap:10px; align-items:center; }
+#authModal .modalActions button {
+    padding:10px 18px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:700;
+}
+/* Auth buttons*/
+/* ==== Save button ==== */
+#authModal #authSave {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 14px;
     font-size: 14px;
-    border-radius: 10px;
-    border: 1px solid var(--divider);
-    background: #0000;
-    color: var(--fg);
+    background-color: #16a34a;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 300ms;
+    font-weight: 700;
+    color: #fff;
 }
-#authModal .authState{ margin-top: 12px; font-size: 13px; color: #065f46; }
-[data-theme="dark"] #authModal .authState{ color:#34d399; }
-#authModal .modalActions{
-    display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 18px;
+
+/* hover  */
+#authModal #authSave:hover {
+    background-color: #15803d;
+    color: #fff;
+
 }
-#authModal .modalActions > div{ display: flex; gap: 10px; align-items: center; }
-#authModal .modalActions button{
-    padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 700;
+#authModal #authSave:active {
+    background: #10652e;
+    transform: translateY(1px);
 }
-#authModal #authSave{   order: 1; background: #10b981; color: #fff; border: none; }
-#authModal #authSave:hover{ filter: brightness(1.05); }
-#authModal #authCancel{ order: 2; background: var(--panel); color: var(--fg); border: 1px solid var(--divider); }
-#authModal #authCancel:hover{ filter: brightness(1.02); }
-#authModal #authClear{  order: 3; background: var(--soft); color: var(--muted); border: 1px solid var(--divider); }
-[data-theme="dark"] #authModal #authClear{
-    color: var(--muted); background: #121a2a; border-color: #25314a;
+
+/* ==== Dark theme ==== */
+[data-theme="dark"]#authModal #authSave {
+    background-color: #16a34a;
+    color: #fff;
 }
-/* === Environment modal – overlay с блюром + фиксы === */
-#varsModal.modal{
+
+[data-theme="dark"] #authModal #authSave:hover {
+    background-color: #15803d;
+
+}
+[data-theme="dark"]  #authModal #authSave:active {
+    background: #10652e;
+    transform: translateY(1px);
+}
+/* ==== Cancel button ==== */
+#authModal #authCancel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: 14px;
+    background-color: transparent;
+    border: 2px solid #dc2626;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 300ms;
+    font-weight: 700;
+    color: #dc2626;
+}
+
+/* hover  */
+#authModal #authCancel:hover {
+    background-color: #dc2626;
+    color: #fff;
+}
+#authModal #authCancel:active {
+    background: #ae1a1a;
+    transform: translateY(1px);
+}
+
+/* ==== Dark theme ==== */
+[data-theme="dark"]#authModal #authCancel {
+    border-color: #f87171;
+    color: #f87171;
+}
+
+[data-theme="dark"] #authModal #authCancel:hover {
+    background-color: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+}
+
+[data-theme="dark"] #authModal #authClear:active {
+    background: #ae1a1a;
+    color: #fff;
+    transform: translateY(1px);
+}
+/* ==== Clear button ==== */
+#authModal #authClear {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: 14px;
+    background: #374151;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    font-weight: 700;
+}
+
+/* hover  */
+#authModal #authClear:hover {
+    background: #303845;
+    color: #fff;
+}
+#authModal #authClear:active {
+    background: #2a333c;
+    transform: translateY(1px);
+}
+
+/* ==== Dark theme ==== */
+[data-theme="dark"]#authModal #authClear {
+    background-color: #374151;
+    color: #f3f4f6;
+}
+
+[data-theme="dark"]#authModal #authClear:hover {
+    background: #374151;
+    color: #fff;
+}
+[data-theme="dark"] #authModal #authClear:active {
+    background: #2c3340;
+    color: #fff;
+    transform: translateY(1px);
+}
+/* ---------- Vars Modal ---------- */
+#varsModal.modal {
     background: rgba(2, 6, 23, .58);
     backdrop-filter: saturate(1.2) blur(2px);
 }
-html:has(#varsModal:not([hidden])){ overflow: hidden; }
+html:has(#varsModal:not([hidden])) { overflow: hidden; }
 
-#varsModal .modalCard{
-    position: relative;
+#varsModal .modalCard {
     overflow: visible;
     width: 760px;
     max-width: 92vw;
@@ -84,26 +235,22 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
     flex-direction: column;
     padding: 24px 28px;
     border-radius: 14px;
-    border: 1px solid var(--divider);
-    background: var(--panel);
     box-shadow: 0 20px 60px rgba(0,0,0,.18);
     animation: fadeIn .25s ease, scaleIn .25s ease;
 }
-
-#varsModal .modalCard h3{
+#varsModal .modalCard h3 {
     position: sticky;
     top: 0;
     background: var(--panel);
     padding-bottom: 10px;
-    margin: 0 0 14px 0;
+    margin: 0 0 14px;
     font-size: 20px;
     font-weight: 800;
     color: var(--ink);
     border-bottom: 1px solid var(--divider);
     z-index: 2;
 }
-
-#varsModal .kvs{
+#varsModal .kvs {
     flex: 1;
     overflow: auto;
     border: 1px solid var(--divider);
@@ -111,11 +258,8 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
     margin-bottom: 18px;
     padding: 0;
 }
-
-#varsModal .modalActions{
-    display: flex;
+#varsModal .modalActions {
     justify-content: space-between;
-    align-items: center;
     gap: 12px;
     margin-top: 12px;
     position: sticky;
@@ -124,94 +268,176 @@ html:has(#varsModal:not([hidden])){ overflow: hidden; }
     padding-top: 12px;
     border-top: 1px solid var(--divider);
 }
-
 #varsModal .modalActions button,
-#varsModal .modalActions label.file{
+#varsModal .modalActions label.file {
     padding: 10px 18px;
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
 }
-
-#varsModal #varsSave{
-    background: #10b981;
-    color: #fff;
-    border: none;
-}
-#varsModal #varsSave:hover{ filter: brightness(1.05); }
-
-#varsModal #varsCancel{
-    background: var(--panel);
-    color: var(--fg);
-    border: 1px solid var(--divider);
-}
-#varsModal #varsCancel:hover{ filter: brightness(1.02); }
-
-#varsModal label.file{
-    background: var(--soft);
-    color: var(--muted);
-    border: 1px dashed var(--divider);
-}
-#varsModal label.file:hover{ filter: brightness(1.05); }
-
-/* === Modal for variable edit === */
-#varEditModal.modal {
-    background: rgba(2, 6, 23, .58);
-    backdrop-filter: saturate(1.2) blur(2px);
-}
-html:has(#varEditModal:not([hidden])) { overflow: hidden; }
-
-#varEditModal .modalCard {
-    width: 420px;
-    max-width: 92vw;
-    padding: 20px 24px;
-    border-radius: 12px;
-    border: 1px solid var(--divider);
-    background: var(--panel);
-    box-shadow: 0 20px 60px rgba(0,0,0,.18);
-}
-
-#varEditModal .modalCard h3 {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0 0 14px 0;
-    color: var(--ink);
-}
-
-#varEditModal .row {
-    display: block;
-    margin: 10px 0;
-}
-#varEditModal .row input {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--divider);
-    font-size: 14px;
-    background: #0000;
-    color: var(--fg);
-}
-
-#varEditModal .modalActions {
+#varsModal .modalActions-left,
+#varsModal .modalActions-right {
     display: flex;
-    justify-content: flex-end;
     gap: 10px;
-    margin-top: 18px;
+    align-items: center;
 }
-#varEditModal .modalActions button {
+/* ==== Vars Save button ==== */
+#varsModal #varsSave {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 8px 14px;
-    border-radius: 8px;
     font-size: 14px;
-}
-#varEditModal #varEditSave { background:#10b981; color:#fff; border:none; }
-#varEditModal #varEditCancel { background:var(--panel); color:var(--fg); border:1px solid var(--divider); }
-.dropdown {
-    position: relative;
-    display: inline-block;
+    background-color: #16a34a;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 300ms;
+    font-weight: 700;
+    color: #fff;
 }
 
-/* === Modal for variable edit (styled, как на скрине 2) === */
+/* hover  */
+#varsModal #varsSave:hover {
+    background-color: #15803d;
+    color: #fff;
+
+}
+#varsModal #varsSave:active {
+    background: #10652e;
+    transform: translateY(1px);
+}
+
+/* ==== Dark theme ==== */
+[data-theme="dark"]#varsModal #varsSave  {
+    background-color: #16a34a;
+    color: #fff;
+}
+
+[data-theme="dark"] #varsModal #varsSave:hover {
+    background-color: #15803d;
+
+}
+[data-theme="dark"]  #varsModal #varsSave:active {
+    background: #10652e;
+    transform: translateY(1px);
+}
+
+/* ==== Cancel button ==== */
+#varsModal #varsCancel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: 14px;
+    background-color: transparent;
+    border: 2px solid #dc2626;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 300ms;
+    font-weight: 700;
+    color: #dc2626;
+}
+
+/* hover  */
+#varsModal #varsCancel:hover {
+    background-color: #dc2626;
+    color: #fff;
+}
+#varsModal #varsCancel:active {
+    background: #ae1a1a;
+    transform: translateY(1px);
+}
+
+/* ==== Dark theme ==== */
+[data-theme="dark"]#varsModal #varsCancel {
+    border-color: #f87171;
+    color: #f87171;
+}
+
+[data-theme="dark"] #varsModal #varsCancel:hover {
+    background-color: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+}
+
+[data-theme="dark"] #varsModal #varsCancel:active {
+    background: #ae1a1a;
+    color: #fff;
+    transform: translateY(1px);
+}
+#varsModal #varsAdd,
+#varsModal #jsonMenuBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: 14px;
+    background-color: #2563eb;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 300ms;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* hover */
+#varsModal #varsAdd:hover,
+#varsModal #jsonMenuBtn:hover {
+    background-color: #1d4ed8;
+    color: #fff;
+}
+
+/* active */
+#varsModal #varsAdd:active,
+#varsModal #jsonMenuBtn:active {
+    background: #153eaf;
+    transform: translateY(1px);
+}
+
+/* ==== Dark theme ==== */
+[data-theme="dark"] #varsModal #varsAdd,
+[data-theme="dark"] #varsModal #jsonMenuBtn {
+    background-color: #2563eb;
+    color: #fff;
+}
+
+[data-theme="dark"] #varsModal #varsAdd:hover,
+[data-theme="dark"] #varsModal #jsonMenuBtn:hover {
+    background-color: #1d4ed8;
+}
+
+[data-theme="dark"] #varsModal #varsAdd:active,
+[data-theme="dark"] #varsModal #jsonMenuBtn:active {
+    background: #153eaf;
+    transform: translateY(1px);
+}
+
+/* === Table inside Vars Modal === */
+.varsTable {
+    width:100%; border-collapse:collapse; font-size:14px; background:transparent;
+}
+.varsTable th,.varsTable td {
+    border-bottom:1px solid var(--divider); padding:8px;
+}
+.varsTable th {
+    position:sticky; top:0; z-index:2;
+    background:var(--soft); color:var(--muted);
+    font-weight:600; text-align:left;
+    box-shadow:0 2px 0 var(--divider);
+}
+.varsTable td input[type="text"] {
+    width:100%; padding:6px 8px;
+    border:1px solid var(--divider);
+    border-radius:6px; font-size:13px;
+    background:transparent; color:var(--fg);
+}
+.varsTable td input[type="checkbox"] {
+    width:auto; margin:auto; display:block;
+}
+.varsHelp { font-size:12px; color:var(--muted); }
+
+/* ---------- Var Edit Modal ---------- */
 #varEditModal.modal {
     background: rgba(2, 6, 23, .58);
     backdrop-filter: saturate(1.2) blur(2px);
@@ -227,18 +453,13 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     background: var(--panel);
     box-shadow: 0 20px 60px rgba(0,0,0,.18);
 }
-
 #varEditModal .modalCard h3 {
     font-size: 18px;
     font-weight: 700;
-    margin: 0 0 14px 0;
+    margin: 0 0 14px;
     color: var(--ink);
 }
-
-#varEditModal .row {
-    display: block;
-    margin: 10px 0;
-}
+#varEditModal .row { display:block; margin:10px 0; }
 #varEditModal .row input {
     width: 100%;
     height: 44px;
@@ -247,15 +468,14 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     font-size: 14px;
     border-radius: 8px;
     border: 1px solid var(--divider);
-    background: #0000;
+    background: transparent;
     color: var(--fg);
 }
-
 #varEditModal .modalActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 18px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:18px;
 }
 #varEditModal .modalActions button {
     padding: 8px 16px;
@@ -264,352 +484,296 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     font-weight: 600;
     cursor: pointer;
 }
-#varEditModal #varEditCancel {
-    background: var(--panel);
-    color: var(--fg);
-    border: 1px solid var(--divider);
-}
 #varEditModal #varEditSave {
-    background: #10b981;
-    color: #fff;
-    border: none;
-}
-#varEditModal #varEditSave:hover { filter: brightness(1.05); }
-
-/* Vars */
-.varsTable{ width:100%; border-collapse:collapse; font-size:14px; background:#0000 }
-.varsTable th,.varsTable td{ border-bottom:1px solid var(--divider); padding:8px }
-.varsTable th{ position:sticky; top:0; z-index:2; background:var(--soft); color:var(--muted); font-weight:600; text-align:left; box-shadow:0 2px 0 var(--divider); }
-.varsTable td input[type="text"]{ width:100%; padding:6px 8px; border:1px solid var(--divider); border-radius:6px; font-size:13px; background:#0000; color:var(--fg) }
-.varsTable td input[type="checkbox"]{ width:auto; margin:auto; display:block; }
-.varsHelp{ font-size:12px; color:var(--muted); }
-
-#varsModal .dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-
-#varsModal .jsonMenuBtn {
-    display: inline-flex;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 6px;
-    background: var(--soft);
-    color: var(--muted);
-    border: 1px solid var(--divider);
-    border-radius: 8px;
     padding: 8px 14px;
     font-size: 14px;
-    font-weight: 600;
+    background-color: #16a34a;
+    border-radius: 6px;
     cursor: pointer;
+    transition: 300ms;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* hover  */
+#varEditModal #varEditSave:hover {
+    background-color: #15803d;
+    color: #fff;
+
+}
+#varEditModal #varEditSave:active {
+    background: #10652e;
+    transform: translateY(1px);
+}
+
+/* ==== Dark theme ==== */
+[data-theme="dark"] #varEditModal #varEditSave {
+    background-color: #16a34a;
+    color: #fff;
+}
+
+[data-theme="dark"] #varEditModal #varEditSave:hover {
+    background-color: #15803d;
+
+}
+[data-theme="dark"]  #varEditModal #varEditSave:active {
+    background: #10652e;
+    transform: translateY(1px);
+}
+ /*cancel button edit var modal*/
+
+#varEditModal #varEditCancel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: 14px;
+    background-color: transparent;
+    border: 2px solid #dc2626;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 300ms;
+    font-weight: 700;
+    color: #dc2626;
+}
+
+/* hover  */
+#varEditModal #varEditCancel:hover {
+    background-color: #dc2626;
+    color: #fff;
+}
+#varEditModal #varEditCancel:active {
+    background: #ae1a1a;
+    transform: translateY(1px);
+}
+
+/* ==== Dark theme ==== */
+[data-theme="dark"] #varEditModal #varEditCancel {
+    border-color: #f87171;
+    color: #f87171;
+}
+
+[data-theme="dark"] #varEditModal #varEditCancel:hover {
+    background-color: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+}
+
+[data-theme="dark"] #varEditModal #varEditCancel:active {
+    background: #ae1a1a;
+    color: #fff;
+    transform: translateY(1px);
+}
+
+/* ---------- Dropdown inside Vars Modal ---------- */
+#varsModal .dropdown { position:relative; display:inline-block; }
+#varsModal .jsonMenuBtn {
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--soft); color:var(--muted);
+    border:1px solid var(--divider);
+    border-radius:8px;
+    padding:8px 14px;
+    font-size:14px; font-weight:600;
+    cursor:pointer;
 }
 #varsModal .jsonMenuBtn svg,
 #varsModal .dropdown-content svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    flex-shrink: 0;
+    width:18px; height:18px; stroke:currentColor; flex-shrink:0;
 }
-
-/* json Dropdown */
 #varsModal .dropdown-content {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: var(--panel);
-    border: 1px solid var(--divider);
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    min-width: 180px;
-    z-index: 200;
-    display: none;
-    flex-direction: column;
-    padding: 4px 0;
+    position:absolute; top:100%; left:0;
+    background:var(--panel);
+    border:1px solid var(--divider);
+    border-radius:6px;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+    min-width:180px;
+    z-index:200;
+    display:none;
+    flex-direction:column;
+    padding:4px 0;
 }
-
 #varsModal .dropdown-content button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: none;
-    border: none;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--fg);
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
+    display:flex; align-items:center; gap:8px;
+    padding:8px 12px;
+    background:none; border:none;
+    font-size:14px; font-weight:500;
+    color:var(--fg);
+    cursor:pointer;
+    width:100%; text-align:left;
 }
-
-#varsModal .dropdown-content button:hover {
-    background: var(--soft);
-}
-
-#varsModal .dropdown.open .dropdown-content {
-    display: flex;
-}
+#varsModal .dropdown-content button:hover { background:var(--soft); }
+#varsModal .dropdown.open .dropdown-content { display:flex; }
 
 .jsonMenuBtn {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    cursor: pointer;
+    width:32px; height:32px;
+    display:flex; align-items:center; justify-content:center;
+    border:none; background:transparent; cursor:pointer;
 }
+.jsonMenuBtn.active { background:var(--soft); border-radius:6px; }
 
-.jsonMenuBtn.active {
-    background: var(--soft);
-    border-radius: 6px;
+/* ---------- Shared Modal Header ---------- */
+.modalHeader {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:5px;
 }
-
-.modalCard {
-    position: relative;
-}.modalHeader {
-     display: flex;
-     justify-content: space-between;
-     align-items: flex-start;
-     margin-bottom: 16px; /* одинаковый отступ для всех модалок */
- }
-
 .modalHeader h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--ink);
+    margin:0;
+    font-size:16px;
+    font-weight:600;
+    color:var(--ink);
 }
-
 .modalClose {
-    margin-top: 2px;
-    font-size: 20px;
-    font-weight: 600;
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    line-height: 1;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin-top:2px;
+    font-size:20px;
+    font-weight:600;
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+    line-height:1;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
 }
+.modalClose:hover { color:var(--fg); }
 
-.modalClose:hover {
-    color: var(--fg);
-}
-/* ---------- Settings Modal ---------- */
+/* ---------- Settings Sidebar ---------- */
 .settingsSidebar {
-    position: fixed;
-    inset: 0;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    align-items: stretch;
-    background: rgba(0,0,0,0.3);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: flex-start;
-    z-index: 2000;
-    opacity: 0;
-    pointer-events: auto;
-    transition: opacity 0.25s ease;
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:flex-start;
+    align-items:stretch;
+    background:rgba(0,0,0,0.3);
+    backdrop-filter:blur(4px);
+    z-index:2000;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
 }
 .settingsSidebar.open {
-    opacity: 1;
-    pointer-events: auto;
-    visibility: visible;
+    opacity:1;
+    pointer-events:auto;
 }
-.settingsSidebar:not(.open) {
-    opacity: 0;
-    pointer-events: none;
-}
-/* Контент (панель) */
 .settingsContent {
-    flex-shrink: 0;
-    width: 420px;
-    height: 100%;
-    background: var(--panel, #fff);
-    border-right: 1px solid var(--divider, #e5e7eb);
-    box-shadow: 2px 0 6px rgba(0,0,0,0.15);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    transform: translateX(-100%);
-    background: var(--panel, #fff);
-    border-right: 1px solid var(--divider, #e5e7eb);
-    transition: transform 0.25s ease;
+    flex-shrink:0;
+    width:420px; height:100%;
+    background:var(--panel,#fff);
+    border-right:1px solid var(--divider,#e5e7eb);
+    box-shadow:2px 0 6px rgba(0,0,0,0.15);
+    padding:20px;
+    display:flex; flex-direction:column;
+    transform:translateX(-100%);
+    transition:transform .25s ease;
 }
-.settingsSidebar.open .settingsContent {
-    transform: translateX(0);
-}
-/* Заголовок */
+.settingsSidebar.open .settingsContent { transform:translateX(0); }
+
 .settingsHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
 }
-
-.settingsHeader h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-}
-
+.settingsHeader h3 { margin:0; font-size:18px; font-weight:600; }
 .settingsHeader .closeSettings {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: var(--fg, #333);
+    background:none; border:none;
+    font-size:20px; cursor:pointer;
+    color:var(--fg,#333);
 }
 
-.settingsBody {
-    flex: 1;
-    overflow-y: auto;
-}
-
+.settingsBody { flex:1; overflow-y:auto; }
 .settingsRow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between; /* текст слева, кнопка справа */
-    margin-bottom: 15px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:15px;
 }
+.settingsLabel { font-size:16px; font-weight:600; color:var(--fg,#fff); }
 
-.settingsLabel {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--fg, #fff);
-}
-.hotkeyGroup {
-    margin-bottom: 12px;
-}
-
+.hotkeyGroup { margin-bottom:12px; }
 .hotkeyGroup h5 {
-    margin: 8px 0;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--fg, #333);
+    margin:8px 0;
+    font-size:13px; font-weight:600;
+    color:var(--fg,#333);
 }
-
-.hotkeyList {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
+.hotkeyList { list-style:none; margin:0; padding:0; }
 .hotkeyItem {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 0;
-    font-size: 13px;
+    display:flex; justify-content:space-between;
+    padding:4px 0; font-size:13px;
 }
-
-/* контейнер с хоткеями */
-.hotkeyKeys {
-    display: inline-flex;
-    gap: 4px;
-    align-items: center;
-}
-
-/* кнопки */
+.hotkeyKeys { display:inline-flex; gap:4px; align-items:center; }
 .hotkeyKeys kbd {
-    display: inline-block;
-    min-width: 20px;
-    padding: 3px 6px;
-    margin: 0 1px;
-    border: 1px solid var(--divider, #d1d5db);
-    border-radius: 4px;
-    background: var(--soft, #f9fafb);
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1.2;
-    text-align: center;
+    min-width:20px; padding:3px 6px; margin:0 1px;
+    border:1px solid var(--divider,#d1d5db);
+    border-radius:4px;
+    background:var(--soft,#f9fafb);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12px; font-weight:500;
+    line-height:1.2; text-align:center;
+}
+[data-theme="dark"] .hotkeyKeys kbd {
+    background:rgba(255,255,255,0.08);
+    border-color:rgba(255,255,255,0.2);
+    color:#fff;
 }
 
-[data-theme="dark"] .hotkeyKeys kbd {
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(255,255,255,0.2);
+#resetModal #resetCancel,
+#resetModal #resetEnvsAuth,
+#resetModal #resetFull {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: 14px;
+    background-color: transparent;
+    border: 2px solid #dc2626;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 300ms;
+    font-weight: 700;
+    color: #dc2626;
+}
+
+/* hover  */
+#resetModal #resetCancel:hover,
+#resetModal #resetEnvsAuth:hover,
+#resetModal #resetFull:hover {
+    background-color: #dc2626;
+    color: #fff;
+}
+#resetModal #resetCancel:active,
+#resetModal #resetEnvsAuth:active,
+#resetModal #resetFull:active {
+    background: #ae1a1a;
+    transform: translateY(1px);
+}
+
+/* ==== Dark theme ==== */
+[data-theme="dark"] #resetModal #resetCancel,
+[data-theme="dark"] #resetModal #resetEnvsAuth,
+[data-theme="dark"] #resetModal #resetFull {
+    border-color: #f87171;
+    color: #f87171;
+}
+
+[data-theme="dark"] #resetModal #resetCancel:hover,
+[data-theme="dark"] #resetModal #resetEnvsAuth:hover,
+[data-theme="dark"] #resetModal #resetFull:hover {
+    background-color: #dc2626;
+    border-color: #dc2626;
     color: #fff;
 }
 
-/* Анимация */
-
-/*
-.modal {
-    position: fixed;
-    inset: 0;
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+[data-theme="dark"] #resetModal #resetCancel:active,
+[data-theme="dark"] #resetModal #resetEnvsAuth:active,
+[data-theme="dark"] #resetModal #resetFull:active {
+    background: #ae1a1a;
+    color: #fff;
+    transform: translateY(1px);
 }
-
-.modal[hidden] {
-    display: none;
-}
-
-.modalOverlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(4px);
-}
-
-
-.modalCard {
-    position: relative;
-    background: var(--panel, #fff);
-    border-radius: 10px;
-    padding: 20px;
-    max-width: 640px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    z-index: 2001;
-}
-
-
-.modalHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.modalHeader h3 {
-    margin: 0;
-    font-size: 1.25rem;
-}
-
-.modalClose {
-    border: none;
-    background: transparent;
-    font-size: 1.5rem;
-    cursor: pointer;
-    line-height: 1;
-    color: var(--fg, #333);
-}
-
-
-.modalBody {
-    font-size: 14px;
-    color: var(--fg, #444);
-}
-
-.settingsSection {
-    margin-bottom: 20px;
-}
-
-.settingsSection h4 {
-    font-size: 0.9rem;
-    margin-bottom: 6px;
-    color: var(--muted, #777);
-}
- */

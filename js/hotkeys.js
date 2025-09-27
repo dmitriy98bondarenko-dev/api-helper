@@ -1,5 +1,5 @@
 // hotkeys.js
-import { toggleVarsModal } from './vars.js';
+import { toggleTheme } from './ui.js';
 
 export const HOTKEYS = [
     {
@@ -26,11 +26,17 @@ export const HOTKEYS = [
     },
     {
         group: "Settings",
-        keys: ["Mod+A"],
+        keys: ["Mod+D"],
         description: "Toggle settings sidebar",
         action: (sidebar) => {
             sidebar?.classList.toggle("open");
         }
+    },
+    {
+        group: "Settings",
+        keys: ["Mod+G"],
+        description: "Toggle light/dark theme",
+        action: () => toggleTheme()
     },
     // --- Requests ---
     {
@@ -87,6 +93,7 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
 
 
     document.addEventListener('keydown', (e) => {
+        console.log("keydown:", e.key, e.code, e.metaKey, e.ctrlKey);
         const tag = (e.target.tagName || '').toLowerCase();
         const inEditable = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
         if (inEditable && !(e.metaKey || e.ctrlKey)) return;
@@ -113,8 +120,8 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
         }
 
 
-        //  Mod + A → toggle settings sidebar
-        if (isMod(e) && isKey(e,'a')) {
+        //  Mod + D → toggle settings sidebar
+        if (isMod(e) && isKey(e,'d')) {
             e.preventDefault();
             if (sidebar?.classList.contains('open')) {
                 close();
@@ -149,7 +156,14 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
             togglePinCurrent?.();
             return;
         }
-    });
+        if ((e.metaKey || e.ctrlKey) && e.code === 'KeyG') {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            toggleTheme();
+            console.log("🌗 Theme toggled!");
+            return;
+        }
+    }, true);
 }
 
 export function renderHotkeysList(containerId = "hotkeysList") {

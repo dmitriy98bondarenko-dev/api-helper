@@ -154,9 +154,10 @@ button.send:hover {
 }
 
 .reqHeader {
-
-    grid-template-columns: auto 1fr auto; /* метод | урл | кнопка */
     align-items: center;
+    background: #fff7e8;
+    border-bottom: 1px solid var(--divider);
+    grid-template-columns: auto 1fr auto; /* метод | урл | кнопка */
     gap: 5px;
     padding: 5px 12px;
     display: flex;
@@ -219,4 +220,67 @@ button.send:hover {
 .methodCurrent .methodArrow {
     font-size: 0.8em;
     margin-left: 4px;
+}
+
+.reqHeader select {
+    background: var(--chip-bg);
+    font-weight: 700;
+    cursor: pointer;
+    min-width: 90px;
+    border-right: 1px solid var(--divider);
+}
+
+.reqHeader input {
+    flex: 1;
+    min-width: 0;
+}
+
+
+/* === Fix URL row layout === */
+.reqHeader {
+    display: grid;
+    grid-template-columns: 120px 1fr 120px; /* метод | URL | кнопка */
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #fff7e8;
+    border-bottom: 1px solid var(--divider);
+}
+[data-theme="dark"] .reqHeader { background:#181818; }
+
+.reqHeader .urlWrap {
+    display: block;
+    width: 100%;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+    padding: 6px 8px;
+    background: #0000;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    min-height: 30px;
+    line-height: 1.4;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.reqHeader .send {
+    background: var(--accent);
+    border-radius: 6px;
+    background: var(--accent);
+    padding: 0 18px;
+    width: 100%;
+    height: 100%;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+}
+[data-theme="dark"] .reqHeader {
+    background:#1e293b;  /* тёмно-серый, читаемый */
+}
+
+[data-theme="dark"] .reqBodyWrap {
+    background:#1f2937;
+    color:#f3f4f6;
 }
