@@ -60,7 +60,7 @@ export function applyTheme(t) {
     if (sw) sw.checked = (t === 'dark');
 }
 
-// инициализация: выбор системной или сохранённой
+// theme toggle
 export function initTheme() {
     const sw = $('#themeToggleSwitch');
 
@@ -100,8 +100,13 @@ export function initTheme() {
         mq.addListener(systemChange); // Safari <14
     }
 }
+export function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+}
 
-// Подсветка "пропущенных" переменных в инпутах
+// Подсветка variables
 export function highlightMissingVars(rootEl, varsMap) {
   const regex = /{{\s*([^}]+)\s*}}/g;
   rootEl.querySelectorAll('input, textarea').forEach(inp => {

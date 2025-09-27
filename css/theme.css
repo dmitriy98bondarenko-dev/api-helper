@@ -41,9 +41,9 @@
 
 /* === Dark theme panel overrides === */
 [data-theme="dark"] .reqHeader,
-[data-theme="dark"] .respHeader { background:#1e293b; }
+[data-theme="dark"] .respHeader { background:#212121; }
 
 [data-theme="dark"] .reqBodyWrap,
-[data-theme="dark"] .respTools { background:#1f2937; }
+[data-theme="dark"] .respTools { background:#212121; }
 
-[data-theme="dark"] .respBody { background:#111827; color:#f3f4f6; }
+[data-theme="dark"] .respBody { background:#212121; color:#f3f4f6; }

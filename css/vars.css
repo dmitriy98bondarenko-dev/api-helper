@@ -1,0 +1,50 @@
+/** ================================
+    Variable Tokens
+    ================================ **/
+
+.var-token {
+    padding: 1px 3px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    transition: filter 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+/* --- Default theme --- */
+.var-token.missing {
+    --bg: #fff0f0;
+    --border: #ffc0b6;
+    --fg: #7a1d16;
+}
+
+.var-token.filled {
+    --bg: #f0fdf4;
+    --border: #bbf7d0;
+    --fg: #166534;
+}
+
+/* --- Dark theme overrides --- */
+[data-theme="dark"] .var-token.missing {
+    --bg: #3b1f23;
+    --border: #63313a;
+    --fg: #ffd1d6;
+}
+
+[data-theme="dark"] .var-token.filled {
+    --bg: #12291c;
+    --border: #1d3b2a;
+    --fg: #4ade80;
+}
+
+/* --- Apply common vars --- */
+.var-token.missing,
+.var-token.filled {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+}
+
+/* --- Hover effect --- */
+.var-token:hover {
+    filter: brightness(1.1);
+}
