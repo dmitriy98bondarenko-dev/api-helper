@@ -146,22 +146,40 @@
     word-break: normal;
     overflow-x: auto;
 }
-.respUrlText {
-    color: #374151;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
-}
-
 .respUrl {
     background: #fafafa;          /* светлый фон */
     border: 1px solid #e0e0e0;
     border-radius: 10px;
-    padding: 5px 5px;
+    padding: 5px 8px;
+    max-width: 600px;             /* фиксированная ширина контейнера */
+    overflow-x: auto;             /* горизонтальный скролл */
+    overflow-y: hidden;
+    white-space: nowrap;          /* в одну строку */
 }
+
+.respUrlText {
+    color: #374151;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    display: inline-block;
+}
+.respMeta {
+    color: #555;
+}
+
+[data-theme="dark"] .respMeta {
+    color: #fff;
+}
+
+[data-theme="dark"] .respUrl {
+    background: #1f2937;          /* темно-серый фон (видимый) */
+    border: 1px solid #374151;
+}
+
+[data-theme="dark"] .respUrlText {
+    color: #e5e5e5;               /* светлый текст на тёмной теме */
+}
+
 /* ===== Dark Theme ===== */
 
 [data-theme="dark"] .respBodyWrap {
@@ -225,7 +243,26 @@
     border-color: #1e2b45;
     color: #fff;
 }
-[data-theme="dark"] .respUrl {
-     background: #111827;
-     border: 1px solid #374151;
- }
+
+.logsArea,
+#tab-auth,
+#respHeadersArea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 10px;
+    color: #0a0a0a;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 460px;
+}
+
+[data-theme="dark"] .logsArea,
+[data-theme="dark"] #tab-auth,
+[data-theme="dark"] #respHeadersArea {
+    color: #e5e5e5;
+}

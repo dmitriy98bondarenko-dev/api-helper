@@ -80,6 +80,10 @@ export function flattenItems(node, path = []) {
         return;
     }
     if (node.item) {
+        if (node.name && node.event) {
+            state.FOLDER_EVENTS = state.FOLDER_EVENTS || {};
+            state.FOLDER_EVENTS[node.name] = node.event;
+        }
         const newPath = node.name ? path.concat(stripPrefixFolder(node.name)) : path;
         node.item.forEach(child => flattenItems(child, newPath));
         return;
@@ -96,7 +100,10 @@ export function flattenItems(node, path = []) {
             path: path.join(' / '),
             name: node.name || '(untitled)',
             request: node.request,
-            event: node.event || []
+            event: node.event || [],
+            folderEvents: path
+                .map(folderName => state.FOLDER_EVENTS?.[folderName] || [])
+                .flat()
         });
     }
 }

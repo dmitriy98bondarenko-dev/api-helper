@@ -284,3 +284,8 @@ button.send:hover {
     background:#1f2937;
     color:#f3f4f6;
 }
+.kvValue {
+    max-width: 400px;
+    white-space: pre;
+    overflow-x: auto;     /* если очень длинная строка — скролл */
+}

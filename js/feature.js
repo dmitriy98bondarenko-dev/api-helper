@@ -4,7 +4,7 @@ import {
     saveSelection, restoreSelection, highlightJSON,
     highlightMissingVars, renderUrlWithVars,
     buildKVTable, tableToSimpleArray,
-    renderResponse, renderResponseSaved
+    renderResponse, renderResponseSaved, renderLogs
 } from './ui.js';
 import { getGlobalBearer, loadReqState, saveReqState, clearReqState, loadScriptsLegacy, fetchWithTimeout, clampStr, getVal } from './config.js';
 import { flattenItems, renderTree, setActiveRow, normalizeUrl } from './sidebar.js';
@@ -16,6 +16,7 @@ import {
 import { loadJson } from './state.js';
 import { state, resolveVars } from './state.js';
 import { initSidebarNav, addHistoryEntry, renderHistory } from './history.js';
+import { copyCurl, safeBuildUrl, openCurlImportModal } from './curl.js';
 import { selectNextRequest, selectPrevRequest, focusSidebar, setOnRequestOpen,togglePinCurrent } from './sidebar.js';
 import {
     detectContentType,
@@ -26,53 +27,7 @@ import {
 
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, state.VARS);
 
-function copyCurl(paramsTable, headersTable, getSelectedMethod) {
-    const m = getSelectedMethod();
-    const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    const finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), params));
-    const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
-    const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
 
-    const authTypeEl = $('#authType');
-    const authTokenEl = $('#authTokenInp');
-    const authType = authTypeEl?.value;
-    const authToken = authTokenEl?.value.trim();
-
-    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')) {
-        if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
-        else if (getGlobalBearer()) hdrs['Authorization'] = 'Bearer ' + getGlobalBearer();
-    }
-
-    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')) {
-        const ct = detectContentType($('#bodyRawArea').textContent || '');
-        if (ct) hdrs['Content-Type'] = ct;
-    }
-
-    const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').textContent || '');
-    const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
-    const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
-    const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
-
-    navigator.clipboard.writeText(cmd);
-    showAlert('cURL copied', 'success');
-}
-
-function safeBuildUrl(url, queryArr){
-    const raw = url || '';
-    const hashIdx = raw.indexOf('#');
-    const [preHash, hashPart] = hashIdx>=0 ? [raw.slice(0,hashIdx), raw.slice(hashIdx+1)] : [raw,''];
-    const qIdx = preHash.indexOf('?');
-    const base = qIdx>=0 ? preHash.slice(0,qIdx) : preHash;
-
-    const enabled = (queryArr||[]).filter(p => (p?.key||'').trim() && p.enabled!==false);
-    const qs = enabled.map(p => {
-        const k = encodeURIComponent(p.key.trim());
-        const v = resolveVars(String(p.value ?? ''));
-        return v==='' ? k : `${k}=${encodeURIComponent(v)}`;
-    }).join('&');
-
-    return base + (qs ? `?${qs}` : '') + (hashPart ? `#${hashPart}` : '');
-}
 
 function getInitialStateForItem(item, forceDefaults = false) {
     const id = item.id;
@@ -131,25 +86,59 @@ function getInitialStateForItem(item, forceDefaults = false) {
     }
 
     // скрипты (legacy + event)
-    let scripts = saved?.scripts ?? loadScriptsLegacy(id);
-    if (!scripts || (!scripts.pre && !scripts.post)) {
-        scripts = { pre:'', post:'' };
-        if (Array.isArray(item.event)) {
-            item.event.forEach(ev => {
-                if (ev.listen === 'prerequest') {
-                    scripts.pre = (ev.script?.exec || []).join('\n');
-                } else if (ev.listen === 'test') {
-                    scripts.post = (ev.script?.exec || []).join('\n');
-                }
-            });
-        }
+    // Собираем скрипты: коллекция → папки → запрос
+    let preArr = [];
+    let postArr = [];
+
+// collection-level
+    if (state.COLLECTION?.event) {
+        state.COLLECTION.event.forEach(ev => {
+            if (ev.listen === 'prerequest') preArr.push((ev.script?.exec || []).join('\n'));
+            if (ev.listen === 'test')       postArr.push((ev.script?.exec || []).join('\n'));
+        });
     }
 
-    // auth:
-    const globalToken = getGlobalBearer() || '';
-    const auth = saved?.auth ?? { type: 'bearer', token: globalToken };
-    if (!auth.token) auth.token = globalToken;
+// folder-level
+    if (item.folderEvents && item.folderEvents.length) {
+        item.folderEvents.forEach(ev => {
+            if (ev.listen === 'prerequest') preArr.push((ev.script?.exec || []).join('\n'));
+            if (ev.listen === 'test')       postArr.push((ev.script?.exec || []).join('\n'));
+        });
+    }
 
+// request-level
+    if (Array.isArray(item.event)) {
+        item.event.forEach(ev => {
+            if (ev.listen === 'prerequest') preArr.push((ev.script?.exec || []).join('\n'));
+            if (ev.listen === 'test')       postArr.push((ev.script?.exec || []).join('\n'));
+        });
+    }
+
+// + legacy/сохранённые
+    const savedScripts = saved?.scripts ?? loadScriptsLegacy(id);
+    if (savedScripts?.pre) preArr.push(savedScripts.pre);
+    if (savedScripts?.post) postArr.push(savedScripts.post);
+
+    let scripts = { pre: preArr.join('\n'), post: postArr.join('\n') };
+
+
+    // auth:
+    let reqAuthType  = item?.request?.auth?.type || '';
+    let reqAuthToken = '';
+
+    if (reqAuthType === 'bearer') {
+        const arr = Array.isArray(item.request.auth.bearer) ? item.request.auth.bearer : [];
+        const rec = arr.find(x => x.key === 'token') || arr[0];
+        reqAuthToken = String(rec?.value ?? '');
+    }
+
+    const globalToken = getGlobalBearer() || '';
+    let auth =
+        (saved?.auth && (saved.auth.type || saved.auth.token)) ? saved.auth :
+            (reqAuthType ? { type: reqAuthType, token: reqAuthToken } :
+                { type: 'bearer', token: globalToken });
+
+    if (!auth.token) auth.token = (reqAuthToken || globalToken);
     console.log("headersInit →", headersInit);
 
     return {
@@ -161,11 +150,11 @@ function getInitialStateForItem(item, forceDefaults = false) {
 }
 
 function getAuthData() {
-    return {
-        type: $('#authType').value,
-        token: $('#authTokenInp').value.trim()
-    };
+    const type = $('#authType')?.value || 'bearer';
+    const token = $('#authTokenInp')?.textContent.trim() || '';
+    return { type, token };
 }
+
 
 // Для краткости: ниже — укороченная версия openRequest, повторно использующая UI-модули
 export function openRequest(item, forceDefaults = false) {
@@ -247,14 +236,14 @@ export function openRequest(item, forceDefaults = false) {
                     copyCurl(paramsTable, headersTable, getSelectedMethod);
                     hideSendMenu();
                 }
-            }, 'Copy cURL'),
-            el('div', {
+            }, 'Copy cURL')
+            /*el('div', {
                 class: 'sendMenuItem',
                 onclick: () => {
                     openCurlImportModal();
                     hideSendMenu();
                 }
-            }, 'Import cURL')
+            }, 'Import cURL')*/
         )
     );
 
@@ -376,7 +365,17 @@ export function openRequest(item, forceDefaults = false) {
     const authTypeSel = el('select', {id:'authType'},
         el('option', {value:'bearer', selected: (auth?.type||'bearer')==='bearer'}, 'Bearer Token')
     );
-    const authTokenInp = el('input', {id:'authTokenInp', value: auth?.token || '', placeholder:'Token value'});
+    const authTokenInp = el('div', {
+        id: 'authTokenInp',
+        class: 'code-editor var-support',
+        contenteditable: 'true',
+        spellcheck: 'false'
+    });
+
+    authTokenInp.innerHTML = renderUrlWithVarsLocal(String(auth?.token ?? ''));
+    highlightMissingVars(authTokenInp, state.VARS);
+
+
     authPane.append(
         el('div', {class:'authRow'}, el('div', {class:'muted'}, 'Auth type'), authTypeSel),
         el('div', {class:'authRow'}, el('div', {class:'muted'}, 'Token'), authTokenInp),
@@ -571,7 +570,8 @@ export function openRequest(item, forceDefaults = false) {
 // ==== SEND ====
     $('#sendBtn').onclick = async ()=>{
         debSave();
-
+        state.LOGS = [];
+        renderLogs();
         const cleanup = () => { showLoader(false); $('#sendBtn').disabled = false; };
 
         const params = tableToSimpleArray(paramsTable.tBodies[0]);
@@ -581,15 +581,24 @@ export function openRequest(item, forceDefaults = false) {
         let method = getSelectedMethod();
         let finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), params));
         let body = resolveVars($('#bodyRawArea').textContent || '');
-        const { type: authType, token: authToken } = getAuthData();
+        let { type: authType, token: rawToken } = getAuthData();
+        let authToken = rawToken;
 
-        if (!Object.keys(headers).some(h=>h.toLowerCase()==='authorization')){
-            if (authType==='bearer' && authToken){
+// если в поле указана переменная {{varName}}
+        const varMatch = rawToken.match(/^\{\{\s*([^}]+)\s*\}\}$/);
+        if (varMatch) {
+            const varName = varMatch[1];
+            authToken = state.VARS[varName] || state.COLLECTION_VARS[varName] || '';
+        }
+
+        if (!Object.keys(headers).some(h => h.toLowerCase() === 'authorization')) {
+            if (authType === 'bearer' && authToken) {
                 headers['Authorization'] = 'Bearer ' + authToken;
-            } else if (getGlobalBearer()){
+            } else if (getGlobalBearer()) {
                 headers['Authorization'] = 'Bearer ' + getGlobalBearer();
             }
         }
+
 
         if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
             const ctSelVal = document.querySelector('.ctDropdown')?.dataset.value || 'auto';
@@ -599,14 +608,13 @@ export function openRequest(item, forceDefaults = false) {
 
 
         // PRE scripts
-        const preCodeAll =
-            (state.COLLECTION_SCRIPTS?.pre || '') + '\n' + (preTA.value.trim() || '');
+        const preCodeAll = preTA.value.trim() || scripts.pre || '';
+
 
         if (preCodeAll.trim()) {
             try {
                 const ctx = makePreCtx({ method, url: finalUrl, params, headers, body });
                 await runUserScript(preCodeAll, ctx);
-
 
                 ({ method } = ctx.request);
                 finalUrl = ctx.request.url;
@@ -679,8 +687,7 @@ export function openRequest(item, forceDefaults = false) {
             let text = await res.text();
 
             // POST scripts
-            const postCodeAll =
-                (state.COLLECTION_SCRIPTS?.post || '') + '\n' + (postTA.value.trim() || '');
+            const postCodeAll = postTA.value.trim() || scripts.post || '';
 
             if (postCodeAll.trim()) {
                 try {
@@ -910,9 +917,11 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
                      if (key) state.COLLECTION_VARS[key] = getVal(v);
                   });
           }
+    Object.assign(state.VARS, state.COLLECTION_VARS);
     state.ENV = env;
     state.ITEMS_FLAT = [];
     flattenItems(collection, []);
+    buildVarMap();
     // load globals
     try {
         const globals = await loadJson('./data/postman_globals.json');
@@ -1095,11 +1104,18 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     });
     setOnRequestOpen(openRequest);
     initHotkeys({
-        sendBtn: document.getElementById('sendBtn'),
-        selectNextRequest,
+        get sendBtn() { return document.getElementById('sendBtn'); },        selectNextRequest,
         selectPrevRequest,
         focusSidebar,
         togglePinCurrent,
         toggleVarsModal
     });
+    // === Override console.log to capture logs ===
+    const origLog = console.log;
+    console.log = (...args) => {
+        const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+        state.LOGS.push(msg);
+        origLog.apply(console, args);
+        renderLogs(); // update Logs tab
+    };
 }

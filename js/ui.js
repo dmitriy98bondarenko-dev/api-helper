@@ -164,10 +164,56 @@ export function appendRow(tb, row = {}, isNew = false, onChange) {
         placeholder: isNew ? 'key' : ''
     });
 
-    const valInp = el('input', {
-        value: row.value ?? '',
+    const valCell = el('div', {
+        class: 'kvValue code-editor',
+        contenteditable: 'true',
         'data-field': 'value',
-        placeholder: isNew ? 'value' : ''
+        spellcheck: 'false'
+    });
+
+// начальное значение с подсветкой переменных
+    const rawVal = String(row.value ?? '');
+
+// если есть {{var}} → рендерим подсветку
+    if (/{{\s*[^}]+\s*}}/.test(rawVal)) {
+        valCell.innerHTML = renderUrlWithVars(rawVal, state.VARS);
+        highlightMissingVars(valCell, state.VARS);
+    } else {
+        // иначе просто текст
+        valCell.textContent = rawVal;
+    }
+
+
+// синхронизация с row
+    Object.defineProperty(valCell, 'value', {
+        get() { return valCell.textContent; },
+        set(v) {
+            valCell.textContent = v;
+            row.value = v;
+            highlightMissingVars(valCell, state.VARS);
+        }
+    });
+
+// события
+    valCell.addEventListener('input', () => {
+        const text = valCell.textContent;
+        row.value = text;
+
+        if (/{{\s*[^}]+\s*}}/.test(text)) {
+            valCell.innerHTML = renderUrlWithVars(text, state.VARS);
+        }
+        highlightMissingVars(valCell, state.VARS);
+        onChange && onChange();
+    });
+
+
+// клик по {{varName}} → модалка
+    valCell.addEventListener('click', (e) => {
+        const t = e.target.closest('.var-token');
+        if (t && window.openVarEdit) {
+            const key = t.dataset.var || t.textContent.replace(/[{}]/g,'').trim();
+            if (key) window.openVarEdit(key);
+        }
     });
 
     const removeBtn = el('button', {
@@ -188,19 +234,19 @@ export function appendRow(tb, row = {}, isNew = false, onChange) {
     tr.append(
         el('td', { class: 'kvOn' }, el('div', { class: 'cell' }, cb)),
         el('td', {}, el('div', { class: 'cell' }, keyInp)),
-        el('td', {}, el('div', { class: 'cell' }, valInp)),
+        el('td', {}, el('div', { class: 'cell' }, valCell)),
         el('td', {}, el('div', { class: 'cell' }, removeBtn))
     );
 
     tb.append(tr);
 
     function keyValFilled() {
-        return keyInp.value.trim().length > 0 && valInp.value.trim().length > 0;
+        return keyInp.value.trim().length > 0 && valCell.value.trim().length > 0;
     }
 
 
     keyInp.addEventListener('input', () => onChange && onChange());
-    valInp.addEventListener('input', () => onChange && onChange());
+    valCell.addEventListener('input', () => onChange && onChange());
     cb.addEventListener('change', () => onChange && onChange());
 }
 
@@ -245,7 +291,8 @@ export function tableToSimpleArray(tbody) {
   const out = [];
   Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
     const key = tr.querySelector('input[data-field="key"]')?.value?.trim() ?? '';
-    const val = tr.querySelector('input[data-field="value"]')?.value ?? '';
+      const valEl = tr.querySelector('[data-field="value"]');
+      const val = valEl?.value ?? valEl?.textContent ?? '';
     const en = tr.querySelector('input[data-field="enabled"]')?.checked;
     if (key || val) out.push({ key, value: val, enabled: !!en });
   });
@@ -391,8 +438,11 @@ export function renderResponse(res, text, ms, url) {
     // ---------- Headers ----------
     const headersList = Object.entries(res.headers ? Object.fromEntries(res.headers) : {})
         .map(([k, v]) => `${k}: ${v}`).join('\n');
-    const headersPre = el('pre', { class: 'headers' }, headersList);
-
+    const headersPre = el(
+        'pre',
+        { id: 'respHeadersArea'},
+        headersList || '— no headers —'
+    );
     // ---------- Authentication ----------
     const authToken = extractBearer(res, text);
     const authPre = el('pre', { class: 'auth' }, authToken || '— no token —');
@@ -404,13 +454,17 @@ export function renderResponse(res, text, ms, url) {
     const tabs = el('div', { class: 'tabs' },
         el('div', { class: 'tab active', dataset: { tab: 'body' }, onclick: () => switchTab('body') }, 'Body'),
         el('div', { class: 'tab', dataset: { tab: 'headers' }, onclick: () => switchTab('headers') }, 'Headers'),
-        el('div', { class: 'tab', dataset: { tab: 'auth' }, onclick: () => switchTab('auth') }, 'Authentication')
+        el('div', { class: 'tab', dataset: { tab: 'auth' }, onclick: () => switchTab('auth') }, 'Authentication'),
+        el('div', { class: 'tab', dataset: { tab: 'logs' }, onclick: () => switchTab('logs') }, 'Logs')
     );
 
     const tabPanes = el('div', { class: 'tabPanes' },
         el('div', { class: 'tabPane active', id: 'tab-body' }, tools, bodyWrap),
         el('div', { class: 'tabPane', id: 'tab-headers' }, headersPre),
-        el('div', { class: 'tabPane', id: 'tab-auth' }, authPre)
+        el('div', { class: 'tabPane', id: 'tab-auth' }, authPre),
+        el('div', { class: 'tabPane', id: 'tab-logs' },
+            el('pre', { id: 'respLogsArea', class: 'logsArea' })
+        )
     );
 
     // ---------- Card (все разом) ----------
@@ -426,6 +480,7 @@ export function renderResponse(res, text, ms, url) {
     function switchTab(tab) {
         pane.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
         pane.querySelectorAll('.tabPane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+        if (tab === 'logs') renderLogs();
     }
 }
 
@@ -476,7 +531,12 @@ export function renderResponseSaved(saved) {
 
     // ---------- Headers ----------
     const headersList = Object.entries(saved.headers || {}).map(([k, v]) => `${k}: ${v}`).join('\n');
-    const headersPre = el('pre', { class: 'headers' }, headersList);
+    const headersPre = el(
+        'pre',
+        { id: 'respHeadersArea', class: 'headers' },
+        headersList || '— no headers —'
+    );
+
 
     // ---------- Tools ----------
     const tools = buildRespTools(pretty);
@@ -485,15 +545,21 @@ export function renderResponseSaved(saved) {
     const tabs = el('div', { class: 'tabs' },
         el('div', { class: 'tab active', dataset: { tab: 'body' }, onclick: () => switchTab('body') }, 'Body'),
         el('div', { class: 'tab', dataset: { tab: 'headers' }, onclick: () => switchTab('headers') }, 'Headers'),
-        el('div', { class: 'tab', dataset: { tab: 'auth' }, onclick: () => switchTab('auth') }, 'Authentication')
+        el('div', { class: 'tab', dataset: { tab: 'auth' }, onclick: () => switchTab('auth') }, 'Authentication'),
+        el('div', { class: 'tab', dataset: { tab: 'logs' }, onclick: () => switchTab('logs') }, 'Logs')
     );
 
-    const authPre = el('pre', { class: 'auth' }, '— no token —'); // можно потом добавить извлечение токена
+
+    const authPre = el('pre', {id: 'tab-auth', class: 'auth' }, '— no token —');
+
 
     const tabPanes = el('div', { class: 'tabPanes' },
         el('div', { class: 'tabPane active', id: 'tab-body' }, tools, bodyPre),
         el('div', { class: 'tabPane', id: 'tab-headers' }, headersPre),
-        el('div', { class: 'tabPane', id: 'tab-auth' }, authPre)
+        el('div', { class: 'tabPane', id: 'tab-auth' }, authPre),
+        el('div', { class: 'tabPane', id: 'tab-logs' },
+            el('pre', { id: 'respLogsArea', class: 'logsArea' })
+        )
     );
 
     const card = el('div', { class: 'respCard' },
@@ -667,3 +733,8 @@ if (searchInput && clearBtn) {
     });
 }
 
+export function renderLogs(){
+    const logsArea = document.getElementById('respLogsArea');
+    if (!logsArea) return;
+    logsArea.textContent = (state.LOGS || []).join("\n");
+}

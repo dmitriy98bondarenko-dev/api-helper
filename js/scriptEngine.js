@@ -24,14 +24,22 @@ export async function runUserScript(code, ctx){
         .join("\n");
 
     try {
-        const fn = new Function('ctx','pm', `
+        const fn = new Function('ctx','pm','state', `
             "use strict";
-            const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) };
-            ${globalFns}
-            ${code}
+            const console = { 
+            log: (...a) => {
+                const msg = a.map(x => 
+                    typeof x === 'object' ? JSON.stringify(x) : String(x)
+                ).join(' ');
+                ctx._logs.push(msg);                      
+                state.LOGS.push("Postman script: " + msg); 
+            }
+        };
+        ${globalFns}
+        ${code}
         `);
 
-        fn(ctx, pm);
+        fn(ctx, pm, state);
         await Promise.all(ctx._promises || []);
         if (ctx._logs.length) {
             console.log("Script logs:", ctx._logs);
@@ -153,11 +161,48 @@ export function makePmAdapter(ctx) {
         },
         collectionVariables: {
             get: (key) => state.COLLECTION_VARS[key],
-            set: (key, value) => { state.COLLECTION_VARS[key] = value; },
-            unset: (key) => { delete state.COLLECTION_VARS[key]; }
+            set: (key, value) => {
+                // 1) Запоминаем в collectionVariables
+                state.COLLECTION_VARS[key] = value;
+                state.VARS[key] = value;
+                buildVarMap();
+
+                // 2) Дублируем в environment (LS → pm_env_dev / staging / prod)
+                if (!state.ENV) state.ENV = { values: [] };
+                if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
+                const row = state.ENV.values.find(v => v.key === key);
+                if (row) {
+                    row.value = value;
+                    row.enabled = true;
+                } else {
+                    state.ENV.values.push({ key, value, enabled: true });
+                }
+
+                try {
+                    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+                    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+                } catch (e) {
+                    console.warn("Failed to persist env var", e);
+                }
+            },
+            unset: (key) => {
+                delete state.COLLECTION_VARS[key];
+                delete state.VARS[key];
+
+                if (Array.isArray(state.ENV?.values)) {
+                    const idx = state.ENV.values.findIndex(v => v.key === key);
+                    if (idx >= 0) state.ENV.values.splice(idx, 1);
+                }
+
+                buildVarMap();
+
+                try {
+                    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+                    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+                } catch {}
+            }
         },
 
-        // даём доступ к текущему запросу и возможность менять его
         request: {
             get method(){ return ctx.request.method; },
             set method(v){ ctx.request.method = String(v || 'GET').toUpperCase(); },
@@ -176,8 +221,30 @@ export function makePmAdapter(ctx) {
         sendRequest: async (req, cb) => {
             let url = req.url;
             let method = req.method || 'GET';
-            let headers = req.header ? Object.fromEntries(req.header.map(h => [h.key, h.value])) : {};
+            let headers = {};
+            if (Array.isArray(req.header)) {
+                // стандартный формат Postman (массив объектов)
+                headers = Object.fromEntries(req.header.map(h => [h.key, h.value]));
+            } else if (req.header && typeof req.header === "object") {
+                // если в скрипте передали как объект { "Content-Type": "application/json" }
+                headers = req.header;
+            }
             let body;
+            // --- нормализация ключей заголовков ---
+            const normalized = {};
+            Object.entries(headers).forEach(([k, v]) => {
+                if (!k) return;
+                const keyLower = String(k).toLowerCase();
+                // приведение "content-type" → "Content-Type"
+                if (keyLower === "content-type") {
+                    normalized["Content-Type"] = v;
+                } else if (keyLower === "authorization") {
+                    normalized["Authorization"] = v;
+                } else {
+                    normalized[k] = v;
+                }
+            });
+            headers = normalized;
 
             if (req.body) {
                 if (req.body.mode === 'raw' && typeof req.body.raw !== 'undefined') {

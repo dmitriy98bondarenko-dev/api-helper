@@ -98,9 +98,6 @@
 .statusPill.ok { background: #16a34a; color: #fff; }
 .statusPill.err { background: #dc2626; color: #fff; }
 
-.respMeta {
-    color: #555;
-}
 
 pre.headers {
     background: #f9fafb;
@@ -115,7 +112,7 @@ pre.headers {
 .respCard { background: var(--panel); border:1px solid var(--divider); border-radius:8px; margin:12px 0; }
 
 .tabPanes { padding: 6px;
-color: #fff0f0}
+}
 
 .tabPane { display:none; }
 .tabPane.active { display:block; }

@@ -57,6 +57,9 @@ export function clearLocalStorage(prefixes = [], exactKeys = []) {
 export function getVal(v) {
     return v?.currentValue ?? v?.value ?? v?.initialValue ?? '';
 }
+// === Proxy config ===
+export const PROXY_URL = "http://localhost:8080/";
+
 // request timeout helpers
 const REQUEST_TIMEOUT_MS = 15000; // 15s — при желании вынеси в конфиг
 
@@ -64,8 +67,9 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), ms);
     const options = { ...opts, signal: controller.signal };
+    const finalUrl = PROXY_URL ? PROXY_URL + url : url;
 
-    return fetch(url, options)
+    return fetch(finalUrl, options)
         .finally(() => clearTimeout(timer));
 }
 

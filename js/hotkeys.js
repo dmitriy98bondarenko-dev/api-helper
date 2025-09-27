@@ -93,7 +93,6 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
 
 
     document.addEventListener('keydown', (e) => {
-        console.log("keydown:", e.key, e.code, e.metaKey, e.ctrlKey);
         const tag = (e.target.tagName || '').toLowerCase();
         const inEditable = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
         if (inEditable && !(e.metaKey || e.ctrlKey)) return;
@@ -160,7 +159,6 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
             e.preventDefault();
             e.stopImmediatePropagation();
             toggleTheme();
-            console.log("🌗 Theme toggled!");
             return;
         }
     }, true);

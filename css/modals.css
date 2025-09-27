@@ -777,3 +777,28 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     color: #fff;
     transform: translateY(1px);
 }
+
+/** cURL Modal ***/
+.modal {
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index: 1000;
+}
+.modal-content {
+    background:#fff;
+    border-radius:8px;
+    padding:20px;
+    width:500px;
+    max-width:90%;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+}
+.modal-actions {
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:12px;
+}

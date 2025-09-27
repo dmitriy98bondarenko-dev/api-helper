@@ -9,17 +9,17 @@
 
 .leftLayout {
     display: grid;
-    grid-template-columns: 48px 1fr; /* колонка кнопок + контент */
+    grid-template-columns: 48px 1fr;
     height: 100%;
 }
-.section {         /* внутренние поля */
+.section {
     margin: 0;
     border: none;
     background: none;
     box-sizing: border-box;
     overflow-y: auto;
 }
-/* обёртка */
+/* обертка для поля пошука */
 .searchWrap {
     position: relative;
     width: 100%;
@@ -28,7 +28,7 @@
     border-bottom: 1px solid var(--divider);
 }
 
-/* поле поиска */
+/* поле пошука */
 .search {
     width: 100%;
     height: 40px;
@@ -41,7 +41,6 @@
     transition: 0.2s ease;
 }
 
-/* светлая тема */
 [data-theme="light"] .search {
     background-color: #f3f3f4;
     color: #0d0c22;
@@ -56,7 +55,6 @@
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-/* тёмная тема */
 [data-theme="dark"] .search {
     background-color: #2a2a2d;
     color: #e5e7eb;
@@ -71,7 +69,6 @@
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
 
-/* иконка внутри */
 .searchWrap .searchIcon {
     position: absolute;
     top: 50%;
@@ -82,12 +79,10 @@
     pointer-events: none;
 }
 
-/* иконка для светлой темы */
 [data-theme="light"] .searchWrap .searchIcon {
     color: #9e9ea7;
 }
 
-/* иконка для тёмной темы */
 [data-theme="dark"] .searchWrap .searchIcon {
     color: #9ca3af;
 }
@@ -155,7 +150,7 @@ search:focus ~ .searchIcon,
 #historyPane {
     flex: 1;
     overflow-y: auto;
-    padding: 4px;
+    padding: 0;
 }
 /* sidebar buttons */
 .navSwitch {

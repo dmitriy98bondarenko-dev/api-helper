@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "92cd75df-3552-41b3-a85d-ef0e2610b07f",
+    "_postman_id": "1e2801fb-d39e-4cf7-b9bd-750ec650a860",
     "name": "Uklon.CreateSmokeOrders.Run",
     "description": "Для використання колекції необхідно змінити значення змінних колекції, таких як:\n\n- `UserName` - використати свій логін від райдер аккаунта\n- `Password` - використати свій пароль від райдер аккаунта\n- `WalletId` - змінити на гаманець тестового драйвера\n- `AdminLogin` - використати свій логін в адмінку\n- `AdminPassword` - використати свій пароль до адмінки\n    \n\nВ змінну `PromoCode` додано мультикод промо `DRIVER`, який буде дійсний до 01.11.25, після експайру, потрібно перестворити.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "22082883",
-    "_collection_link": "https://uklon-driver.postman.co/workspace/Uklon.Driver-Workspace~7cc8acde-599b-4062-8a90-2f810c7ff50f/collection/22082883-92cd75df-3552-41b3-a85d-ef0e2610b07f?action=share&source=collection_link&creator=22082883"
+    "_exporter_id": "11930149",
+    "_collection_link": "https://driver-api-testing.postman.co/workspace/Uklon.DriverWorkspace.Team2~d4a3ef1c-d46a-4494-9732-e2002ffa66df/collection/11930149-1e2801fb-d39e-4cf7-b9bd-750ec650a860?action=share&source=collection_link&creator=11930149"
   },
   "item": [
     {
@@ -2623,52 +2623,37 @@
       "listen": "prerequest",
       "script": {
         "type": "text/javascript",
+        "requests": {},
         "exec": [
-          "if (pm.collectionVariables.get(\"needAuth\") == \"true\"){",
+          "if (pm.collectionVariables.get(\"needAuth\") === \"true\") {",
           "    eval(pm.globals.get(\"fetchAuthTokensFn\"));",
           "    eval(pm.globals.get(\"decodeTockenAndSaveUserIdFn\"));",
-          "    ",
+          "",
           "    fetchAuthTokens({",
           "        host: \"internalIdentityHost\",",
           "        username: \"adminUsername\",",
           "        password: \"adminPassword\",",
           "        tokenName: \"adminAuthToken\"",
-          "    });",
-          "",
-          "    fetchAuthTokens({",
-          "        host: \"identityHost\",",
-          "        username: \"riderUserName\",",
-          "        password: \"riderPassword\",",
-          "        tokenName: \"riderAuthToken\"",
-          "    });",
-          "",
-          "        fetchAuthTokens({",
-          "        host: \"identityHost\",",
-          "        username: \"corporateRiderUserName\",",
-          "        password: \"corporatePassword\",",
-          "        tokenName: \"corporateRiderAuthToken\"",
-          "    });",
-          "",
-          "    fetchAuthTokens({",
+          "    })",
+          "    .then(() => fetchAuthTokens({",
           "        host: \"partnersIdentityHost\",",
           "        username: \"driverPhone\",",
           "        password: \"driverPassword\",",
           "        tokenName: \"driverAuthToken\"",
-          "    });",
-          "",
-          "    decodeTockenAndSaveUserId({",
-          "    token: pm.collectionVariables.get(\"driverAuthToken\"),",
-          "    uidName: \"driverId\"",
-          "    });",
-          "",
-          "    decodeTockenAndSaveUserId({",
-          "    token: pm.collectionVariables.get(\"riderAuthToken\"),",
-          "    uidName: \"riderId\"",
-          "    });",
-          "",
-          "    pm.collectionVariables.set(\"needAuth\", \"false\")",
+          "    }))",
+          "    .then(() => {",
+          "        decodeTockenAndSaveUserId({",
+          "            token: pm.collectionVariables.get(\"driverAuthToken\"),",
+          "            uidName: \"driverId\"",
+          "        });",
+          "        decodeTockenAndSaveUserId({",
+          "            token: pm.collectionVariables.get(\"riderAuthToken\"),",
+          "            uidName: \"riderId\"",
+          "        });",
+          "        pm.collectionVariables.set(\"needAuth\", \"false\");",
+          "    })",
+          "    .catch(err => console.log(\"Auth error:\", err));",
           "}",
-          "",
           ""
         ]
       }
@@ -2677,6 +2662,7 @@
       "listen": "test",
       "script": {
         "type": "text/javascript",
+        "requests": {},
         "exec": [
           "if (pm.response.code === 401){",
           "    pm.collectionVariables.set(\"needAuth\", \"true\")",
@@ -2701,8 +2687,7 @@
     },
     {
       "key": "fareId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "changeRequestFareId",
@@ -2758,13 +2743,11 @@
     },
     {
       "key": "promoCodeApplyFn",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "riderDebtApplyFn",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
       "key": "fareEstimate",

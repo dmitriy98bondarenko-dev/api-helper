@@ -12,32 +12,33 @@ import { highlightJSON, saveSelection, restoreSelection } from './ui.js';
 export function buildVarMap() {
     const map = {};
 
-    // defaults
-    if (state.COLLECTION?.variable) {
-        state.COLLECTION.variable.forEach(v => {
-            if (!v) return;
-            const key = v.key ?? v.name;
-            if (key) map[key] = getVal(v);
+    // 1. Collection vars
+    if (state.COLLECTION_VARS) {
+        Object.entries(state.COLLECTION_VARS).forEach(([k, v]) => {
+            if (v != null && v !== '') map[k] = v;
         });
     }
 
-    // variables from ENV
+    // 2. Env vars
     if (state.ENV?.values) {
         state.ENV.values.forEach(v => {
             if (!v) return;
             if (v.enabled === false) return;
             const key = v.key ?? v.name;
-            if (key) map[key] = v.value;
+            if (key && v.value != null && v.value !== '') {
+                map[key] = v.value;
+            }
         });
     }
-    // globals
+
+    // 3. Globals
     if (state.GLOBALS) {
-        Object.entries(state.GLOBALS).forEach(([k,v])=>{
-            map[k] = v;
+        Object.entries(state.GLOBALS).forEach(([k, v]) => {
+            if (v != null && v !== '') map[k] = v;
         });
     }
+
     state.VARS = map;
-    updateVarsBtnCounter();
     return map;
 }
 
