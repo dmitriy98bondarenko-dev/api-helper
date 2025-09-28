@@ -15,7 +15,7 @@ function openByRow(row, forceDefaults = true) {
 export function focusSidebar() {
     const tree = $('#tree');
     if (!tree) return;
-    // делаем фокусируемым на всякий
+    // focus on sidebar
     if (!tree.hasAttribute('tabindex')) tree.setAttribute('tabindex','-1');
     tree.focus();
     if (!state.CURRENT_OP_EL) {
@@ -58,7 +58,7 @@ export function togglePinCurrent() {
 
 
 
-// ===== Sidebar =====
+// sidebar
 export function setActiveRow(elm){
     if (state.CURRENT_OP_EL) state.CURRENT_OP_EL.classList.remove('active');
     state.CURRENT_OP_EL = elm;
@@ -92,7 +92,7 @@ export function flattenItems(node, path = []) {
         const method = (node.request.method || 'GET').toUpperCase();
         const urlRaw = normalizeUrl(node.request.url);
 
-        // стабильный ID (метод + путь + url)
+        // stable id
         const stableId = `${path.join('/')}_${method}_${urlRaw}`;
 
         state.ITEMS_FLAT.push({
@@ -108,19 +108,19 @@ export function flattenItems(node, path = []) {
     }
 }
 
-// === общий заголовок папки
+// folder header
 function makeFolderHeader({ title, controls, nodeEl }) {
     const header = el(
         'div',
         {
             class: 'folder',
             onclick: () => {
-                nodeEl.classList.toggle('collapsed'); // только класс, без подмены SVG
+                nodeEl.classList.toggle('collapsed'); // only toggle
             }
         },
-        makeArrow(),                                // ← стрелка всегда слева
+        makeArrow(),                                // arrow on the left
         el('span', { class: 'folderTitle' }, title),
-        el('div', { class: 'folderControls' }, controls || null) // всё справа
+        el('div', { class: 'folderControls' }, controls || null) // body on the right
     );
     return header;
 }
@@ -132,10 +132,10 @@ export function renderTree(filter = '', { onRequestClick } = {}) {
 
     const q = (filter || '').toLowerCase();
     const match = (s) => (s || '').toLowerCase().includes(q);
-// ==== 1. Загружаем пины ====
+// load pins
     const pinnedIds = getPinnedIds();
 
-// ==== 2. Если есть пины — рендерим ====
+// if are pins hase, render them first
     if (pinnedIds.length) {
         const sec = el('div', { class: 'node' });
 
@@ -144,7 +144,7 @@ export function renderTree(filter = '', { onRequestClick } = {}) {
             title: 'Unpin all',
             onclick: (e) => {
                 e.stopPropagation();
-                setPinnedIds([]); // очистить LS
+                setPinnedIds([]); // clear ls
                 renderTree(filter, { onRequestClick });
             }
         }, '✖');
@@ -162,7 +162,7 @@ export function renderTree(filter = '', { onRequestClick } = {}) {
 
         pinnedIds.forEach(id => {
             const it = state.ITEMS_FLAT.find(x => x.id === id);
-            if (!it) return; // вдруг в коллекции нет
+            if (!it) return; // if not found, remove from pins
 
             const method = (it.request.method || 'GET').toUpperCase();
             const urlRaw = normalizeUrl(it.request.url);
@@ -195,7 +195,7 @@ export function renderTree(filter = '', { onRequestClick } = {}) {
         tree.append(sec);
     }
 
-    // ==== 3. Группировка по папкам ====
+    // folder groups
     const groups = {};
     state.ITEMS_FLAT.forEach(it => {
         if (pinnedIds.includes(it.id)) return;
@@ -218,7 +218,7 @@ export function renderTree(filter = '', { onRequestClick } = {}) {
         groups[folder].push(it);
     });
 
-    // ==== 4. Рендер групп ====
+    // render folders
     Object.entries(groups).forEach(([folder, items]) => {
         const sec = el('div', { class: 'node' });
 
@@ -290,7 +290,7 @@ const ARROW_CHEVRON = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidd
 </svg>`;
 const PIN_ICON    = `<svg width="14" height="14" viewBox="0 0 24 24"><path d="M14 2v2h1v5l4 4v2h-6v7l-2-1-2 1v-7H3v-2l4-4V4h1V2h6z"/></svg>`;
 
-// ==== Pins utils ====
+// pins utils
 function getPinnedIds() {
     try {
         return JSON.parse(localStorage.getItem('pinnedRequests') || '[]');
@@ -317,7 +317,7 @@ function removePin(id) {
     setPinnedIds(ids);
 }
 
-// ==== UI helpers ====
+// ui helpers
 function makeArrow() {
     const wrapper = el('span', { class: 'arrowIcon' });
     wrapper.innerHTML = ARROW_CHEVRON;

@@ -1,41 +1,52 @@
 // curl.js
 import { el, $, showAlert } from './ui.js';
 import { state, resolveVars } from './state.js';
-import { saveReqState} from './config.js';
+import { saveReqState, getGlobalBearer } from './config.js';
 import { openRequest } from './feature.js';
 import { tableToSimpleArray } from './ui.js';
 import { detectContentType } from './scriptEngine.js';
 
 // Copy cURL
-export function copyCurl(paramsTable, headersTable, getSelectedMethod) {
-    const m = getSelectedMethod();
-    const params = tableToSimpleArray(paramsTable.tBodies[0]);
-    const finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), params));
-    const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
-    const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
+export async function copyCurl(paramsTable, headersTable, getSelectedMethod) {
+    try {
+        const m = getSelectedMethod();
+        const params = tableToSimpleArray(paramsTable.tBodies[0]);
+        const finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), params));
+        const hdrsArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
+        const hdrs = Object.fromEntries(hdrsArr.map(p=>[p.key, resolveVars(p.value)]));
 
-    const authTypeEl = $('#authType');
-    const authTokenEl = $('#authTokenInp');
-    const authType = authTypeEl?.value || 'bearer';
-    const authToken = resolveVars((authTokenEl?.textContent.trim() || ''));
+        const authTypeEl = $('#authType');
+        const authTokenEl = $('#authTokenInp');
+        const authType = authTypeEl?.value || 'bearer';
+        const authToken = resolveVars((authTokenEl?.textContent.trim() || ''));
 
-    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')) {
-        if (authType==='bearer' && authToken) hdrs['Authorization']='Bearer '+authToken;
-        else if (getGlobalBearer()) hdrs['Authorization'] = 'Bearer ' + getGlobalBearer();
+        if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='authorization')) {
+            if (authType==='bearer' && authToken) {
+                hdrs['Authorization'] = 'Bearer ' + authToken;
+            } else if (getGlobalBearer()) {
+                hdrs['Authorization'] = 'Bearer ' + getGlobalBearer();
+            }
+        }
+
+        if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')) {
+            const ct = detectContentType($('#bodyRawArea').textContent || '');
+            if (ct) hdrs['Content-Type'] = ct;
+        }
+
+        const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').textContent || '');
+        const hdrStr = Object.entries(hdrs)
+            .filter(([k]) => k)
+            .map(([k, v]) => ` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`)
+            .join('');
+        const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
+        const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
+
+        await navigator.clipboard.writeText(cmd);
+        showAlert('cURL copied', 'success');
+    } catch (err) {
+        console.error("Copy cURL error:", err);
+        showAlert('Failed to copy cURL', 'error');
     }
-
-    if (!Object.keys(hdrs).some(h=>h.toLowerCase()==='content-type')) {
-        const ct = detectContentType($('#bodyRawArea').textContent || '');
-        if (ct) hdrs['Content-Type'] = ct;
-    }
-
-    const body = (m==='GET' || m==='HEAD') ? '' : resolveVars($('#bodyRawArea').textContent || '');
-    const hdrStr = Object.entries(hdrs).filter(([k])=>k).map(([k,v])=>` -H '${k}: ${String(v).replace(/'/g,"'\\''")}'`).join('');
-    const bodyStr = body ? ` --data '${String(body).replace(/'/g,"'\\''")}'` : '';
-    const cmd = `curl -X ${m}${hdrStr}${bodyStr} '${finalUrl.replace(/'/g,"'\\''")}'`;
-
-    navigator.clipboard.writeText(cmd);
-    showAlert('cURL copied', 'success');
 }
 export function safeBuildUrl(url, queryArr){
     const raw = url || '';
@@ -128,7 +139,7 @@ export function parseAndApplyCurl(cmd) {
         }
     }
 
-    // query-параметры из URL
+    // query from url
     try {
         const u = new URL(url);
         u.searchParams.forEach((v, k) => {
@@ -137,7 +148,7 @@ export function parseAndApplyCurl(cmd) {
         url = u.origin + u.pathname; // очищаем search → отдельно в params
     } catch {}
 
-    // Authorization → переносим в authTab
+    // authTab
     let auth = null;
     const idx = headers.findIndex(h => h.key.toLowerCase() === 'authorization');
     if (idx >= 0) {
@@ -148,14 +159,14 @@ export function parseAndApplyCurl(cmd) {
         }
     }
 
-    // берём текущий item
+    // item
     const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
     if (!item) {
         showAlert('No request selected to import cURL', 'error');
         return;
     }
 
-    // обновляем сам item.request
+    // update item.request
     item.request.method = method;
     item.request.url = url;
     item.request.header = headers.map(h => ({
@@ -164,11 +175,10 @@ export function parseAndApplyCurl(cmd) {
     item.request.body = body ? { raw: body } : {};
     if (auth) item.request.auth = auth;
 
-    // сохраняем в localStorage
+    // save to localStorage
     const patch = { method, url, params, headers, body, auth };
     saveReqState(item.id, patch);
 
-    // перерисовка
     openRequest(item);
 
     showAlert('cURL imported successfully', 'success');

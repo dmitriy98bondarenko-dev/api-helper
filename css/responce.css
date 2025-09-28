@@ -1,7 +1,5 @@
-/* RESPONCE */
-/* Контейнер */
-/* Карточка с фоном и тенью */
-/* Обёртка */
+/* response.css */
+
 .respToolsWrap {
     background: var(--panel);
     border: 1px solid var(--divider);
@@ -12,7 +10,6 @@
     position: relative;
 }
 
-/* Контейнер внутри */
 .respTools {
     display: flex;
     gap: 8px;
@@ -21,7 +18,6 @@
     width: 100%;
 }
 
-/* Поле ввода */
 .respTools input {
     flex: 1;
     min-width: 200px;
@@ -34,8 +30,6 @@
     outline: none;
     transition: 0.2s ease;
 }
-
-/* светлая тема */
 [data-theme="light"] .respTools input {
     background-color: #f3f3f4;
     color: #0d0c22;
@@ -50,7 +44,6 @@
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-/* тёмная тема */
 [data-theme="dark"] .respTools input {
     background-color: #2a2a2d;
     color: #e5e7eb;
@@ -65,7 +58,6 @@
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
 
-/* Иконка поиска */
 .respToolsWrap .searchIcon {
     position: absolute;
     top: 50%;
@@ -76,7 +68,6 @@
     pointer-events: none;
 }
 
-/* Цвет иконки для тем и ховера */
 [data-theme="light"] .respToolsWrap .searchIcon {
     color: #9e9ea7;
 }
@@ -84,7 +75,6 @@
     color: #9ca3af;
 }
 
-/* Кнопки */
 .respBtn {
     appearance: none;
     -webkit-appearance: none;
@@ -122,9 +112,8 @@
     box-shadow: none;
     transform: translateY(0);
 }
-/* ===== Response Body ===== */
 .respBodyWrap {
-    background: #fafafa;          /* светлый фон */
+    background: #fafafa;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
     padding: 12px;
@@ -135,7 +124,6 @@
     max-height: 460px;
 }
 
-/* сам текст */
 .respBodyWrap pre.body {
     margin: 0;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -147,14 +135,14 @@
     overflow-x: auto;
 }
 .respUrl {
-    background: #fafafa;          /* светлый фон */
+    background: #fafafa;
     border: 1px solid #e0e0e0;
     border-radius: 10px;
     padding: 5px 8px;
-    max-width: 600px;             /* фиксированная ширина контейнера */
-    overflow-x: auto;             /* горизонтальный скролл */
+    max-width: 600px;
+    overflow-x: auto;
     overflow-y: hidden;
-    white-space: nowrap;          /* в одну строку */
+    white-space: nowrap;
 }
 
 .respUrlText {
@@ -172,15 +160,13 @@
 }
 
 [data-theme="dark"] .respUrl {
-    background: #1f2937;          /* темно-серый фон (видимый) */
+    background: #1f2937;
     border: 1px solid #374151;
 }
 
 [data-theme="dark"] .respUrlText {
-    color: #e5e5e5;               /* светлый текст на тёмной теме */
+    color: #e5e5e5;
 }
-
-/* ===== Dark Theme ===== */
 
 [data-theme="dark"] .respBodyWrap {
     background: var(--panel);
@@ -195,22 +181,17 @@
     color: #e5e5e5;
 }
 
-/* === DARK THEME FIX === */
-
-    /* Контейнер */
 [data-theme="dark"] .respToolsWrap {
-    background: #111827;           /* тот же фон, что и у кнопок */
-    border: 1px solid #374151;     /* тёмная рамка */
+    background: #111827;
+    border: 1px solid #374151;
     border-radius: 6px;
     box-shadow: none;
 }
 [data-theme="dark"] .respTools {
     background: #111827;
 }
-
-/* Поле ввода */
 [data-theme="dark"] .respTools input {
-    background: #111827;           /* одинаковый фон с контейнером */
+    background: #111827;
     color: #e5e5e5;
     border: 1px solid #374151;
 }
@@ -224,16 +205,15 @@
     outline: none;
 }
 
-/* Кнопки */
 [data-theme="dark"] .respBtn {
-    background: #111827;           /* фон совпадает с контейнером */
+    background: #111827;
     border: 1px solid #374151;
     color: #ddd;
     box-shadow: none;
 }
 
 [data-theme="dark"] .respBtn:hover {
-    background: #111827;           /* чуть светлее при hover */
+    background: #111827;
     border-color: #555;
     color: #fff;
 }

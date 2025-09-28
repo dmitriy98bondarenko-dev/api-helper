@@ -8,7 +8,7 @@ import { initHotkeys, renderHotkeysList } from "./hotkeys.js";
 export function initSidebarNav() {
     const btnFolders   = $('#navFolders');
     const btnHistory   = $('#navHistory');
-    const btnSearch    = $('#navSearch');                 // 🔍 кнопка-лупа
+    const btnSearch    = $('#navSearch');
     const tree         = $('#tree');
     const historyPane  = $('#historyPane');
     const searchWrap   = document.querySelector('.searchWrap');
@@ -20,24 +20,24 @@ export function initSidebarNav() {
     }
     const getFilter = () => (filterInp?.value || '').trim();
 
-    // единая точка применения фильтра к активной вкладке
+
     function applyFilterToActiveTab() {
         const f = getFilter();
         if (historyPane.hidden) {
-            // мы на Folders
+            // active folders
             renderTree(f, { onRequestClick: openRequest });
         } else {
-            // мы на History
+            // active history
             renderHistory(f);
         }
     }
 
-    // --- переключение вкладок ---
+    // switch tabs
     btnFolders.addEventListener('click', () => {
         activate(btnFolders);
         tree.hidden = false;
         historyPane.hidden = true;
-        // запускаем после смены hidden, чтобы не перебили другие слушатели
+        // launch after changing hidden
         requestAnimationFrame(applyFilterToActiveTab);
     });
 
@@ -48,25 +48,24 @@ export function initSidebarNav() {
         requestAnimationFrame(applyFilterToActiveTab);
     });
 
-    // --- кнопка поиска в сайдбаре ---
+    // search button in sidebar
     btnSearch?.addEventListener('click', () => {
         const active = btnSearch.classList.toggle('active');
         searchWrap.hidden = !active;
 
         if (active) {
             filterInp?.focus();
-            applyFilterToActiveTab();                     // показать уже отфильтрованное
+            applyFilterToActiveTab();                     // show filtered
         } else {
-            // выключили поиск — сбрасываем
+            // take off search
             if (filterInp) filterInp.value = '';
             renderTree('', { onRequestClick: openRequest });
             renderHistory('');
         }
     });
 
-    // --- live-поиск ---
+    // live search
     filterInp?.addEventListener('input', applyFilterToActiveTab);
-    // --- горячие клавиши ---
     initHotkeys({
         btnFolders,
         btnHistory,
@@ -118,7 +117,7 @@ function groupByTime(list) {
 
         let label = '';
 
-        // 1) Последний час → пишем "just now", "3 min ago" и т.д.
+        // "just now", "3 min ago"
         if (diffHours === 0) {
             if (diffMin === 0) {
                 label = 'just now';
@@ -126,16 +125,17 @@ function groupByTime(list) {
                 label = `${diffMin} min ago`;
             }
         }
-        // 2) До 24 часов назад → пишем "1 hour ago", "5 hours ago" и т.д.
+        // if more than 24hour show 1 hour ago etc
         else if (diffHours < 24) {
             label = diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
         }
-        // 3) Сегодняшний день → группируем по часам
+        // group by day
+        else if (diffHours < 72) {}
         else if (diffHours < 48) {
             const d = new Date(entry.ts);
             label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
-        // 4) Всё что старше → "More than a day ago"
+        // more than a day ago
         else {
             label = 'More than a day ago';
         }
@@ -252,7 +252,7 @@ export function renderHistory(filter = '') {
                 el('span', { class: 'historyTime' }, new Date(entry.ts).toLocaleTimeString())
             );
 
-            // ✅ клик по элементу открывает запрос
+            // open request by click
             item.addEventListener('click', () => {
                 const req = state.ITEMS_FLAT.find(x => x.request?.url?.raw === entry.url);
                 if (req) {

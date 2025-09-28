@@ -4,20 +4,20 @@ import { state } from './state.js';
 export const el = (tag, attrs = {}, ...children) => {
     const ns = "http://www.w3.org/2000/svg";
 
-    // SVG-теги всегда создаём через namespace
+    // svg tags
     const svgTags = ['svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse', 'g', 'defs', 'clipPath', 'use'];
 
     const n = svgTags.includes(tag)
         ? document.createElementNS(ns, tag)
         : document.createElement(tag);
 
-    // Применяем атрибуты
+    // applying attributes
     Object.entries(attrs).forEach(([k, v]) => {
         if (k === 'class' || k === 'className') {
             if (n instanceof SVGElement) {
-                n.setAttribute('class', v);   // SVG
+                n.setAttribute('class', v);   // svg
             } else {
-                n.className = v;              // HTML
+                n.className = v;              // html
             }
         }
         else if (k === 'dataset') {
@@ -29,7 +29,7 @@ export const el = (tag, attrs = {}, ...children) => {
         }
     });
 
-    // Добавляем детей
+    // adding children
     children.forEach(c => {
         if (c) n.append(c);
     });
@@ -51,8 +51,8 @@ export function showLoader(on) {
   l.hidden = !on;
 }
 
-// Тема (UI)
-// применяет тему
+
+// applies theme
 export function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
     localStorage.setItem('ui_theme', t);
@@ -64,7 +64,7 @@ export function applyTheme(t) {
 export function initTheme() {
     const sw = $('#themeToggleSwitch');
 
-    // 1. Берём сохранённую тему или системную
+    // take default from localStorage
     let saved = localStorage.getItem('ui_theme');
 
     if (!saved) {
@@ -73,19 +73,19 @@ export function initTheme() {
         } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
             saved = 'light';
         } else {
-            saved = 'dark'; // дефолтная тема — ночь
+            saved = 'dark'; //default
         }
     }
 
     applyTheme(saved);
 
-    // 2. Реакция на ручное переключение
+    // manual shifting theme
     sw?.addEventListener('change', (e) => {
         const newTheme = e.target.checked ? 'dark' : 'light';
         applyTheme(newTheme);
     });
 
-    // 3. Реагировать на смену системной темы, если пользователь сам не задавал
+    // if the user hasnt set
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     function systemChange(e) {
         const userPref = localStorage.getItem('ui_theme');
@@ -95,9 +95,9 @@ export function initTheme() {
     }
 
     if (mq.addEventListener) {
-        mq.addEventListener('change', systemChange); // Chrome, FF, Safari 14+
+        mq.addEventListener('change', systemChange); // chrome, FF, Safari 14+
     } else if (mq.addListener) {
-        mq.addListener(systemChange); // Safari <14
+        mq.addListener(systemChange); // safari <14
     }
 }
 export function toggleTheme() {
@@ -106,7 +106,7 @@ export function toggleTheme() {
     applyTheme(next);
 }
 
-// Подсветка variables
+// highlight variables
 export function highlightMissingVars(rootEl, varsMap) {
   const regex = /{{\s*([^}]+)\s*}}/g;
   rootEl.querySelectorAll('input, textarea').forEach(inp => {
@@ -120,7 +120,7 @@ export function highlightMissingVars(rootEl, varsMap) {
   });
 }
 
-// Рендер токенов {{var}} в URL
+// render tokens {{var}} in url
 export function renderUrlWithVars(url, varsMap) {
   const regex = /{{\s*([^}]+)\s*}}/g;
   return String(url || '').replace(regex, (_, key) => {
@@ -171,20 +171,20 @@ export function appendRow(tb, row = {}, isNew = false, onChange) {
         spellcheck: 'false'
     });
 
-// начальное значение с подсветкой переменных
+// initial variable highlighting
     const rawVal = String(row.value ?? '');
 
-// если есть {{var}} → рендерим подсветку
+// if var has render highlight
     if (/{{\s*[^}]+\s*}}/.test(rawVal)) {
         valCell.innerHTML = renderUrlWithVars(rawVal, state.VARS);
         highlightMissingVars(valCell, state.VARS);
     } else {
-        // иначе просто текст
+        // or just set text
         valCell.textContent = rawVal;
     }
 
 
-// синхронизация с row
+// sync with row
     Object.defineProperty(valCell, 'value', {
         get() { return valCell.textContent; },
         set(v) {
@@ -194,7 +194,7 @@ export function appendRow(tb, row = {}, isNew = false, onChange) {
         }
     });
 
-// события
+// events
     valCell.addEventListener('input', () => {
         const text = valCell.textContent;
         row.value = text;
@@ -207,7 +207,7 @@ export function appendRow(tb, row = {}, isNew = false, onChange) {
     });
 
 
-// клик по {{varName}} → модалка
+// open modal by tap on varName
     valCell.addEventListener('click', (e) => {
         const t = e.target.closest('.var-token');
         if (t && window.openVarEdit) {
@@ -298,7 +298,7 @@ export function tableToSimpleArray(tbody) {
   });
   return out;
 }
-// ===== Response rendering =====
+// response rendering
 
 export function escapeHtml(text='') {
     return String(text)
@@ -308,10 +308,7 @@ export function escapeHtml(text='') {
         .replace(/"/g,'&quot;');
 }
 
-// ===== Response rendering (обновлено) =====
-// ui.js
-
-// Подсветка JSON
+// highlight json
 function syntaxHighlight(json) {
     if (!json) return '';
     let html = String(json)
@@ -334,7 +331,7 @@ function syntaxHighlight(json) {
     return html;
 }
 
-// тулбар с копированием
+// toolbar with copy btns
 function buildRespTools(bodyText) {
     const fieldInp = el('input', {
         id: 'copyFieldInp',
@@ -394,8 +391,7 @@ function buildRespTools(bodyText) {
 
 }
 
-// Рендер основного ответа
-// ===== Response rendering =====
+// response rendering
 export function renderResponse(res, text, ms, url) {
     const pane = document.querySelector('#resPane');
     if (!pane) return;
@@ -406,10 +402,10 @@ export function renderResponse(res, text, ms, url) {
         return;
     }
 
-    // ---------- Заголовок карточки ----------
+    // title of card
     const title = el('div', { class: 'respTitle' }, 'Response');
 
-    // ---------- Header зі статусом / часом / URL ----------
+    // header with status +time
     const header = el('div', { class: 'respHeader' },
         el('span', { class: 'statusPill ' + (res.status >= 200 && res.status < 300 ? 'ok' : 'err') }, res.status),
         el('span', { class: 'respMeta' }, `${ms.toFixed(0)} ms`),
@@ -418,7 +414,7 @@ export function renderResponse(res, text, ms, url) {
         )
     );
 
-    // ---------- Body ----------
+    // response body
     let highlighted, pretty;
     try {
         const json = JSON.parse(text);
@@ -431,11 +427,10 @@ export function renderResponse(res, text, ms, url) {
     const bodyPre = el('pre', { class: 'body' });
     bodyPre.innerHTML = highlighted;
 
-// 👉 оборачиваем в карточку
     const bodyWrap = el('div', { class: 'respBodyWrap' }, bodyPre);
 
 
-    // ---------- Headers ----------
+    // headers
     const headersList = Object.entries(res.headers ? Object.fromEntries(res.headers) : {})
         .map(([k, v]) => `${k}: ${v}`).join('\n');
     const headersPre = el(
@@ -443,14 +438,32 @@ export function renderResponse(res, text, ms, url) {
         { id: 'respHeadersArea'},
         headersList || '— no headers —'
     );
-    // ---------- Authentication ----------
-    const authToken = extractBearer(res, text);
-    const authPre = el('pre', { class: 'auth' }, authToken || '— no token —');
+    //  auth
+    const authTokenResp = extractBearer(res, text);
+    const sentToken = state.LAST_REQ_HEADERS?.Authorization || state.LAST_REQ_HEADERS?.authorization;
 
-    // ---------- Tools ----------
+    let authContent = [];
+    if (sentToken) {
+        authContent.push(
+            el('div', { class: 'muted' }, 'Sent Authorization:'),
+            el('pre', { class: 'auth' }, sentToken)
+        );
+    }
+    if (authTokenResp) {
+        authContent.push(
+            el('div', { class: 'muted', style: 'margin-top:8px' }, 'Response Authentication:'),
+            el('pre', { class: 'auth' }, authTokenResp)
+        );
+    }
+    if (authContent.length === 0) {
+        authContent.push(el('div', {}, '— no token —'));
+    }
+
+
+    //  tools
     const tools = buildRespTools(pretty);
 
-    // ---------- Tabs ----------
+    // tabs
     const tabs = el('div', { class: 'tabs' },
         el('div', { class: 'tab active', dataset: { tab: 'body' }, onclick: () => switchTab('body') }, 'Body'),
         el('div', { class: 'tab', dataset: { tab: 'headers' }, onclick: () => switchTab('headers') }, 'Headers'),
@@ -461,13 +474,13 @@ export function renderResponse(res, text, ms, url) {
     const tabPanes = el('div', { class: 'tabPanes' },
         el('div', { class: 'tabPane active', id: 'tab-body' }, tools, bodyWrap),
         el('div', { class: 'tabPane', id: 'tab-headers' }, headersPre),
-        el('div', { class: 'tabPane', id: 'tab-auth' }, authPre),
+        el('div', { class: 'tabPane', id: 'tab-auth' }, ...authContent),
         el('div', { class: 'tabPane', id: 'tab-logs' },
             el('pre', { id: 'respLogsArea', class: 'logsArea' })
         )
     );
 
-    // ---------- Card (все разом) ----------
+    // response card
     const card = el('div', { class: 'respCard' },
         title,
         header,
@@ -484,7 +497,7 @@ export function renderResponse(res, text, ms, url) {
     }
 }
 
-// ---------- Extract Bearer ----------
+// extract bearer
 function extractBearer(res, bodyText) {
     if (!res) return '';
     const headers = res.headers ? Object.fromEntries(res.headers) : {};
@@ -506,17 +519,17 @@ export function renderResponseSaved(saved) {
     if (!pane) return;
     pane.innerHTML = '';
 
-    // ---------- Заголовок ----------
+    //title of card
     const title = el('div', { class: 'respTitle' }, 'Response');
 
-    // ---------- Header ----------
+    // header
     const header = el('div', { class: 'respHeader' },
         el('span', { class: 'statusPill ' + (saved.status >= 200 && saved.status < 300 ? 'ok' : 'err') }, saved.status),
         el('span', { class: 'respMeta' }, `${saved.timeMs.toFixed(0)} ms`),
         el('span', { class: 'respUrl' }, saved.url || '')
     );
 
-    // ---------- Body ----------
+    // body
     let highlighted, pretty;
     try {
         const json = JSON.parse(saved.bodyText || '');
@@ -529,7 +542,7 @@ export function renderResponseSaved(saved) {
     const bodyPre = el('pre', { class: 'body' });
     bodyPre.innerHTML = highlighted;
 
-    // ---------- Headers ----------
+    // headers
     const headersList = Object.entries(saved.headers || {}).map(([k, v]) => `${k}: ${v}`).join('\n');
     const headersPre = el(
         'pre',
@@ -537,11 +550,9 @@ export function renderResponseSaved(saved) {
         headersList || '— no headers —'
     );
 
-
-    // ---------- Tools ----------
     const tools = buildRespTools(pretty);
 
-    // ---------- Tabs ----------
+    //tabs
     const tabs = el('div', { class: 'tabs' },
         el('div', { class: 'tab active', dataset: { tab: 'body' }, onclick: () => switchTab('body') }, 'Body'),
         el('div', { class: 'tab', dataset: { tab: 'headers' }, onclick: () => switchTab('headers') }, 'Headers'),
@@ -556,7 +567,7 @@ export function renderResponseSaved(saved) {
     const tabPanes = el('div', { class: 'tabPanes' },
         el('div', { class: 'tabPane active', id: 'tab-body' }, tools, bodyPre),
         el('div', { class: 'tabPane', id: 'tab-headers' }, headersPre),
-        el('div', { class: 'tabPane', id: 'tab-auth' }, authPre),
+        el('div', { class: 'tabPane', id: 'tab-auth' }, ...authContent),
         el('div', { class: 'tabPane', id: 'tab-logs' },
             el('pre', { id: 'respLogsArea', class: 'logsArea' })
         )
@@ -581,7 +592,7 @@ export function highlightJSON(text) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 
-    // === 1. Ключи: "key":
+    // key
     html = html.replace(
         /"([^"]+)"\s*:/g,
         (_, key) => `<span class='json-key'>"${key}"</span>:`
@@ -594,11 +605,10 @@ export function highlightJSON(text) {
         );
 
 */
-    // 3) Строки-значения (не ключи)
     html = html.replace(
         /"([^"]*?)"/g,
         (match, value) => {
-            // если это {{var}}, выделим как переменную
+            // if it var
             if (value.startsWith("{{") && value.endsWith("}}")) {
                 const varName = value.replace(/[{}]/g, "");
                 return `"<span class="var-token" data-var="${varName}">{{${varName}}}</span>"`;
@@ -607,17 +617,17 @@ export function highlightJSON(text) {
         }
     );
 
-    // 4) Числа
+    // numbers
     html = html.replace(
         /\b(-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?)\b/g,
         '<span data-json="number">$1</span>'
     );
 
-    // 5) true/false/null
+    // true false null
     html = html.replace(/\b(true|false)\b/g, '<span data-json="boolean">$1</span>');
     html = html.replace(/\b(null)\b/g, '<span data-json="null">$1</span>');
 
-    // 6) {{vars}} — кликабельные токены (цвет как в URL)
+    // vars
     html = html.replace(/{{\s*([^}]+)\s*}}/g, (_, key) => {
         const k = key.trim();
         const val = (state.VARS && state.VARS[k] != null) ? String(state.VARS[k]) : '';
@@ -628,7 +638,7 @@ export function highlightJSON(text) {
     return html;
 }
 
-// Сохранение позиции курсора в contenteditable
+// save position of cursor
 export function saveSelection(containerEl) {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return null;
@@ -639,7 +649,7 @@ export function saveSelection(containerEl) {
     return preCaretRange.toString().length; // offset
 }
 
-// Восстановление позиции курсора по offset
+// restoring the cursor position
 export function restoreSelection(containerEl, offset) {
     if (offset == null) return;
     let charIndex = 0;
@@ -651,7 +661,7 @@ export function restoreSelection(containerEl, offset) {
     let node, found = false;
 
     while (!found && (node = nodeStack.pop())) {
-        if (node.nodeType === 3) { // текстовый узел
+        if (node.nodeType === 3) { // text node
             const nextCharIndex = charIndex + node.length;
             if (offset >= charIndex && offset <= nextCharIndex) {
                 range.setStart(node, offset - charIndex);
@@ -699,10 +709,10 @@ export function showAlert(message, type = 'success') {
 
     container.append(alertBox);
 
-    // Закрыть по клику
+    // close alert
     closeBtn.onclick = () => alertBox.remove();
 
-    // Автоматически убрать через 3 сек
+    // remove after 3 seconds
     setTimeout(() => alertBox.remove(), 3000);
 }
 
@@ -737,4 +747,25 @@ export function renderLogs(){
     const logsArea = document.getElementById('respLogsArea');
     if (!logsArea) return;
     logsArea.textContent = (state.LOGS || []).join("\n");
+}
+
+export function showScriptLoader(on, message = 'Running pre-request script...') {
+    let el = document.getElementById('scriptLoader');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'scriptLoader';
+        el.className = 'script-loader';
+        el.style.position = 'fixed';
+        el.style.top = '10px';
+        el.style.right = '10px';
+        el.style.padding = '8px 12px';
+        el.style.background = 'rgba(0,0,0,0.75)';
+        el.style.color = '#fff';
+        el.style.borderRadius = '6px';
+        el.style.fontSize = '13px';
+        el.style.zIndex = '9999';
+        document.body.appendChild(el);
+    }
+    el.textContent = message;
+    el.hidden = !on;
 }

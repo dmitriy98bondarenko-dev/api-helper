@@ -38,7 +38,7 @@ export const HOTKEYS = [
         description: "Toggle light/dark theme",
         action: () => toggleTheme()
     },
-    // --- Requests ---
+    //  requests
     {
         group: "Requests",
         keys: ["Mod+Enter"],
@@ -81,7 +81,7 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
     };
     const close = () => sidebar?.classList.remove('open');
 
-// кнопка ⚙️
+// button settings on sidebar
     btnSettings?.addEventListener('click', (e) => {
         e.preventDefault();
         if (sidebar?.classList.contains('open')) {
@@ -106,6 +106,7 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
 
         if (isMod(e) && isKey(e,'k') && !e.shiftKey) {
             e.preventDefault();
+            e.stopImmediatePropagation();
             if (searchWrap) {
                 if (searchWrap.hidden) {
                     btnSearch?.click();
@@ -119,9 +120,10 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
         }
 
 
-        //  Mod + D → toggle settings sidebar
+        //  mod + d show settings sidebar
         if (isMod(e) && isKey(e,'d')) {
             e.preventDefault();
+            e.stopImmediatePropagation();
             if (sidebar?.classList.contains('open')) {
                 close();
             } else {
@@ -129,7 +131,7 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
             }
             return;
         }
-        // --- Requests ---
+        // requests
         if (isMod(e) && (key === 'Enter' || code === 'Enter')) {
             e.preventDefault();
             sendBtn?.click();

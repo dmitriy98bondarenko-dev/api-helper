@@ -4,27 +4,37 @@ import {
     saveSelection, restoreSelection, highlightJSON,
     highlightMissingVars, renderUrlWithVars,
     buildKVTable, tableToSimpleArray,
-    renderResponse, renderResponseSaved, renderLogs
+    renderResponse, renderResponseSaved, renderLogs, showScriptLoader
 } from './ui.js';
-import { getGlobalBearer, loadReqState, saveReqState, clearReqState, loadScriptsLegacy, fetchWithTimeout, clampStr, getVal } from './config.js';
-import { flattenItems, renderTree, setActiveRow, normalizeUrl } from './sidebar.js';
+import {
+    getGlobalBearer, loadReqState, saveReqState,
+    clearReqState, loadScriptsLegacy,
+    fetchWithTimeout, clampStr, getVal
+} from './config.js';
+import {
+    flattenItems, renderTree,
+    setActiveRow, normalizeUrl
+} from './sidebar.js';
 import { initHotkeys } from './hotkeys.js';
 import {
-    buildVarMap, buildVarsTableBody, initVarsModal, initResetModal,
-    updateVarsBtnCounter, initVarEditModal, toggleVarsModal
+    buildVarMap, buildVarsTableBody, initVarsModal,
+    initResetModal, updateVarsBtnCounter, initVarEditModal,
+    toggleVarsModal
 } from './vars.js';
 import { loadJson } from './state.js';
 import { state, resolveVars } from './state.js';
 import { initSidebarNav, addHistoryEntry, renderHistory } from './history.js';
 import { copyCurl, safeBuildUrl, openCurlImportModal } from './curl.js';
-import { selectNextRequest, selectPrevRequest, focusSidebar, setOnRequestOpen,togglePinCurrent } from './sidebar.js';
+import {
+    selectNextRequest, selectPrevRequest,
+    focusSidebar, setOnRequestOpen,togglePinCurrent
+} from './sidebar.js';
 import {
     detectContentType,
     runUserScript,
     makePreCtx,
     makePostCtx
 } from './scriptEngine.js';
-
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, state.VARS);
 
 
@@ -63,7 +73,7 @@ function getInitialStateForItem(item, forceDefaults = false) {
     );
 
 
-    // auto Authorization: всегда актуализируем глобальный токен
+    // auto authorization
     const bearer = getGlobalBearer();
     if (bearer) {
         const idx = headersInit.findIndex(h => String(h.key||'').toLowerCase() === 'authorization');
@@ -85,8 +95,7 @@ function getInitialStateForItem(item, forceDefaults = false) {
             : '';
     }
 
-    // скрипты (legacy + event)
-    // Собираем скрипты: коллекция → папки → запрос
+    // build scripts (collection + foldes + request)
     let preArr = [];
     let postArr = [];
 
@@ -98,7 +107,7 @@ function getInitialStateForItem(item, forceDefaults = false) {
         });
     }
 
-// folder-level
+// folder
     if (item.folderEvents && item.folderEvents.length) {
         item.folderEvents.forEach(ev => {
             if (ev.listen === 'prerequest') preArr.push((ev.script?.exec || []).join('\n'));
@@ -106,7 +115,7 @@ function getInitialStateForItem(item, forceDefaults = false) {
         });
     }
 
-// request-level
+// request
     if (Array.isArray(item.event)) {
         item.event.forEach(ev => {
             if (ev.listen === 'prerequest') preArr.push((ev.script?.exec || []).join('\n'));
@@ -114,7 +123,7 @@ function getInitialStateForItem(item, forceDefaults = false) {
         });
     }
 
-// + legacy/сохранённые
+// + legacy
     const savedScripts = saved?.scripts ?? loadScriptsLegacy(id);
     if (savedScripts?.pre) preArr.push(savedScripts.pre);
     if (savedScripts?.post) postArr.push(savedScripts.post);
@@ -122,7 +131,7 @@ function getInitialStateForItem(item, forceDefaults = false) {
     let scripts = { pre: preArr.join('\n'), post: postArr.join('\n') };
 
 
-    // auth:
+    // auth
     let reqAuthType  = item?.request?.auth?.type || '';
     let reqAuthToken = '';
 
@@ -156,7 +165,7 @@ function getAuthData() {
 }
 
 
-// Для краткости: ниже — укороченная версия openRequest, повторно использующая UI-модули
+// build request from item
 export function openRequest(item, forceDefaults = false) {
     state.CURRENT_REQ_ID = item.id;
 
@@ -167,12 +176,15 @@ export function openRequest(item, forceDefaults = false) {
     const pane = $('#reqPane');
     pane.innerHTML = '';
     const card = el('div', { class:'card' });
-// === AUTOSAVE ===
+// autosave
     const debSave = debounce(()=> {
         const params = tableToSimpleArray(paramsTable.tBodies[0]);
         const headers= tableToSimpleArray(headersTable.tBodies[0]);
         const scriptsNew = { pre: preTA.value, post: postTA.value };
-        const authNew = { type: $('#authType').value, token: $('#authTokenInp').value };
+        const authNew = {
+               type: $('#authType').value,
+               token: ($('#authTokenInp')?.textContent || '').trim()
+         };
         const patch = {
             method: getSelectedMethod(),
             url: $('#urlInp').value,
@@ -183,7 +195,7 @@ export function openRequest(item, forceDefaults = false) {
         };
         saveReqState(state.CURRENT_REQ_ID, patch);
     }, 180);
-// --- URL input / editable display ---
+// URL editable input
     const urlHidden = el('input', {
         id: 'urlInp',
         value: url,
@@ -204,15 +216,13 @@ export function openRequest(item, forceDefaults = false) {
 
         const params = tableToSimpleArray(paramsTable.tBodies[0]);
 
-        // ререндерим URL c токенами
+        // render URL
         urlDisp.innerHTML = renderUrlWithVarsLocal(
             safeBuildUrl($('#urlInp').value.trim(), params)
         );
 
-        // (опционально) если хочешь также прогонять общую подсветку по инпутам внутри блока
         // highlightMissingVars(urlDisp, state.VARS);
 
-        // вернуть каретку в конец
         const range = document.createRange();
         range.selectNodeContents(urlDisp);
         range.collapse(false);
@@ -223,7 +233,7 @@ export function openRequest(item, forceDefaults = false) {
         debSave();
     });
 
-    // Send button + Dropdown
+    // send button + curl dropdown
     const sendGroup = el('div', { class: 'sendGroup' },
         el('button', { id: 'sendBtn', class: 'sendMain' }, 'Send'),
         el('button', { id: 'sendDropdownBtn', class: 'sendDropdown' },
@@ -247,11 +257,11 @@ export function openRequest(item, forceDefaults = false) {
         )
     );
 
-// Header: Method + URL + Send
+// header method + URL +button send
 
     const header = el('div', { class: 'reqHeader' },
 
-// --- Method dropdown ---
+//  method dropdown
         (() => {
             const methods = ['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
             const colors = {
@@ -264,33 +274,32 @@ export function openRequest(item, forceDefaults = false) {
                 OPTIONS:'background: var(--op-other-b); color: var(--op-other-f);'
             };
 
-            // контейнер
             const wrap = el('div', { class: 'methodDropdown' });
 
-            // выбранный метод
+            // selected method
             const current = el('div', { class: 'methodCurrent', style: colors[method] },
                 method + ' ',
                 el('span', { class: 'methodArrow' }, '▼')
             );
             wrap.append(current);
 
-            // список
+            // list
             const list = el('div', { class: 'methodList', style: 'display:none;' });
             methods.forEach(m => {
                 const opt = el('div', {
                     class: 'methodOption',
                     style: colors[m],
                     onclick: () => {
-                        // обновляем текст метода, оставляем место для стрелки
+                        // update method text
                         current.childNodes[0].textContent = m + ' ';
                         current.setAttribute('style', colors[m]);
                         wrap.dataset.value = m;
                         list.style.display = 'none';
 
-                        // сбросить стрелку вниз
+                        // reset arrow
                         current.querySelector('.methodArrow').textContent = '▼';
 
-                        debSave(); // при смене сразу сохраняем
+                        debSave();
                     }
                 }, m);
                 if (m === method) wrap.dataset.value = m;
@@ -307,14 +316,14 @@ export function openRequest(item, forceDefaults = false) {
             return wrap;
         })(),
 
-        // --- URL (editable + hidden) ---
+        // url
         el('div', { class: 'urlWrap' }, urlDisp, urlHidden),
         sendGroup
 
 );
 
 
-// Tabs
+// tabs + panes
     const tabs = el('div', {class:'tabsBar'},
         el('div', {class:'tabs'},
             el('div', {class:'tab active', id:'tabParams', dataset:{method}}, 'Params'),
@@ -332,11 +341,11 @@ export function openRequest(item, forceDefaults = false) {
     const headersPane= el('div', {class:'tabPane',        id:'paneHeaders'});
     const authPane   = el('div', {class:'tabPane',        id:'paneAuth'});
     const scriptsPane= el('div', {class:'tabPane',        id:'paneScripts'});
-// Params/Headers
+// tabs params/headers
     const paramsTable = buildKVTable(paramsInit, { onChange: debSave });
     paramsPane.append(el('div', {class:'kvs'}, paramsTable));
 
-// rebuild URL
+// rebuild url
     {
         const paramsInitial = tableToSimpleArray(paramsTable.tBodies[0]);
         const builtUrl = safeBuildUrl(url, paramsInitial);
@@ -348,7 +357,7 @@ export function openRequest(item, forceDefaults = false) {
     const headersBox = el('div', { class: 'kvs' }, headersTable);
     headersPane.append(headersBox);
 
-// update URL
+// update url
     ['input','change'].forEach(ev=>{
         paramsPane.addEventListener(ev, () => {
             const params = tableToSimpleArray(paramsTable.tBodies[0]);
@@ -361,7 +370,7 @@ export function openRequest(item, forceDefaults = false) {
 
 
 
-// Authorization tab
+// auth tab
     const authTypeSel = el('select', {id:'authType'},
         el('option', {value:'bearer', selected: (auth?.type||'bearer')==='bearer'}, 'Bearer Token')
     );
@@ -382,7 +391,7 @@ export function openRequest(item, forceDefaults = false) {
         el('div', {class:'kvHint'}, 'Token from Authorization tab is used for all requests.')
     );
 
-// Scripts
+// tab scripts
     const sw = el('div', {class:'scriptsSwitcher'},
         el('button', {id:'btnPre',  class:'active', onclick:()=>switchScript('pre')},  'PRE-Request'),
         el('button', {id:'btnPost', onclick:()=>switchScript('post')}, 'POST-Request')
@@ -393,9 +402,9 @@ export function openRequest(item, forceDefaults = false) {
     const scriptsPaneInfo = el('div', {class:'small muted', style:'padding:0 12px 12px'}, 'Available: ctx.request (method,url,params,headers,body), ctx.response (status, headers, bodyText)');
     scriptsPane.append(sw, scriptsArea, scriptsPaneInfo);
 
-// Body
+// request body
     const bodyWrap = el('div', {class:'reqBodyWrap'});
-    // список Content-Type'ов
+    // dropdown content type's
     const ctOptions = [
         { value: 'auto', label: 'Auto detect' },
         { value: 'application/json', label: 'JSON' },
@@ -406,23 +415,22 @@ export function openRequest(item, forceDefaults = false) {
         { value: 'application/octet-stream', label: 'Binary' }
     ];
 
-// контейнер
     const ctWrap = el('div', { class: 'ctDropdown', dataset: { value: 'auto' } });
 
-// выбранный элемент + стрелка
+// selected value + arrow
     const ctCurrent = el('div', { class: 'ctCurrent' },
         'Auto detect ',
         el('span', { class: 'ctArrow' }, '▼')
     );
     ctWrap.append(ctCurrent);
 
-// список
+// list of options
     const ctList = el('div', { class: 'ctList', style: 'display:none;' });
     ctOptions.forEach(opt => {
         const optEl = el('div', {
             class: 'ctOption',
             onclick: () => {
-                ctCurrent.childNodes[0].textContent = opt.label + ' '; // обновляем текст (до стрелки)
+                ctCurrent.childNodes[0].textContent = opt.label + ' '; // update text
                 ctWrap.dataset.value = opt.value;
                 ctList.style.display = 'none';
                 ctCurrent.querySelector('.ctArrow').textContent = '▼';
@@ -432,7 +440,7 @@ export function openRequest(item, forceDefaults = false) {
     });
     ctWrap.append(ctList);
 
-// поведение (открыть/закрыть)
+// open and close behavior
     ctCurrent.onclick = () => {
         const isOpen = ctList.style.display === 'block';
         ctList.style.display = isOpen ? 'none' : 'block';
@@ -452,7 +460,7 @@ export function openRequest(item, forceDefaults = false) {
         el('span', {class:'small muted'}, '(Content-Type will be set automatically if missing)')
     );
 
-    // === Request Body (JSON editor with highlight) ===
+    // request body with highlight
     const bodyCode = el('pre', { class: 'code-editor reqBody' },
         el('code', {
             id: 'bodyRawArea',
@@ -466,27 +474,26 @@ export function openRequest(item, forceDefaults = false) {
 
     const bodyEditor = bodyCode.querySelector('#bodyRawArea');
 
-    // === Инициализация с подсветкой ===
-    // === Инициализация при загрузке ===
+
     let pretty = bodyText || '';
     try {
         pretty = JSON.stringify(JSON.parse(bodyText), null, 2);
     } catch {}
     bodyEditor.innerHTML = highlightJSON(pretty);
 
-// === При вводе не трогаем HTML ===
+
     bodyEditor.addEventListener('input', () => {
         const offset = saveSelection(bodyEditor)
-        const raw = bodyEditor.textContent;         // 2. взять текст
-        const highlighted = highlightJSON(raw);    // 3. подсветить
-        bodyEditor.innerHTML = highlighted;        // 4. вставить обратно
-        restoreSelection(bodyEditor, offset);      // 5. вернуть курсор
+        const raw = bodyEditor.textContent;
+        const highlighted = highlightJSON(raw);
+        bodyEditor.innerHTML = highlighted;
+        restoreSelection(bodyEditor, offset);
 
         debSave();
     });
 
 
-// Actions
+// actions
     const actions = el('div', {class:'actions'});
     const resetBtn= el('button', {
         id:'resetBtn',
@@ -500,7 +507,7 @@ export function openRequest(item, forceDefaults = false) {
     card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
     pane.append(card);
 
-// подсветка переменных
+// highlight vars
     highlightMissingVars(card, state.VARS);
     document.addEventListener('click', (e) => {
         const t = e.target.closest('.var-token');
@@ -510,7 +517,7 @@ export function openRequest(item, forceDefaults = false) {
         }
     });
 
-//  подписки на изменения
+//  listen changes
     ['input','change','keyup'].forEach(ev=>{
         header.addEventListener(ev, debSave);
         paramsPane.addEventListener(ev, debSave);
@@ -543,7 +550,7 @@ export function openRequest(item, forceDefaults = false) {
         postTA.style.display = which==='post'? '' : 'none';
     }
 
-// Beautify JSON
+// beautify json
     $('#beautifyBtn').onclick = ()=>{
         const src = bodyEditor.textContent.trim();
         try {
@@ -551,7 +558,7 @@ export function openRequest(item, forceDefaults = false) {
             const beautified = JSON.stringify(obj, null, 2);
 
             bodyEditor.textContent = beautified;
-            bodyEditor.innerHTML = highlightJSON(beautified);// ✅ чистый текст
+            bodyEditor.innerHTML = highlightJSON(beautified);
             saveReqState(state.CURRENT_REQ_ID, { body: beautified });
         } catch {
             showAlert('Body is not valid JSON', 'error');
@@ -559,15 +566,14 @@ export function openRequest(item, forceDefaults = false) {
     };
 
 
-
-// Reset only current request
+// reset only current request
     $('#resetBtn').onclick = ()=>{
         clearReqState(state.CURRENT_REQ_ID);
         openRequest(item);
     };
 
 
-// ==== SEND ====
+// send request
     $('#sendBtn').onclick = async ()=>{
         debSave();
         state.LOGS = [];
@@ -584,7 +590,7 @@ export function openRequest(item, forceDefaults = false) {
         let { type: authType, token: rawToken } = getAuthData();
         let authToken = rawToken;
 
-// если в поле указана переменная {{varName}}
+// if input has {{varName}}
         const varMatch = rawToken.match(/^\{\{\s*([^}]+)\s*\}\}$/);
         if (varMatch) {
             const varName = varMatch[1];
@@ -614,8 +620,14 @@ export function openRequest(item, forceDefaults = false) {
         if (preCodeAll.trim()) {
             try {
                 const ctx = makePreCtx({ method, url: finalUrl, params, headers, body });
-                await runUserScript(preCodeAll, ctx);
 
+                showScriptLoader(true, 'Running pre-request script...');
+                await runUserScript(preCodeAll, ctx);
+                showScriptLoader(false);
+
+
+                await new Promise(r => setTimeout(r, 50));
+                buildVarMap();
                 ({ method } = ctx.request);
                 finalUrl = ctx.request.url;
                 headers  = ctx.request.headers;
@@ -642,17 +654,17 @@ export function openRequest(item, forceDefaults = false) {
                     }
                 });
 
-                // rebuilding the table UI
+                // rebuilding the table ui
                 headersTable = buildKVTable(hdrsAfterArr, { onChange: debSave });
                 headersBox.replaceChildren(headersTable);
 
-                // rebuilding headers-объект
+                // rebuilding headers
                 headers = Object.fromEntries(
                     hdrsAfterArr.filter(h => h.enabled !== false && h.key)
                         .map(h => [h.key, resolveVars(h.value)])
                 );
 
-                // Rebuilding URL/Body
+                // rebuilding url and body
                 const paramsAfter = tableToSimpleArray(paramsTable.tBodies[0]);
                 finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), paramsAfter));
                 body = resolveVars($('#bodyRawArea').textContent || '');
@@ -673,10 +685,36 @@ export function openRequest(item, forceDefaults = false) {
                 return;
             }
         }
+        // final auth enforce
+        (() => {
+            const { type: aType, token: rawTok } = getAuthData();
+            let tok = (rawTok || '').trim();
+            const m = tok.match(/^\{\{\s*([^}]+)\s*\}\}$/);
+            if (m) {
+                const name = m[1];
+                tok = state.VARS[name] ?? state.COLLECTION_VARS[name] ?? '';
+            }
+
+            const hasAuth = Object.keys(headers)
+                .some(h => h.toLowerCase() === 'authorization');
+
+            if (!hasAuth) {
+                const globalTok = getGlobalBearer() || '';
+                const finalTok = aType === 'bearer' ? (tok || globalTok) : '';
+                if (finalTok) headers['Authorization'] = 'Bearer ' + finalTok;
+            }
+        })();
 
 
         showLoader(true); $('#sendBtn').disabled = true;
         const started = performance.now();
+
+        console.log('FINAL REQUEST →', JSON.stringify({
+            method,
+            url: finalUrl,
+            headers,
+            hasAuth: !!Object.keys(headers).find(h=>h.toLowerCase()==='authorization')
+        }, null, 2));
 
         try {
             let res = await fetchWithTimeout(finalUrl, {
@@ -701,7 +739,6 @@ export function openRequest(item, forceDefaults = false) {
                     }
                     if (ctxPost._logs.length) {
                         console.log("POST script logs:", ctxPost._logs);
-                        showAlert("POST logs: " + ctxPost._logs.join(" | "), "info");
                     }
                 } catch(_) {}
             }
@@ -716,6 +753,7 @@ export function openRequest(item, forceDefaults = false) {
                 }
             }
             // show response body
+            state.LAST_REQ_HEADERS = headers;
             renderResponse(res, text, ms, finalUrl);
 
             addHistoryEntry({
@@ -793,7 +831,7 @@ export function openRequest(item, forceDefaults = false) {
 
             renderResponse(fakeRes, errMsg, ms, finalUrl);
 
-            // если есть post-script
+            // if has post-script
             const postCode = postTA.value.trim();
             if (postCode){
                 try {
@@ -827,7 +865,7 @@ export function openRequest(item, forceDefaults = false) {
         }
     };
 
-// Show saved response if any
+// show saved response if any
     if (item.response) {
         renderResponseSaved(item.response);
     } else if (response) {
@@ -835,7 +873,7 @@ export function openRequest(item, forceDefaults = false) {
     } else {
         $('#resPane').innerHTML = '';
     }
-// === Send dropdown menu logic ===
+// snd dropdown menu logic
     $('#sendDropdownBtn').onclick = (e) => {
         e.stopPropagation();
         const menu = $('#sendMenu');
@@ -858,7 +896,7 @@ export function openRequest(item, forceDefaults = false) {
 function toggleWelcomeCard(show) {
     const card = document.getElementById('welcomeCard');
     if (card) {
-        card.hidden = !show;   // проще чем менять display
+        card.hidden = !show;
     }
 }
 
@@ -949,7 +987,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         });
     }
 
-// sync ENV → VARS and UI
+// sync env vars and ui
     buildVarMap();
     updateVarsBtnCounter();
     renderTree('', { onRequestClick: openRequest });
@@ -961,7 +999,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     if (urlDispNow) {
         const currentRaw = $('#urlInp')?.value?.trim() || '';
         urlDispNow.innerHTML = renderUrlWithVarsLocal(currentRaw);
-        highlightMissingVars(urlDispNow, state.VARS); // опционально
+        highlightMissingVars(urlDispNow, state.VARS); // optional
     }
 
 
@@ -993,7 +1031,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     if (envDropdown) {
         const envCurrent = envDropdown.querySelector('.envCurrent');
         const envList = envDropdown.querySelector('.envList');
-        // выставляем дефолт при старте
+        // derive env from LS
         let currentEnv = localStorage.getItem('selected_env') || 'dev';
         document.documentElement.setAttribute('data-env', currentEnv);
         envCurrent.innerHTML = currentEnv.toUpperCase() + ' <span class="arrow">▼</span>';
@@ -1033,13 +1071,13 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
                         state.ENV = newEnv;
                         localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(newEnv));
                     } catch (err) {
-                        showAlert(`Failed to load environment: ${newPath}`, 'error');
+                        showAlert(`Failed to load environment: ${envKey}`, 'error');
                         state.ENV = { values: [] };
                         localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(state.ENV));
                     }
                 }
 
-                // update LS and UI
+                // update ls and ui
                 localStorage.setItem('selected_env', envKey);
 
                 buildVarMap();
@@ -1076,8 +1114,8 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
     if (autoOpenFirst && state.ITEMS_FLAT[0]) {
         // open first request
-        openRequest(state.ITEMS_FLAT[0], true); // forceDefaults = true → не подтягивает старый response
-        // clear responce
+        openRequest(state.ITEMS_FLAT[0], true); // forceDefaults = true doesn't pull up the old response
+        // clear response
         const resPane = $('#resPane');
         if (resPane) resPane.innerHTML = '';
         // show active
@@ -1110,12 +1148,12 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         togglePinCurrent,
         toggleVarsModal
     });
-    // === Override console.log to capture logs ===
+    // override console.log to tab logs
     const origLog = console.log;
     console.log = (...args) => {
         const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
         state.LOGS.push(msg);
         origLog.apply(console, args);
-        renderLogs(); // update Logs tab
+        renderLogs(); // update logs tab
     };
 }

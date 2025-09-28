@@ -6,9 +6,9 @@ export function renderHotkeysList(containerId = "hotkeysList") {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = ""; // очистка
+    container.innerHTML = ""; // clear previous content
 
-    // Группируем по group
+    // group of groups
     const groups = {};
     HOTKEYS.forEach(hk => {
         if (!groups[hk.group]) groups[hk.group] = [];
@@ -47,38 +47,43 @@ export function renderHotkeysList(containerId = "hotkeysList") {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+export function initSettingsSidebar() {
     const sidebar  = document.getElementById('settingsSidebar');
     const btnOpen  = document.getElementById('navSettings');
-    const content  = sidebar?.querySelector('.settingsContent');
     const btnClose = sidebar?.querySelector('.closeSettings');
 
     if (!sidebar || !btnOpen) return;
 
-    const open  = () => sidebar.classList.add('open');
-    const close = () => sidebar.classList.remove('open');
+    const open  = () => {
+        console.log("OPEN sidebar");
+        sidebar.classList.add('open');
+    };
 
-    // открыть по кнопке ⚙️
+    const close = () => {
+        console.log("CLOSE sidebar");
+        sidebar.classList.remove('open');
+    };
+
+    // открыть
     btnOpen.addEventListener('click', (e) => {
         e.preventDefault();
         open();
     });
 
-    // закрыть по крестику
+    // закрыть крестиком
     btnClose?.addEventListener('click', (e) => {
         e.preventDefault();
         close();
     });
 
-    // закрыть по клику на фон (строго по overlay)
+    // закрыть кликом по фону
     sidebar.addEventListener('click', (e) => {
-        // если кликнули на сам .settingsSidebar, а не на .settingsContent
-        if (!content.contains(e.target)) {
+        if (e.target === sidebar) {
             close();
         }
     });
 
-    // Esc → закрыть
+    // закрыть по ESC
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && sidebar.classList.contains('open')) {
             e.preventDefault();
@@ -86,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // hotkeys
+    // init hotkeys
     initHotkeys({
         btnFolders: document.getElementById('navFolders'),
         btnHistory: document.getElementById('navHistory'),
@@ -96,4 +101,4 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSettings: btnOpen,
         sidebar
     });
-});
+}

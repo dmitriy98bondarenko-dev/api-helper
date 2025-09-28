@@ -16,7 +16,6 @@ body {
     body { grid-template-columns: 300px 1fr; }
 }
 
-/* === Header === */
 header {
     grid-area: top;
     display: flex;
@@ -56,7 +55,6 @@ button {
 .btn:hover,
 button:hover { filter: brightness(1.05); }
 
-/* === Theme Toggle === */
 .theme-toggle {
     position: relative;
     display: inline-flex;
@@ -99,7 +97,6 @@ button:hover { filter: brightness(1.05); }
     transform: translateX(30px) rotate(345deg);
 }
 
-/* === Layout === */
 .right { grid-area: right; background: var(--bg); overflow:auto; }
 
 .pane {
@@ -110,7 +107,6 @@ button:hover { filter: brightness(1.05); }
 }
 .logo-icon { height: 58px; width: auto; margin-right: 8px; }
 
-/* === Cards & Tables === */
 .row {
     display: grid;
     grid-template-columns: 110px 1fr;
@@ -181,7 +177,6 @@ td:last-child button.varRemove:hover {
 .inline { display: flex; gap: 8px; align-items: center; }
 .rightInfo { font-size: 12px; color: var(--muted); }
 
-/* === API Tree === */
 .tree {  box-sizing: border-box;
     max-width: 100%;   /* не шире контейнера */
     overflow-x: hidden; }
@@ -217,7 +212,6 @@ td:last-child button.varRemove:hover {
     word-break: break-all;
 }
 
-/* метод-цвета */
 .op.GET    { background: var(--op-get); }
 .op.POST   { background: var(--op-post); }
 .op.PUT    { background: var(--op-put); }
@@ -236,7 +230,6 @@ td:last-child button.varRemove:hover {
 .op.OPTIONS .op-method,
 .op.TRACE .op-method  { background: var(--op-other-b);  color: var(--op-other-f); }
 
-/* === Tabs === */
 .tabs {
     display: flex; gap: 18px;
     padding: 8px 10px;
@@ -273,7 +266,7 @@ td:last-child button.varRemove:hover {
 .tab.active[data-method="DELETE"]::after { background: var(--op-del-f); }
 .tab.active[data-method="HEAD"]::after,
 .tab.active[data-method="OPTIONS"]::after { background: var(--op-other-f); }
-/* === API Tree Folders === */
+/* api folders */
 .folder {
     display: flex;
     align-items: center;
@@ -294,17 +287,17 @@ td:last-child button.varRemove:hover {
 .folderTitle { flex: 1; min-width: 0; }
 .folderControls { margin-left: auto; display: flex; align-items: center; gap: 6px; }
 .folder:hover { background: rgba(22,163,74,.08); }
-/* стрелка */
+/* arrow icon */
 .arrowIcon {
     width: 14px; height: 14px;
     display: inline-flex; align-items: center; justify-content: center;
     color: currentColor;
-    transform: rotate(90deg);                /* вниз по умолчанию */
+    transform: rotate(90deg);
     transition: transform .2s ease;
     flex-shrink: 0;
 }
 
-.node.collapsed .arrowIcon { transform: rotate(0deg); } /* вправо */
+.node.collapsed .arrowIcon { transform: rotate(0deg); }
 .folderContent { margin: 0; padding: 4px 6px 6px 24px; }
 .node.collapsed .folderContent {
     display: none;
@@ -322,7 +315,7 @@ td:last-child button.varRemove:hover {
 }
 .clearPinsBtn:hover { color: #dc2626; }
 
-/* === Empty State === */
+
 .empty-state {
     display: flex;
     flex-direction: column;
@@ -339,7 +332,6 @@ td:last-child button.varRemove:hover {
     display: none;
 }
 
-/* по умолчанию (светлая тема) */
 [data-theme="light"] .empty-img.light { display: block; }
 [data-theme="dark"]  .empty-img.dark  { display: block; }
 

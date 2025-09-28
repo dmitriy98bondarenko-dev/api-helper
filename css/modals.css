@@ -1,6 +1,4 @@
 /* === modals.css === */
-
-/* ---------- Base Modals ---------- */
 .modal {
     position: fixed;
     inset: 0;
@@ -8,7 +6,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10000;
+    z-index: 5000;
 }
 .modal[hidden] { display: none; }
 
@@ -52,7 +50,7 @@
 .authState { font-size:12px; color:#065f46; }
 [data-theme="dark"] .authState { color:#34d399; }
 
-/* ---------- Auth Modal ---------- */
+/* auth modal */
 #authModal .modalCard {
     width: 760px;
     max-width: 92vw;
@@ -95,8 +93,8 @@
     font-size:14px;
     font-weight:700;
 }
-/* Auth buttons*/
-/* ==== Save button ==== */
+/* auth buttons*/
+/* save button */
 #authModal #authSave {
     display: flex;
     justify-content: center;
@@ -110,8 +108,6 @@
     font-weight: 700;
     color: #fff;
 }
-
-/* hover  */
 #authModal #authSave:hover {
     background-color: #15803d;
     color: #fff;
@@ -121,8 +117,6 @@
     background: #10652e;
     transform: translateY(1px);
 }
-
-/* ==== Dark theme ==== */
 [data-theme="dark"]#authModal #authSave {
     background-color: #16a34a;
     color: #fff;
@@ -136,7 +130,7 @@
     background: #10652e;
     transform: translateY(1px);
 }
-/* ==== Cancel button ==== */
+/* cancel button  */
 #authModal #authCancel {
     display: flex;
     justify-content: center;
@@ -151,8 +145,6 @@
     font-weight: 700;
     color: #dc2626;
 }
-
-/* hover  */
 #authModal #authCancel:hover {
     background-color: #dc2626;
     color: #fff;
@@ -161,8 +153,6 @@
     background: #ae1a1a;
     transform: translateY(1px);
 }
-
-/* ==== Dark theme ==== */
 [data-theme="dark"]#authModal #authCancel {
     border-color: #f87171;
     color: #f87171;
@@ -179,7 +169,7 @@
     color: #fff;
     transform: translateY(1px);
 }
-/* ==== Clear button ==== */
+/* clear button */
 #authModal #authClear {
     display: flex;
     justify-content: center;
@@ -194,7 +184,6 @@
     font-weight: 700;
 }
 
-/* hover  */
 #authModal #authClear:hover {
     background: #303845;
     color: #fff;
@@ -203,8 +192,6 @@
     background: #2a333c;
     transform: translateY(1px);
 }
-
-/* ==== Dark theme ==== */
 [data-theme="dark"]#authModal #authClear {
     background-color: #374151;
     color: #f3f4f6;
@@ -219,7 +206,7 @@
     color: #fff;
     transform: translateY(1px);
 }
-/* ---------- Vars Modal ---------- */
+/* vars modal  */
 #varsModal.modal {
     background: rgba(2, 6, 23, .58);
     backdrop-filter: saturate(1.2) blur(2px);
@@ -282,7 +269,7 @@ html:has(#varsModal:not([hidden])) { overflow: hidden; }
     gap: 10px;
     align-items: center;
 }
-/* ==== Vars Save button ==== */
+/* vars save button */
 #varsModal #varsSave {
     display: flex;
     justify-content: center;
@@ -296,8 +283,6 @@ html:has(#varsModal:not([hidden])) { overflow: hidden; }
     font-weight: 700;
     color: #fff;
 }
-
-/* hover  */
 #varsModal #varsSave:hover {
     background-color: #15803d;
     color: #fff;
@@ -308,7 +293,6 @@ html:has(#varsModal:not([hidden])) { overflow: hidden; }
     transform: translateY(1px);
 }
 
-/* ==== Dark theme ==== */
 [data-theme="dark"]#varsModal #varsSave  {
     background-color: #16a34a;
     color: #fff;
@@ -322,8 +306,7 @@ html:has(#varsModal:not([hidden])) { overflow: hidden; }
     background: #10652e;
     transform: translateY(1px);
 }
-
-/* ==== Cancel button ==== */
+/* cancel button */
 #varsModal #varsCancel {
     display: flex;
     justify-content: center;
@@ -338,8 +321,6 @@ html:has(#varsModal:not([hidden])) { overflow: hidden; }
     font-weight: 700;
     color: #dc2626;
 }
-
-/* hover  */
 #varsModal #varsCancel:hover {
     background-color: #dc2626;
     color: #fff;
@@ -349,7 +330,6 @@ html:has(#varsModal:not([hidden])) { overflow: hidden; }
     transform: translateY(1px);
 }
 
-/* ==== Dark theme ==== */
 [data-theme="dark"]#varsModal #varsCancel {
     border-color: #f87171;
     color: #f87171;
@@ -381,21 +361,18 @@ html:has(#varsModal:not([hidden])) { overflow: hidden; }
     color: #fff;
 }
 
-/* hover */
 #varsModal #varsAdd:hover,
 #varsModal #jsonMenuBtn:hover {
     background-color: #1d4ed8;
     color: #fff;
 }
 
-/* active */
 #varsModal #varsAdd:active,
 #varsModal #jsonMenuBtn:active {
     background: #153eaf;
     transform: translateY(1px);
 }
 
-/* ==== Dark theme ==== */
 [data-theme="dark"] #varsModal #varsAdd,
 [data-theme="dark"] #varsModal #jsonMenuBtn {
     background-color: #2563eb;
@@ -413,7 +390,7 @@ html:has(#varsModal:not([hidden])) { overflow: hidden; }
     transform: translateY(1px);
 }
 
-/* === Table inside Vars Modal === */
+/* table  vars modal  */
 .varsTable {
     width:100%; border-collapse:collapse; font-size:14px; background:transparent;
 }
@@ -437,7 +414,7 @@ html:has(#varsModal:not([hidden])) { overflow: hidden; }
 }
 .varsHelp { font-size:12px; color:var(--muted); }
 
-/* ---------- Var Edit Modal ---------- */
+/* var edit modal  */
 #varEditModal.modal {
     background: rgba(2, 6, 23, .58);
     backdrop-filter: saturate(1.2) blur(2px);
@@ -497,8 +474,6 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     font-weight: 700;
     color: #fff;
 }
-
-/* hover  */
 #varEditModal #varEditSave:hover {
     background-color: #15803d;
     color: #fff;
@@ -508,8 +483,6 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     background: #10652e;
     transform: translateY(1px);
 }
-
-/* ==== Dark theme ==== */
 [data-theme="dark"] #varEditModal #varEditSave {
     background-color: #16a34a;
     color: #fff;
@@ -523,8 +496,8 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     background: #10652e;
     transform: translateY(1px);
 }
- /*cancel button edit var modal*/
 
+ /*cancel button edit var modal*/
 #varEditModal #varEditCancel {
     display: flex;
     justify-content: center;
@@ -539,8 +512,6 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     font-weight: 700;
     color: #dc2626;
 }
-
-/* hover  */
 #varEditModal #varEditCancel:hover {
     background-color: #dc2626;
     color: #fff;
@@ -550,7 +521,6 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     transform: translateY(1px);
 }
 
-/* ==== Dark theme ==== */
 [data-theme="dark"] #varEditModal #varEditCancel {
     border-color: #f87171;
     color: #f87171;
@@ -568,7 +538,7 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     transform: translateY(1px);
 }
 
-/* ---------- Dropdown inside Vars Modal ---------- */
+/* dropdown vars modal */
 #varsModal .dropdown { position:relative; display:inline-block; }
 #varsModal .jsonMenuBtn {
     display:inline-flex; align-items:center; gap:6px;
@@ -614,7 +584,6 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 }
 .jsonMenuBtn.active { background:var(--soft); border-radius:6px; }
 
-/* ---------- Shared Modal Header ---------- */
 .modalHeader {
     display:flex;
     justify-content:space-between;
@@ -643,7 +612,7 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 }
 .modalClose:hover { color:var(--fg); }
 
-/* ---------- Settings Sidebar ---------- */
+/* settings sidebar */
 .settingsSidebar {
     position:fixed;
     inset:0;
@@ -682,9 +651,19 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 }
 .settingsHeader h3 { margin:0; font-size:18px; font-weight:600; }
 .settingsHeader .closeSettings {
-    background:none; border:none;
-    font-size:20px; cursor:pointer;
-    color:var(--fg,#333);
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--fg,#333);
+    line-height: 1;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2100;
+    position: relative;
 }
 
 .settingsBody { flex:1; overflow-y:auto; }
@@ -734,13 +713,13 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     background-color: transparent;
     border: 2px solid #dc2626;
     border-radius: 6px;
+    z-index: 3000;
     cursor: pointer;
     transition: 300ms;
     font-weight: 700;
     color: #dc2626;
 }
 
-/* hover  */
 #resetModal #resetCancel:hover,
 #resetModal #resetEnvsAuth:hover,
 #resetModal #resetFull:hover {
@@ -753,8 +732,6 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     background: #ae1a1a;
     transform: translateY(1px);
 }
-
-/* ==== Dark theme ==== */
 [data-theme="dark"] #resetModal #resetCancel,
 [data-theme="dark"] #resetModal #resetEnvsAuth,
 [data-theme="dark"] #resetModal #resetFull {
@@ -778,7 +755,7 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     transform: translateY(1px);
 }
 
-/** cURL Modal ***/
+/** cURL modal ***/
 .modal {
     position: fixed;
     top:0; left:0; right:0; bottom:0;
@@ -786,7 +763,6 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     display:flex;
     align-items:center;
     justify-content:center;
-    z-index: 1000;
 }
 .modal-content {
     background:#fff;

@@ -23,9 +23,9 @@ export function resolveVars(str, extra={}) {
 
 
 
-// ====== Загрузка коллекции/окружения и старт ======
+// load collection and env from json
 export async function loadJson(path) {
     const res = await fetch(path);
-    if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
+    if (!res.ok) throw new Error(`Failed to load: ${res.status}`);
     return res.json();
 }
