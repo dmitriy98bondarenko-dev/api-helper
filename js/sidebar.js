@@ -277,6 +277,11 @@ export function renderTree(filter = '', { onRequestClick } = {}) {
         );
         tree.append(emptyWrap);
     }
+    // restore active highlight after re-render
+    if (state.CURRENT_REQ_ID) {
+        const row = document.querySelector(`.op[data-req-id="${state.CURRENT_REQ_ID}"]`);
+        if (row) setActiveRow(row);
+    }
 
 }
 

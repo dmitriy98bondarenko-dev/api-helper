@@ -297,3 +297,26 @@ button.send:hover {
     white-space: pre;
     overflow-x: auto;
 }
+/*loader on send button*/
+button.sendMain.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+button.sendMain.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

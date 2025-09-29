@@ -23,21 +23,44 @@ export async function runUserScript(code, ctx){
         .map(([k, v]) => v)
         .join("\n");
 
+    // try to load collection functionsFN
+    const collectionFns = Object.entries(state.COLLECTION_VARS || {})
+        .filter(([k, v]) => k.endsWith("Fn") && typeof v === "string" && v.trim())
+        .map(([k, v]) => {
+            return v;
+        })
+        .join("\n");
+
     try {
         const fn = new Function('ctx','pm','state', `
-            "use strict";
-            const console = { 
-            log: (...a) => {
-                const msg = a.map(x => 
-                    typeof x === 'object' ? JSON.stringify(x) : String(x)
-                ).join(' ');
-                ctx._logs.push(msg);                      
-                state.LOGS.push("Postman script: " + msg); 
-            }
-        };
-        ${globalFns}
-        ${code}
-        `);
+    "use strict";
+    const console = { 
+        log: (...a) => {
+            const msg = a.map(x => 
+                typeof x === 'object' ? JSON.stringify(x) : String(x)
+            ).join(' ');
+            ctx._logs.push(msg);                      
+            state.LOGS.push("Postman script: " + msg); 
+        },
+        warn: (...a) => {
+            const msg = a.map(x => 
+                typeof x === 'object' ? JSON.stringify(x) : String(x)
+            ).join(' ');
+            ctx._logs.push("[WARN] " + msg);
+            state.LOGS.push("Postman script: [WARN] " + msg);
+        },
+        error: (...a) => {
+            const msg = a.map(x => 
+                typeof x === 'object' ? JSON.stringify(x) : String(x)
+            ).join(' ');
+            ctx._logs.push("[ERROR] " + msg);
+            state.LOGS.push("Postman script: [ERROR] " + msg);
+        }
+    };
+    ${globalFns}
+    ${collectionFns}
+    ${code}
+`);
 
         fn(ctx, pm, state);
         await Promise.all(ctx._promises || []);
@@ -152,7 +175,29 @@ export function makePmAdapter(ctx) {
                 delete state.VARS[key];
                 buildVarMap();
             }},
-        variables: { get: getEnv, set: setEnv },
+        variables: {
+            get: getEnv,
+            set: setEnv,
+            // replace in string(for scriipts)
+            replaceIn: (str) => {
+                if (typeof str !== "string") return str;
+
+                return str.replace(/\{\{\s*([^}]+)\s*\}\}/g, (m, name) => {
+                    const val = getEnv(name) || state.COLLECTION_VARS[name] || state.GLOBALS[name];
+                    if (val) return val;
+
+                    // generator UUID
+                    if (name === "$randomUUID") {
+                        return (crypto.randomUUID ? crypto.randomUUID() :
+                            'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                                return v.toString(16);
+                            }));
+                    }
+                    return `"${uuid}"`;
+                });
+            }
+        },
         globals: {
             get: (key) => state.GLOBALS[key] ?? undefined,
             set: (key, value) => { state.GLOBALS[key] = value; },

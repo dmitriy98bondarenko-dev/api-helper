@@ -8,38 +8,30 @@ import { openRequest } from './feature.js';
 import { highlightJSON, saveSelection, restoreSelection } from './ui.js';
 
 // vriables and helpers
-
 export function buildVarMap() {
-    const map = {};
+    const next = {};
 
     // collection vars
     if (state.COLLECTION_VARS) {
-        Object.entries(state.COLLECTION_VARS).forEach(([k, v]) => {
-            if (v != null && v !== '') map[k] = v;
-        });
+        Object.entries(state.COLLECTION_VARS).forEach(([k, v]) => { next[k] = v ?? ''; });
     }
 
-    // env vars
-    if (state.ENV?.values) {
-        state.ENV.values.forEach(v => {
-            if (!v) return;
-            if (v.enabled === false) return;
-            const key = v.key ?? v.name;
-            if (key && v.value != null && v.value !== '') {
-                map[key] = v.value;
-            }
-        });
-    }
+    //  env
+    const envVals = Array.isArray(state.ENV?.values) ? state.ENV.values : [];
+    envVals.filter(v => v && v.key && v.enabled !== false)
+        .forEach(v => { next[v.key] = (v.value ?? ''); });
 
     // globals
     if (state.GLOBALS) {
-        Object.entries(state.GLOBALS).forEach(([k, v]) => {
-            if (v != null && v !== '') map[k] = v;
-        });
+        Object.entries(state.GLOBALS).forEach(([k, v]) => { next[k] = v ?? ''; });
     }
 
-    state.VARS = map;
-    return map;
+    // in-place cleaning
+    const target = state.VARS || (state.VARS = {});
+    Object.keys(target).forEach(k => delete target[k]);
+    Object.assign(target, next);
+
+    return target;
 }
 
 export function buildVarsTableBody() {

@@ -109,6 +109,7 @@ export function toggleTheme() {
 // highlight variables
 export function highlightMissingVars(rootEl, varsMap) {
   const regex = /{{\s*([^}]+)\s*}}/g;
+  // highlight inputs
   rootEl.querySelectorAll('input, textarea').forEach(inp => {
     const val = inp.value || '';
     let missing = false;
@@ -118,6 +119,18 @@ export function highlightMissingVars(rootEl, varsMap) {
     });
     inp.classList.toggle('var-missing', missing);
   });
+
+  // highlight tokens {{var}} in text
+    rootEl.querySelectorAll('.var-token').forEach(span => {
+        const key = (span.dataset.var || span.textContent.replace(/[{}]/g, '').trim()).trim();
+        const val = (varsMap && varsMap[key] != null && String(varsMap[key]).trim() !== '')
+            ? String(varsMap[key])
+            : '';
+
+        span.classList.toggle('missing', !val);
+        span.classList.toggle('filled', !!val);
+        span.setAttribute('title', val || '(not set)');
+    });
 }
 
 // render tokens {{var}} in url
@@ -567,7 +580,7 @@ export function renderResponseSaved(saved) {
     const tabPanes = el('div', { class: 'tabPanes' },
         el('div', { class: 'tabPane active', id: 'tab-body' }, tools, bodyPre),
         el('div', { class: 'tabPane', id: 'tab-headers' }, headersPre),
-        el('div', { class: 'tabPane', id: 'tab-auth' }, ...authContent),
+        el('div', { class: 'tabPane', id: 'tab-auth' }, el('pre', { class: 'auth' }, '— no token —')),
         el('div', { class: 'tabPane', id: 'tab-logs' },
             el('pre', { id: 'respLogsArea', class: 'logsArea' })
         )
@@ -768,4 +781,10 @@ export function showScriptLoader(on, message = 'Running pre-request script...') 
     }
     el.textContent = message;
     el.hidden = !on;
+}
+export function refreshAuthVars() {
+    const authTokenInp = document.getElementById('authTokenInp');
+    if (authTokenInp) {
+        highlightMissingVars(authTokenInp, state.VARS);
+    }
 }

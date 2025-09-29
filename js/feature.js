@@ -4,7 +4,7 @@ import {
     saveSelection, restoreSelection, highlightJSON,
     highlightMissingVars, renderUrlWithVars,
     buildKVTable, tableToSimpleArray,
-    renderResponse, renderResponseSaved, renderLogs, showScriptLoader
+    renderResponse, renderResponseSaved, renderLogs, showScriptLoader, refreshAuthVars
 } from './ui.js';
 import {
     getGlobalBearer, loadReqState, saveReqState,
@@ -42,7 +42,7 @@ const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, state.VARS);
 function getInitialStateForItem(item, forceDefaults = false) {
     const id = item.id;
     const tmpSaved = loadReqState(id);
-    const saved = (forceDefaults || !tmpSaved) ? null : tmpSaved;
+    const saved = (!tmpSaved || forceDefaults) ? {} : tmpSaved;
 
 
     const methodOrig = String(item.request.method || 'GET').toUpperCase();
@@ -94,49 +94,39 @@ function getInitialStateForItem(item, forceDefaults = false) {
                 : JSON.stringify(item.request.body.raw, null, 2))
             : '';
     }
-
-    // build scripts (collection + foldes + request)
+// build scripts only for request level
     let preArr = [];
     let postArr = [];
 
-// collection-level
-    if (state.COLLECTION?.event) {
-        state.COLLECTION.event.forEach(ev => {
-            if (ev.listen === 'test') {
-                postArr.push((ev.script?.exec || []).join('\n'));
-            }
-        });
-    }
-
-// collection pre-scripts for auth
-    const collectionPre = (state.COLLECTION?.event || [])
-        .filter(ev => ev.listen === 'prerequest')
-        .map(ev => (ev.script?.exec || []).join('\n'))
-        .join('\n');
-
-
-// folder
-    if (item.folderEvents && item.folderEvents.length) {
-        item.folderEvents.forEach(ev => {
-            if (ev.listen === 'prerequest') preArr.push((ev.script?.exec || []).join('\n'));
-            if (ev.listen === 'test')       postArr.push((ev.script?.exec || []).join('\n'));
-        });
-    }
-
-// request
+// request only
     if (Array.isArray(item.event)) {
         item.event.forEach(ev => {
-            if (ev.listen === 'prerequest') preArr.push((ev.script?.exec || []).join('\n'));
-            if (ev.listen === 'test')       postArr.push((ev.script?.exec || []).join('\n'));
+            const code = (ev.script?.exec || []).join('\n');
+            if (ev.listen === 'prerequest' && code) preArr.push(code);
+            if (ev.listen === 'test'       && code) postArr.push(code);
         });
     }
-
 // + legacy
     const savedScripts = saved?.scripts ?? loadScriptsLegacy(id);
     if (savedScripts?.pre) preArr.push(savedScripts.pre);
     if (savedScripts?.post) postArr.push(savedScripts.post);
 
     let scripts = { pre: preArr.join('\n'), post: postArr.join('\n') };
+
+
+    const extraScripts = { pre: '', post: '' };
+
+// adding collection / folder to extraScripts
+    if (state.COLLECTION_SCRIPTS?.pre)  extraScripts.pre += state.COLLECTION_SCRIPTS.pre.trim() + '\n';
+    if (state.COLLECTION_SCRIPTS?.post) extraScripts.post += state.COLLECTION_SCRIPTS.post.trim() + '\n';
+
+    if (item.folderEvents && item.folderEvents.length) {
+        item.folderEvents.forEach(ev => {
+            const code = (ev.script?.exec || []).join('\n');
+            if (ev.listen === 'prerequest' && code) extraScripts.pre += code + '\n';
+            if (ev.listen === 'test'       && code) extraScripts.post += code + '\n';
+        });
+    }
 
 
     // auth
@@ -156,14 +146,13 @@ function getInitialStateForItem(item, forceDefaults = false) {
                 { type: 'bearer', token: globalToken });
 
     if (!auth.token) auth.token = (reqAuthToken || globalToken);
-    console.log("headersInit →", headersInit);
 
     return {
         method, methodOrig, url,
         paramsInit, headersInit,
         bodyText, scripts, auth,
-        response: saved?.response || null,
-        collectionPre
+        response: saved.response || null,
+        extraScripts
     };
 }
 
@@ -178,7 +167,7 @@ function getAuthData() {
 export function openRequest(item, forceDefaults = false) {
     state.CURRENT_REQ_ID = item.id;
 
-    const { method, url, paramsInit, headersInit, bodyText, scripts, auth, response } =
+    const { method, url, paramsInit, headersInit, bodyText, scripts, auth, response, extraScripts } =
         getInitialStateForItem(item, forceDefaults);
 
 
@@ -587,7 +576,16 @@ export function openRequest(item, forceDefaults = false) {
         debSave();
         state.LOGS = [];
         renderLogs();
-        const cleanup = () => { showLoader(false); $('#sendBtn').disabled = false; };
+        const sendBtn = $('#sendBtn');   // start loading animation on send button
+        sendBtn.classList.add('loading');
+        sendBtn.disabled = true;
+        //const cleanup = () => { showLoader(false); $('#sendBtn').disabled = false; };
+        const cleanup = () => {
+            showLoader(false);
+            sendBtn.classList.remove('loading'); // stop loading animation
+            sendBtn.disabled = false;
+        };
+
 
         const params = tableToSimpleArray(paramsTable.tBodies[0]);
         const hdrArr = tableToSimpleArray(headersTable.tBodies[0]).filter(h=>h.enabled!==false);
@@ -617,8 +615,9 @@ export function openRequest(item, forceDefaults = false) {
 
         if (!Object.keys(headers).some(h=>h.toLowerCase()==='content-type')){
             const ctSelVal = document.querySelector('.ctDropdown')?.dataset.value || 'auto';
-            const ct = ctSelVal === 'auto' ? detectContentType(body) : ctSelVal;
-            if (ct) headers['Content-Type'] = ct;
+            let ct = ctSelVal === 'auto' ? detectContentType(body) : ctSelVal;
+            if (!ct) ct = 'application/json';   // application/jso by default
+            headers['Content-Type'] = ct;
         }
 
         // check if needAuth true, run auth
@@ -629,7 +628,10 @@ export function openRequest(item, forceDefaults = false) {
         }
 
         // PRE scripts
-        const preCodeAll = preTA.value.trim() || scripts.pre || '';
+        const preCodeAll = [
+            (extraScripts?.pre || ''),   // collection + folder
+            (preTA.value.trim() || scripts.pre || '') // request-level
+        ].filter(Boolean).join('\n');
 
 
         if (preCodeAll.trim()) {
@@ -638,7 +640,27 @@ export function openRequest(item, forceDefaults = false) {
 
                 showScriptLoader(true, 'Running pre-request script...');
                 await runUserScript(preCodeAll, ctx);
+                // wait for all promises to resolve variables
+                await Promise.all(ctx._promises || []);
                 showScriptLoader(false);
+
+                // update vars
+                buildVarMap();
+                updateVarsBtnCounter();
+                // highligh vars on the auth tab
+                highlightMissingVars(document, state.VARS);
+
+                // rebuilding the body editor ui
+                const bodyEditor = document.getElementById('bodyRawArea');
+                if (bodyEditor) {
+                    const offset = saveSelection(bodyEditor);
+                    const raw = bodyEditor.textContent;
+                    const highlighted = highlightJSON(raw);
+                    bodyEditor.innerHTML = highlighted;
+                    restoreSelection(bodyEditor, offset);
+                }
+
+
 
 
                 await new Promise(r => setTimeout(r, 50));
@@ -689,10 +711,7 @@ export function openRequest(item, forceDefaults = false) {
                     if (ct) headers['Content-Type'] = ct;
                 }
 
-                console.log("HEADERS after rebuild →", headers);
-
                 if (ctx._logs.length) {
-                    console.log("PRE script logs:", ctx._logs);
                 }
             }
             catch (e) {
@@ -724,12 +743,12 @@ export function openRequest(item, forceDefaults = false) {
         showLoader(true); $('#sendBtn').disabled = true;
         const started = performance.now();
 
-        console.log('FINAL REQUEST →', JSON.stringify({
+        /*console.log('FINAL REQUEST →', JSON.stringify({
             method,
             url: finalUrl,
             headers,
             hasAuth: !!Object.keys(headers).find(h=>h.toLowerCase()==='authorization')
-        }, null, 2));
+        }, null, 2)); */
 
         try {
             let res = await fetchWithTimeout(finalUrl, {
@@ -748,7 +767,10 @@ export function openRequest(item, forceDefaults = false) {
 
 
             // POST scripts
-            const postCodeAll = postTA.value.trim() || scripts.post || '';
+            const postCodeAll = [
+                (extraScripts?.post || ''),  // collection + folder
+                (postTA.value.trim() || scripts.post || '') // request-level
+            ].filter(Boolean).join('\n');
 
             if (postCodeAll.trim()) {
                 try {
@@ -756,7 +778,10 @@ export function openRequest(item, forceDefaults = false) {
                         request: { method, url: finalUrl, headers, body },
                         response: { status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
                     });
-                    runUserScript(postCodeAll, ctxPost);
+                    await runUserScript(postCodeAll, ctxPost);
+                    await Promise.all(ctxPost._promises || []);
+                    buildVarMap();
+                    updateVarsBtnCounter();
                     if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') {
                         text = ctxPost.response.bodyText;
                     }
@@ -797,7 +822,7 @@ export function openRequest(item, forceDefaults = false) {
                 status: res.status,
                 statusText: res.statusText,
                 headers: Object.fromEntries(res.headers.entries()),
-                bodyText: clampStr(text),
+                bodyText: text,
                 url: finalUrl,
                 timeMs: ms
             };
@@ -889,13 +914,14 @@ export function openRequest(item, forceDefaults = false) {
     };
 
 // show saved response if any
-    if (item.response) {
-        renderResponseSaved(item.response);
-    } else if (response) {
+    if (response) {
         renderResponseSaved(response);
+    } else if (item.response) {
+        renderResponseSaved(item.response);
     } else {
         $('#resPane').innerHTML = '';
     }
+
 // snd dropdown menu logic
     $('#sendDropdownBtn').onclick = (e) => {
         e.stopPropagation();
@@ -913,8 +939,16 @@ export function openRequest(item, forceDefaults = false) {
         const menu = $('#sendMenu');
         if (menu) menu.style.display = 'none';
     }
-
-
+// ensure active highlight is updated when request opened
+    if (item?.id) {
+        const row = document.querySelector(`.op[data-req-id="${item.id}"]`);
+        if (row) {
+            import('./sidebar.js').then(({ setActiveRow }) => {
+                setActiveRow(row);
+            });
+        }
+    }
+    highlightMissingVars(document, state.VARS);
 }
 function toggleWelcomeCard(show) {
     const card = document.getElementById('welcomeCard');
@@ -933,17 +967,14 @@ async function runCollectionAuth() {
 
         if (!code.trim()) return;
 
-        console.log("Running collection-level auth script...");
         const ctx = makePreCtx({ method: "GET", url: "", params: [], headers: {}, body: "" });
         await runUserScript(code, ctx);
         await Promise.all(ctx._promises || []);
         // update vars and counter
         buildVarMap();
         updateVarsBtnCounter();
-        console.log("Auth script finished");
 
     } catch (err) {
-        console.error("Auth script failed:", err);
     }
 }
 
@@ -954,7 +985,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     try {
         collection = await loadJson(collectionPath);
     } catch (err) {
-        console.error("Failed to load collection", err);
+        showAlert('Error loading collection: ' + err.message, 'error');
         toggleWelcomeCard(true);   // показать welcome
         return;
     }
@@ -1003,8 +1034,11 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
                      if (key) state.COLLECTION_VARS[key] = getVal(v);
                   });
           }
-    Object.assign(state.VARS, state.COLLECTION_VARS);
+
     state.ENV = env;
+    state.VARS = {};
+    Object.assign(state.VARS, state.COLLECTION_VARS);
+
     state.ITEMS_FLAT = [];
     flattenItems(collection, []);
     buildVarMap();
@@ -1023,15 +1057,16 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         state.GLOBALS = {};
     }
 
-    // collection's scripts
+    // collection's scripts one time run
     state.COLLECTION_SCRIPTS = { pre: '', post: '' };
     if (Array.isArray(collection.event)) {
         collection.event.forEach(ev => {
-            if (ev.listen === 'test') {
-                state.COLLECTION_SCRIPTS.post += (ev.script?.exec || []).join('\n') + '\n';
-            }
+            const code = (ev.script?.exec || []).join('\n');
+            if (ev.listen === 'prerequest') state.COLLECTION_SCRIPTS.pre += code + '\n';
+            if (ev.listen === 'test')       state.COLLECTION_SCRIPTS.post += code + '\n';
         });
     }
+
 
 // run script if needAuth = true when collection is loaded!
    /* if (state.COLLECTION_VARS.needAuth === "true") {
@@ -1166,7 +1201,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
     if (autoOpenFirst && state.ITEMS_FLAT[0]) {
         // open first request
-        openRequest(state.ITEMS_FLAT[0], true); // forceDefaults = true doesn't pull up the old response
+        openRequest(state.ITEMS_FLAT[0], false); // forceDefaults = true doesn't pull up the old response
         // clear response
         const resPane = $('#resPane');
         if (resPane) resPane.innerHTML = '';
@@ -1200,12 +1235,18 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         togglePinCurrent,
         toggleVarsModal
     });
-    // override console.log to tab logs
-    const origLog = console.log;
-    console.log = (...args) => {
-        const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
-        state.LOGS.push(msg);
-        origLog.apply(console, args);
-        renderLogs(); // update logs tab
-    };
+    // override console methods to tab logs
+    ["log", "warn", "error"].forEach(level => {
+        const orig = console[level];
+        console[level] = (...args) => {
+            const msg = args.map(a =>
+                typeof a === "object" ? JSON.stringify(a) : String(a)
+            ).join(" ");
+
+            state.LOGS.push(`[${level.toUpperCase()}] ${msg}`);
+            orig.apply(console, args);
+            renderLogs();
+        };
+    });
+
 }
