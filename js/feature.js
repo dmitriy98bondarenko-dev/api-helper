@@ -102,10 +102,18 @@ function getInitialStateForItem(item, forceDefaults = false) {
 // collection-level
     if (state.COLLECTION?.event) {
         state.COLLECTION.event.forEach(ev => {
-            if (ev.listen === 'prerequest') preArr.push((ev.script?.exec || []).join('\n'));
-            if (ev.listen === 'test')       postArr.push((ev.script?.exec || []).join('\n'));
+            if (ev.listen === 'test') {
+                postArr.push((ev.script?.exec || []).join('\n'));
+            }
         });
     }
+
+// collection pre-scripts for auth
+    const collectionPre = (state.COLLECTION?.event || [])
+        .filter(ev => ev.listen === 'prerequest')
+        .map(ev => (ev.script?.exec || []).join('\n'))
+        .join('\n');
+
 
 // folder
     if (item.folderEvents && item.folderEvents.length) {
@@ -154,7 +162,8 @@ function getInitialStateForItem(item, forceDefaults = false) {
         method, methodOrig, url,
         paramsInit, headersInit,
         bodyText, scripts, auth,
-        response: saved?.response || null
+        response: saved?.response || null,
+        collectionPre
     };
 }
 
@@ -612,6 +621,12 @@ export function openRequest(item, forceDefaults = false) {
             if (ct) headers['Content-Type'] = ct;
         }
 
+        // check if needAuth true, run auth
+        if (state.COLLECTION_VARS.needAuth === "true") {
+            showScriptLoader(true, 'Running auth script...');
+            await runCollectionAuth();
+            showScriptLoader(false);
+        }
 
         // PRE scripts
         const preCodeAll = preTA.value.trim() || scripts.pre || '';
@@ -723,6 +738,14 @@ export function openRequest(item, forceDefaults = false) {
                 body: (method==='GET'||method==='HEAD') ? undefined : body
             });
             let text = await res.text();
+            if (res.status === 401) {
+                console.warn("Got 401 need resetting needAuth");
+                pm.collectionVariables.set("needAuth", "true");
+                state.COLLECTION_VARS.needAuth = "true";
+                buildVarMap();
+                updateVarsBtnCounter();
+            }
+
 
             // POST scripts
             const postCodeAll = postTA.value.trim() || scripts.post || '';
@@ -899,6 +922,31 @@ function toggleWelcomeCard(show) {
         card.hidden = !show;
     }
 }
+//one time run auth script
+async function runCollectionAuth() {
+    try {
+        const code = (state.COLLECTION?.event || [])
+            .filter(ev => ev.listen === 'prerequest')
+            .map(ev => (ev.script?.exec || []).join('\n'))
+            .join('\n');
+
+
+        if (!code.trim()) return;
+
+        console.log("Running collection-level auth script...");
+        const ctx = makePreCtx({ method: "GET", url: "", params: [], headers: {}, body: "" });
+        await runUserScript(code, ctx);
+        await Promise.all(ctx._promises || []);
+        // update vars and counter
+        buildVarMap();
+        updateVarsBtnCounter();
+        console.log("Auth script finished");
+
+    } catch (err) {
+        console.error("Auth script failed:", err);
+    }
+}
+
 
 export async function bootApp({ collectionPath, autoOpenFirst }) {
     let collection = null;
@@ -979,13 +1027,17 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     state.COLLECTION_SCRIPTS = { pre: '', post: '' };
     if (Array.isArray(collection.event)) {
         collection.event.forEach(ev => {
-            if (ev.listen === 'prerequest') {
-                state.COLLECTION_SCRIPTS.pre += (ev.script?.exec || []).join('\n') + '\n';
-            } else if (ev.listen === 'test') {
+            if (ev.listen === 'test') {
                 state.COLLECTION_SCRIPTS.post += (ev.script?.exec || []).join('\n') + '\n';
             }
         });
     }
+
+// run script if needAuth = true when collection is loaded!
+   /* if (state.COLLECTION_VARS.needAuth === "true") {
+        await runCollectionAuth();
+    } */
+
 
 // sync env vars and ui
     buildVarMap();
