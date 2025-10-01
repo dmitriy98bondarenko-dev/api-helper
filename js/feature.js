@@ -9,7 +9,7 @@ import {
 import {
     getGlobalBearer, loadReqState, saveReqState,
     clearReqState, loadScriptsLegacy,
-    fetchWithTimeout, clampStr, getVal
+    fetchWithTimeout, clampStr, getVal, getSelectedCollection, setSelectedCollection
 } from './config.js';
 import {
     flattenItems, renderTree,
@@ -35,6 +35,7 @@ import {
     makePreCtx,
     makePostCtx
 } from './scriptEngine.js';
+import {initSettingsSidebar} from "./settings.js";
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, getEnvVarsOnly());
 
 
@@ -980,19 +981,25 @@ async function runCollectionAuth() {
 }
 
 
+
 export async function bootApp({ collectionPath, autoOpenFirst }) {
     let collection = null;
+    const path = collectionPath || getSelectedCollection();
 
     try {
-        collection = await loadJson(collectionPath);
+        collection = await loadJson(path);
+
+        if (path) {
+            setSelectedCollection(path);
+        }
     } catch (err) {
         showAlert('Error loading collection: ' + err.message, 'error');
-        toggleWelcomeCard(true);   // показать welcome
+        toggleWelcomeCard(true);
         return;
     }
 
     if (!collection || !Array.isArray(collection.item) || !collection.item.length) {
-        toggleWelcomeCard(true);   // коллекция пустая → показать welcome
+        toggleWelcomeCard(true);   // if collection empty also show welcome card
         return;
     }
 
@@ -1079,6 +1086,9 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     buildVarMap();
     updateVarsBtnCounter();
     renderTree('', { onRequestClick: openRequest });
+    import('./sidebar.js').then(({ initCollectionDropdown }) => {
+        initCollectionDropdown();
+    });
 
     initVarsModal();
     initResetModal();
@@ -1170,7 +1180,10 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
                 buildVarMap();
                 renderTree('', { onRequestClick: openRequest });
-                highlightMissingVars(document, getEnvVarsOnly());
+
+                import('./sidebar.js').then(({ initCollectionDropdown }) => {
+                    initCollectionDropdown();
+                });                highlightMissingVars(document, getEnvVarsOnly());
                 updateVarsBtnCounter();
 
                 const varsModal = $('#varsModal');
@@ -1217,6 +1230,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         }
     });
     initSidebarNav();
+    initSettingsSidebar();
 // close all dropdowns on tap
     document.addEventListener('click', (e) => {
         document.querySelectorAll('.methodDropdown, .envDropdown, .ctDropdown, .dropdown').forEach(drop => {

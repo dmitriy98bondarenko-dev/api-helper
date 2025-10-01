@@ -186,7 +186,14 @@
               ],
               "request": {
                 "auth": {
-                  "type": "noauth"
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{adminAuthToken}}",
+                      "type": "string"
+                    }
+                  ]
                 },
                 "method": "POST",
                 "header": [],

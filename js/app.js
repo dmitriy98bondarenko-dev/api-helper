@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     showLoader(true);
     try {
         await bootApp({
-            collectionPath: DEFAULT_COLLECTION_PATH,
+
             envPath: DEFAULT_ENV_PATH,
             autoOpenFirst: AUTO_OPEN_FIRST,
         });
