@@ -11,29 +11,29 @@ import { highlightJSON, saveSelection, restoreSelection } from './ui.js';
 export function buildVarMap() {
     const next = {};
 
-    // ENV most priority
-    const envVals = Array.isArray(state.ENV?.values) ? state.ENV.values : [];
-    envVals.filter(v => v && v.key && v.enabled !== false)
-        .forEach(v => {
-            const val = String(v.value ?? '').trim();
-            if (val) next[v.key] = val;
-        });
-
-    // COLLECTION_VARS if ENV empty
+    // 1. сначала дефолты из коллекции
     if (state.COLLECTION_VARS) {
         Object.entries(state.COLLECTION_VARS).forEach(([k, v]) => {
             if (!(k in next)) next[k] = v ?? '';
         });
     }
 
-    // GLOBALS
+    // 2. ENV перекрывает коллекцию
+    const envVals = Array.isArray(state.ENV?.values) ? state.ENV.values : [];
+    envVals.filter(v => v && v.key && v.enabled !== false)
+        .forEach(v => {
+            const val = String(v.value ?? '').trim();
+            next[v.key] = val;   // всегда перезаписывает
+        });
+
+    // 3. globals (если ключа ещё нет)
     if (state.GLOBALS) {
         Object.entries(state.GLOBALS).forEach(([k, v]) => {
             if (!(k in next)) next[k] = v ?? '';
         });
     }
 
-    // update state.VARS
+    // обновляем state.VARS
     const target = state.VARS || (state.VARS = {});
     Object.keys(target).forEach(k => delete target[k]);
     Object.assign(target, next);

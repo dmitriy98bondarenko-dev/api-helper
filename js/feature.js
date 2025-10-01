@@ -38,6 +38,28 @@ import {
 import {initSettingsSidebar} from "./settings.js";
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, getEnvVarsOnly());
 
+// helpers needAuth
+function getNeedAuthFromEnvOrCollection() {
+    const row = (state.ENV?.values || []).find(v => v.key === 'needAuth' && v.enabled !== false);
+    if (row) return String(row.value);
+    return String(state.COLLECTION_VARS?.needAuth ?? '');
+}
+
+function setNeedAuthInEnv(value) {
+    if (!state.ENV) state.ENV = { values: [] };
+    if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
+    let row = state.ENV.values.find(v => v.key === 'needAuth');
+    if (row) {
+        row.value = String(value);
+        row.enabled = true;
+    } else {
+        state.ENV.values.push({ key: 'needAuth', value: String(value), enabled: true });
+    }
+    try {
+        const currentEnv = localStorage.getItem('selected_env') || 'dev';
+        localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+    } catch {}
+}
 
 
 function getInitialStateForItem(item, forceDefaults = false) {
@@ -118,7 +140,7 @@ function getInitialStateForItem(item, forceDefaults = false) {
     const extraScripts = { pre: '', post: '' };
 
 // adding collection / folder to extraScripts
-    if (state.COLLECTION_SCRIPTS?.pre)  extraScripts.pre += state.COLLECTION_SCRIPTS.pre.trim() + '\n';
+    //if (state.COLLECTION_SCRIPTS?.pre)  extraScripts.pre += state.COLLECTION_SCRIPTS.pre.trim() + '\n';
     if (state.COLLECTION_SCRIPTS?.post) extraScripts.post += state.COLLECTION_SCRIPTS.post.trim() + '\n';
 
     if (item.folderEvents && item.folderEvents.length) {
@@ -622,13 +644,18 @@ export function openRequest(item, forceDefaults = false) {
             if (!ct) ct = 'application/json';   // application/jso by default
             headers['Content-Type'] = ct;
         }
-
         // check if needAuth true, run auth
-        if (state.COLLECTION_VARS.needAuth === "true") {
+        if (String(getNeedAuthFromEnvOrCollection()).toLowerCase() === "true") {
             showScriptLoader(true, 'Running auth script...');
             await runCollectionAuth();
             showScriptLoader(false);
+
+            // погасить флаг только через helper
+            setNeedAuthInEnv('false');
+            buildVarMap();
+            updateVarsBtnCounter();
         }
+
 
         // PRE scripts
         const preCodeAll = [
@@ -718,7 +745,7 @@ export function openRequest(item, forceDefaults = false) {
             }
             catch (e) {
                 renderResponse(null, 'PRE error: ' + e.message, 0, finalUrl);
-                return;
+                throw e;
             }
         }
         // final auth enforce
@@ -761,11 +788,12 @@ export function openRequest(item, forceDefaults = false) {
             let text = await res.text();
             if (res.status === 401) {
                 console.warn("Got 401 need resetting needAuth");
-                pm.collectionVariables.set("needAuth", "true");
+                setNeedAuthInEnv('true');
                 state.COLLECTION_VARS.needAuth = "true";
                 buildVarMap();
                 updateVarsBtnCounter();
             }
+
 
 
             // POST scripts
@@ -865,7 +893,7 @@ export function openRequest(item, forceDefaults = false) {
                 });
 
                 showAlert('Request failed (CORS/network)', 'error');
-                return;
+                throw e;
             }
 
             showAlert('Request failed', 'error');
@@ -909,9 +937,10 @@ export function openRequest(item, forceDefaults = false) {
                     timeMs: ms
                 }
             });
-            return;
+            throw e;
         } finally {
             cleanup();
+            showScriptLoader(false);
         }
     };
 
@@ -1046,7 +1075,21 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     state.ENV = env;
     state.VARS = {};
     Object.assign(state.VARS, state.COLLECTION_VARS);
-
+    // ensure needAuth is in ENV (sync from collection only once)
+     if (state.COLLECTION_VARS.needAuth !== undefined) {
+             const row = state.ENV.values.find(v => v.key === "needAuth");
+             if (!row) {
+                     state.ENV.values.push({
+                             key: "needAuth",
+                             value: state.COLLECTION_VARS.needAuth,
+                             enabled: true
+                     });
+                     try {
+                             const currentEnv = localStorage.getItem('selected_env') || 'dev';
+                             localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+                         } catch {}
+                      }
+         }
     state.ITEMS_FLAT = [];
     flattenItems(collection, []);
     buildVarMap();
@@ -1080,7 +1123,12 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
    /* if (state.COLLECTION_VARS.needAuth === "true") {
         await runCollectionAuth();
     } */
-
+    const needAuthInit = getNeedAuthFromEnvOrCollection();
+    if (String(needAuthInit).toLowerCase() === 'true') {
+        await runCollectionAuth();
+        setNeedAuthInEnv('false');
+        buildVarMap();
+    }
 
 // sync env vars and ui
     buildVarMap();
