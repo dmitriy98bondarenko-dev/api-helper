@@ -11,28 +11,36 @@ import { highlightJSON, saveSelection, restoreSelection } from './ui.js';
 export function buildVarMap() {
     const next = {};
 
-    // collection vars
-    if (state.COLLECTION_VARS) {
-        Object.entries(state.COLLECTION_VARS).forEach(([k, v]) => { next[k] = v ?? ''; });
-    }
-
-    //  env
+    // ENV most priority
     const envVals = Array.isArray(state.ENV?.values) ? state.ENV.values : [];
     envVals.filter(v => v && v.key && v.enabled !== false)
-        .forEach(v => { next[v.key] = (v.value ?? ''); });
+        .forEach(v => {
+            const val = String(v.value ?? '').trim();
+            if (val) next[v.key] = val;
+        });
 
-    // globals
-    if (state.GLOBALS) {
-        Object.entries(state.GLOBALS).forEach(([k, v]) => { next[k] = v ?? ''; });
+    // COLLECTION_VARS if ENV empty
+    if (state.COLLECTION_VARS) {
+        Object.entries(state.COLLECTION_VARS).forEach(([k, v]) => {
+            if (!(k in next)) next[k] = v ?? '';
+        });
     }
 
-    // in-place cleaning
+    // GLOBALS
+    if (state.GLOBALS) {
+        Object.entries(state.GLOBALS).forEach(([k, v]) => {
+            if (!(k in next)) next[k] = v ?? '';
+        });
+    }
+
+    // update state.VARS
     const target = state.VARS || (state.VARS = {});
     Object.keys(target).forEach(k => delete target[k]);
     Object.assign(target, next);
 
     return target;
 }
+
 
 export function buildVarsTableBody() {
     const tb = $('#varsTable tbody');
@@ -153,8 +161,8 @@ function removeVar(keyToRemove) {
 function refreshVarsUI() {
     buildVarsTableBody();
     buildVarMap();
-    refreshCurrentRequest();
-    highlightMissingVars(document, state.VARS);
+    refreshAllVarsHighlight();
+    highlightMissingVars(document, getEnvVarsOnly());
     if (typeof updateVarsBtn === 'function') updateVarsBtn();
     updateVarsBtnCounter();
     syncRemoveButtons();
@@ -203,7 +211,7 @@ export function initVarsModal() {
 
             saveEnvToLocal();
             refreshVarsUI();
-            refreshCurrentRequest();
+            refreshAllVarsHighlight();
 
             varsModal.hidden = true;
             showAlert('Variables saved', 'success');
@@ -340,9 +348,19 @@ export function initResetModal() {
             state.VARS = {};
             buildVarMap();
             updateVarsBtnCounter();
-            refreshCurrentRequest();
-            refreshBodyEditorHighlight();
-            highlightMissingVars(document, state.VARS);
+            refreshVarsUI();
+            Object.keys(localStorage).forEach(k => {
+                if (k.startsWith('pm_req_')) {
+                    localStorage.removeItem(k);
+                }
+            });
+            if (state.CURRENT_REQ_ID) {
+                const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
+                if (item) {
+                    openRequest(item, true);
+                }
+            }
+
 
             resetModal.hidden = true;
             showAlert('Environments and authorization reset. Default DEV loaded.', 'success');
@@ -352,7 +370,7 @@ export function initResetModal() {
             updateEnvDropdown(envKey);
 
             renderTree('', { onRequestClick: openRequest });
-            highlightMissingVars(document, state.VARS);
+            highlightMissingVars(document, getEnvVarsOnly());
             updateVarsBtnCounter();
         });
     }
@@ -368,7 +386,7 @@ export function initResetModal() {
             resetModal.hidden = true;
             updateVarsBtnCounter();
             refreshBodyEditorHighlight();
-            highlightMissingVars(document, state.VARS);
+            highlightMissingVars(document, getEnvVarsOnly());
             showAlert('Full reset completed. Page is reloading…', 'success');
 
             setTimeout(() => location.reload(), 500);
@@ -447,8 +465,8 @@ function refreshCurrentRequest() {
             const urlDisp = document.querySelector('#urlInpDisplay');
             if (urlDisp) {
                 const raw = document.querySelector('#urlInp')?.value?.trim() || '';
-                urlDisp.innerHTML = renderUrlWithVars(raw, state.VARS);
-                highlightMissingVars(urlDisp, state.VARS);
+                urlDisp.innerHTML = renderUrlWithVars(raw, getEnvVarsOnly());
+                highlightMissingVars(urlDisp, getEnvVarsOnly());
             } else {
                 openRequest(item, true);
             }
@@ -560,11 +578,19 @@ export function refreshBodyEditorHighlight() {
     const bodyEditor = document.querySelector('#bodyRawArea');
     if (!bodyEditor) return;
 
-    const raw = bodyEditor.textContent || '';
+    const raw = bodyEditor.dataset.raw || bodyEditor.textContent || '';
     const offset = saveSelection(bodyEditor);
-    bodyEditor.innerHTML = highlightJSON(raw);
+
+    let highlighted = highlightJSON(raw);
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = highlighted;
+    highlightMissingVars(tempDiv, getEnvVarsOnly());
+    bodyEditor.innerHTML = tempDiv.innerHTML;
+
     restoreSelection(bodyEditor, offset);
 }
+
 
 export function toggleVarsModal() {
     const modal = document.querySelector('#varsModal');
@@ -578,3 +604,33 @@ export function toggleVarsModal() {
 }
 
 
+export function refreshAllVarsHighlight() {
+    const envMap = getEnvVarsOnly();
+
+    // URL
+    const urlDisp = document.querySelector('#urlInpDisplay');
+    if (urlDisp) {
+        const rawUrl = document.querySelector('#urlInp')?.value?.trim() || '';
+        urlDisp.innerHTML = renderUrlWithVars(rawUrl, envMap);
+        highlightMissingVars(urlDisp, envMap);
+    }
+
+    // Headers
+    document.querySelectorAll('#paneHeaders .kvValue').forEach(valCell => {
+        const rawText = valCell.textContent.trim();
+        if (/{{\s*[^}]+\s*}}/.test(rawText)) {
+            valCell.innerHTML = renderUrlWithVars(rawText, envMap);
+        }
+        highlightMissingVars(valCell, envMap);
+    });
+
+    // Body
+    refreshBodyEditorHighlight();
+}
+export function getEnvVarsOnly() {
+    return Object.fromEntries(
+        (state.ENV?.values || [])
+            .filter(v => v.enabled !== false)
+            .map(v => [v.key, String(v.value || '').trim()])
+    );
+}

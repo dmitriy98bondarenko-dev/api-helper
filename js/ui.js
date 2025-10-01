@@ -1,6 +1,7 @@
 // js/ui.js
 export const $ = sel => document.querySelector(sel);
 import { state } from './state.js';
+import { getEnvVarsOnly } from './vars.js';
 export const el = (tag, attrs = {}, ...children) => {
     const ns = "http://www.w3.org/2000/svg";
 
@@ -108,23 +109,24 @@ export function toggleTheme() {
 
 // highlight variables
 export function highlightMissingVars(rootEl, varsMap) {
-  const regex = /{{\s*([^}]+)\s*}}/g;
-  // highlight inputs
-  rootEl.querySelectorAll('input, textarea').forEach(inp => {
-    const val = inp.value || '';
-    let missing = false;
-    val.replace(regex, (_, key) => {
-      const exists = varsMap && varsMap[key] != null && varsMap[key] !== '';
-      if (!exists) missing = true;
-    });
-    inp.classList.toggle('var-missing', missing);
-  });
+    const regex = /{{\s*([^}]+)\s*}}/g;
 
-  // highlight tokens {{var}} in text
+    // highlight inputs
+    rootEl.querySelectorAll('input, textarea').forEach(inp => {
+        const val = inp.value || '';
+        let missing = false;
+        val.replace(regex, (_, key) => {
+            const hasVal = varsMap && key in varsMap && String(varsMap[key]).trim() !== '';
+            if (!hasVal) missing = true;
+        });
+        inp.classList.toggle('var-missing', missing);
+    });
+
+    // highlight tokens {{var}} in text
     rootEl.querySelectorAll('.var-token').forEach(span => {
         const key = (span.dataset.var || span.textContent.replace(/[{}]/g, '').trim()).trim();
-        const val = (varsMap && varsMap[key] != null && String(varsMap[key]).trim() !== '')
-            ? String(varsMap[key])
+        const val = (varsMap && key in varsMap && String(varsMap[key]).trim() !== '')
+            ? String(varsMap[key]).trim()
             : '';
 
         span.classList.toggle('missing', !val);
@@ -132,6 +134,7 @@ export function highlightMissingVars(rootEl, varsMap) {
         span.setAttribute('title', val || '(not set)');
     });
 }
+
 
 // render tokens {{var}} in url
 export function renderUrlWithVars(url, varsMap) {
@@ -189,8 +192,8 @@ export function appendRow(tb, row = {}, isNew = false, onChange) {
 
 // if var has render highlight
     if (/{{\s*[^}]+\s*}}/.test(rawVal)) {
-        valCell.innerHTML = renderUrlWithVars(rawVal, state.VARS);
-        highlightMissingVars(valCell, state.VARS);
+        valCell.innerHTML = renderUrlWithVars(rawVal, getEnvVarsOnly());
+        highlightMissingVars(valCell, getEnvVarsOnly());
     } else {
         // or just set text
         valCell.textContent = rawVal;
@@ -203,7 +206,7 @@ export function appendRow(tb, row = {}, isNew = false, onChange) {
         set(v) {
             valCell.textContent = v;
             row.value = v;
-            highlightMissingVars(valCell, state.VARS);
+            highlightMissingVars(valCell, getEnvVarsOnly());
         }
     });
 
@@ -213,9 +216,9 @@ export function appendRow(tb, row = {}, isNew = false, onChange) {
         row.value = text;
 
         if (/{{\s*[^}]+\s*}}/.test(text)) {
-            valCell.innerHTML = renderUrlWithVars(text, state.VARS);
+            valCell.innerHTML = renderUrlWithVars(text, getEnvVarsOnly());
         }
-        highlightMissingVars(valCell, state.VARS);
+        highlightMissingVars(valCell, getEnvVarsOnly());
         onChange && onChange();
     });
 
@@ -643,10 +646,13 @@ export function highlightJSON(text) {
     // vars
     html = html.replace(/{{\s*([^}]+)\s*}}/g, (_, key) => {
         const k = key.trim();
-        const val = (state.VARS && state.VARS[k] != null) ? String(state.VARS[k]) : '';
+        const envVal = (state.ENV?.values || []).find(v => v.key === k && v.enabled !== false);
+        const val = envVal ? String(envVal.value || '').trim() : '';
+
         const title = (val || '(not set)').replace(/"/g, '&quot;');
         return `<span class="var-token ${val ? 'filled' : 'missing'}" data-var="${k}" title="${title}">{{${k}}}</span>`;
     });
+
 
     return html;
 }
@@ -785,6 +791,6 @@ export function showScriptLoader(on, message = 'Running pre-request script...') 
 export function refreshAuthVars() {
     const authTokenInp = document.getElementById('authTokenInp');
     if (authTokenInp) {
-        highlightMissingVars(authTokenInp, state.VARS);
+        highlightMissingVars(authTokenInp, getEnvVarsOnly());
     }
 }

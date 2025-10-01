@@ -19,7 +19,7 @@ import { initHotkeys } from './hotkeys.js';
 import {
     buildVarMap, buildVarsTableBody, initVarsModal,
     initResetModal, updateVarsBtnCounter, initVarEditModal,
-    toggleVarsModal
+    toggleVarsModal, getEnvVarsOnly
 } from './vars.js';
 import { loadJson } from './state.js';
 import { state, resolveVars } from './state.js';
@@ -35,7 +35,7 @@ import {
     makePreCtx,
     makePostCtx
 } from './scriptEngine.js';
-const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, state.VARS);
+const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, getEnvVarsOnly());
 
 
 
@@ -206,7 +206,7 @@ export function openRequest(item, forceDefaults = false) {
         contenteditable:'true'
     });
     urlDisp.innerHTML = renderUrlWithVarsLocal(url);
-    highlightMissingVars(urlDisp, state.VARS);
+    highlightMissingVars(urlDisp, getEnvVarsOnly());
 
 
     urlDisp.addEventListener('input', () => {
@@ -380,7 +380,7 @@ export function openRequest(item, forceDefaults = false) {
     });
 
     authTokenInp.innerHTML = renderUrlWithVarsLocal(String(auth?.token ?? ''));
-    highlightMissingVars(authTokenInp, state.VARS);
+    highlightMissingVars(authTokenInp, getEnvVarsOnly());
 
 
     authPane.append(
@@ -477,6 +477,7 @@ export function openRequest(item, forceDefaults = false) {
     try {
         pretty = JSON.stringify(JSON.parse(bodyText), null, 2);
     } catch {}
+    bodyEditor.dataset.raw = pretty;
     bodyEditor.innerHTML = highlightJSON(pretty);
 
 
@@ -484,6 +485,7 @@ export function openRequest(item, forceDefaults = false) {
         const offset = saveSelection(bodyEditor)
         const raw = bodyEditor.textContent;
         const highlighted = highlightJSON(raw);
+        bodyEditor.dataset.raw = raw;
         bodyEditor.innerHTML = highlighted;
         restoreSelection(bodyEditor, offset);
 
@@ -555,7 +557,7 @@ export function openRequest(item, forceDefaults = false) {
             const obj = JSON.parse(src);
             const beautified = JSON.stringify(obj, null, 2);
 
-            bodyEditor.textContent = beautified;
+            bodyEditor.dataset.raw = beautified;
             bodyEditor.innerHTML = highlightJSON(beautified);
             saveReqState(state.CURRENT_REQ_ID, { body: beautified });
         } catch {
@@ -593,7 +595,7 @@ export function openRequest(item, forceDefaults = false) {
 
         let method = getSelectedMethod();
         let finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), params));
-        let body = resolveVars($('#bodyRawArea').textContent || '');
+        let body = resolveVars($('#bodyRawArea').dataset.raw || $('#bodyRawArea').textContent || '');
         let { type: authType, token: rawToken } = getAuthData();
         let authToken = rawToken;
 
@@ -648,18 +650,17 @@ export function openRequest(item, forceDefaults = false) {
                 buildVarMap();
                 updateVarsBtnCounter();
                 // highligh vars on the auth tab
-                highlightMissingVars(document, state.VARS);
+                highlightMissingVars(document, getEnvVarsOnly());
 
                 // rebuilding the body editor ui
                 const bodyEditor = document.getElementById('bodyRawArea');
                 if (bodyEditor) {
                     const offset = saveSelection(bodyEditor);
-                    const raw = bodyEditor.textContent;
+                    const raw = bodyEditor.dataset.raw || bodyEditor.textContent;
                     const highlighted = highlightJSON(raw);
                     bodyEditor.innerHTML = highlighted;
                     restoreSelection(bodyEditor, offset);
                 }
-
 
 
 
@@ -948,7 +949,7 @@ export function openRequest(item, forceDefaults = false) {
             });
         }
     }
-    highlightMissingVars(document, state.VARS);
+    highlightMissingVars(document, getEnvVarsOnly());
 }
 function toggleWelcomeCard(show) {
     const card = document.getElementById('welcomeCard');
@@ -1086,7 +1087,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     if (urlDispNow) {
         const currentRaw = $('#urlInp')?.value?.trim() || '';
         urlDispNow.innerHTML = renderUrlWithVarsLocal(currentRaw);
-        highlightMissingVars(urlDispNow, state.VARS); // optional
+        highlightMissingVars(urlDispNow, getEnvVarsOnly()); // optional
     }
 
 
@@ -1169,7 +1170,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
                 buildVarMap();
                 renderTree('', { onRequestClick: openRequest });
-                highlightMissingVars(document, state.VARS);
+                highlightMissingVars(document, getEnvVarsOnly());
                 updateVarsBtnCounter();
 
                 const varsModal = $('#varsModal');
