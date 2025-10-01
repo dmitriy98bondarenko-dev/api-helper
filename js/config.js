@@ -5,7 +5,7 @@ export const DEFAULT_COLLECTION_PATH = urlParams.get('collection') || './data/po
 export const DEFAULT_ENV_PATH        = urlParams.get('env')        || './data/dev_environment.json';
 export const AUTO_OPEN_FIRST         = urlParams.get('autoOpen') !== '0';
 
-// Глобальный bearer (сеттер/геттер, чтобы централизовать хранение)
+
 let _GLOBAL_BEARER = localStorage.getItem('global_bearer') || '';
 export const getGlobalBearer = () => _GLOBAL_BEARER;
 export const setGlobalBearer = (v) => {
@@ -13,7 +13,7 @@ export const setGlobalBearer = (v) => {
   localStorage.setItem('global_bearer', _GLOBAL_BEARER);
 };
 
-// Ключи и LocalStorage для состояний запросов
+// keys and LocalStorage
 const reqKey = id => `pm_req_${id}`;
 const scriptsKey = id => `pm_scripts_${id}`; // legacy
 
@@ -57,8 +57,9 @@ export function clearLocalStorage(prefixes = [], exactKeys = []) {
 export function getVal(v) {
     return v?.currentValue ?? v?.value ?? v?.initialValue ?? '';
 }
+/* without proxy
 // request timeout helpers
-const REQUEST_TIMEOUT_MS = 15000; // 15s — при желании вынеси в конфиг
+const REQUEST_TIMEOUT_MS = 15000;
 
 export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     const controller = new AbortController();
@@ -68,8 +69,23 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     return fetch(url, options)
         .finally(() => clearTimeout(timer));
 }
+*/
+/* proxy fetch */
+// proxy config
+export const PROXY_URL = "http://localhost:8080/";
+const REQUEST_TIMEOUT_MS = 15000;
+export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    const options = { ...opts, signal: controller.signal };
+    const finalUrl = PROXY_URL? PROXY_URL + url: url;
 
-const RESPONSE_BODY_MAX = 512 * 1024; // 512 KB — подбирается под твои нужды
+    return fetch(finalUrl, options)
+        .finally(() => clearTimeout(timer));
+}
+
+
+const RESPONSE_BODY_MAX = 512 * 1024; // 512 KB
 
 export function clampStr(s, max = RESPONSE_BODY_MAX) {
     if (typeof s !== 'string') s = String(s ?? '');

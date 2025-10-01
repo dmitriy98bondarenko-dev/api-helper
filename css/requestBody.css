@@ -152,12 +152,25 @@ button.send:hover {
 .sendMenuItem:hover {
     background: #f5f5f5;
 }
+[data-theme="dark"] .sendMenu {
+    background: #1f2937;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+[data-theme="dark"] .sendMenuItem {
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .sendMenuItem:hover {
+    background: #374151;
+}
 
 .reqHeader {
     align-items: center;
     background: #fff7e8;
     border-bottom: 1px solid var(--divider);
-    grid-template-columns: auto 1fr auto; /* метод | урл | кнопка */
+    grid-template-columns: auto 1fr auto;
     gap: 5px;
     padding: 5px 12px;
     display: flex;
@@ -193,21 +206,18 @@ button.send:hover {
     filter: brightness(1.1);
 }
 .methodDropdown {
-    min-width: 100px;  /* фиксируем ширину */
+    min-width: 100px;
 }
 
 .urlWrap {
     width: 100%;
     min-width: 0;
-
 }
-
 #urlInpDisplay {
     flex: 1;
     padding: 10px 12px;
     border: 1px solid var(--divider);
-    /* без зазора с методом */
-    border-radius: 6px 6px;      /* скругление только справа */
+    border-radius: 6px 6px;
     background: #fff;
     font-family: monospace;
     white-space: nowrap;
@@ -235,11 +245,9 @@ button.send:hover {
     min-width: 0;
 }
 
-
-/* === Fix URL row layout === */
 .reqHeader {
     display: grid;
-    grid-template-columns: 120px 1fr 120px; /* метод | URL | кнопка */
+    grid-template-columns: 120px 1fr 120px;
     align-items: center;
     gap: 10px;
     padding: 10px 12px;
@@ -277,10 +285,38 @@ button.send:hover {
     cursor: pointer;
 }
 [data-theme="dark"] .reqHeader {
-    background:#1e293b;  /* тёмно-серый, читаемый */
+    background:#1e293b;
 }
 
 [data-theme="dark"] .reqBodyWrap {
     background:#1f2937;
     color:#f3f4f6;
+}
+.kvValue {
+    max-width: 400px;
+    white-space: pre;
+    overflow-x: auto;
+}
+/*loader on send button*/
+button.sendMain.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+button.sendMain.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }

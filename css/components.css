@@ -1,6 +1,6 @@
 *{box-sizing:border-box}
 
-/* ---------- Base ---------- */
+/*- base  */
 body{
     margin: 0;
     font-family: ui-sans-serif,system-ui,Segoe UI,Roboto,Arial;
@@ -13,11 +13,31 @@ body{
     overflow-x: hidden;
 }
 
-/* ---------- Cards ---------- */
-.card{background:var(--panel); border:1px solid var(--divider); border-radius:12px; overflow:hidden; margin-bottom:16px}
-.card h3{margin:0; padding:22px 14px; border-bottom:1px solid var(--divider); font-size:14px; letter-spacing:.2px; color:var(--ink); background:var(--soft)}
+/* cards  */
+.card{
+    background:var(--panel);
+    border:1px solid var(--divider);
+    border-radius:12px;
+    overflow:hidden;
+    margin-bottom:16px
+}
+.card h3{
+    margin:0;
+    padding:22px 14px;
+    border-bottom:1px solid var(--divider);
+    font-size:14px;
+    letter-spacing:.2px;
+    color:var(--ink);
+    background:var(--soft)
+}
 
-.row{display:grid; grid-template-columns: 110px 1fr; gap:8px; padding:10px 12px; align-items:center}
+.row{
+    display:grid;
+    grid-template-columns: 110px 1fr;
+    gap:8px;
+    padding:10px 12px;
+    align-items:center
+}
 .row input, .row textarea, .row select{
     width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg); font-family:inherit; font-size:14px
 }
@@ -41,7 +61,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .inline{display:flex; gap:8px; align-items:center}
 .rightInfo{font-size:12px; color:var(--muted)}
 
-/* ---------- API tree ---------- */
+/* api tree  */
 .tree{margin-top:12px}
 .folder{color:var(--ink); font-weight:800; text-transform:none; letter-spacing:.2px; font-size:18px; margin:18px 10px 6px;}
 .op{display:flex; align-items:center; gap:12px; border-radius:8px; padding:10px 12px; margin:8px 6px; border:1px solid var(--divider); cursor:pointer; background:#0000; transition:transform .05s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease; box-shadow:0 1px 0 rgba(15,23,42,.03);}
@@ -61,7 +81,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .op.HEAD,.op.OPTIONS,.op.TRACE{background:var(--op-other)}
 .op.HEAD .op-method,.op.OPTIONS .op-method,.op.TRACE .op-method{background:var(--op-other-b); color:var(--op-other-f)}
 
-/* ---------- Tabs ---------- */
+/* tabs  */
 .tabs{display:flex; gap:18px; padding:8px 10px; border-bottom:1px solid var(--divider); background:var(--soft)}
 .tab{padding:10px 4px; font-size:14px; font-weight:600; color:var(--muted); cursor:pointer; position:relative; transition:color .15s ease; border:1px solid transparent; border-radius:8px; background:none}
 .tab:hover{color:var(--ink)}
@@ -76,7 +96,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .tab.active[data-method="HEAD"]::after,
 .tab.active[data-method="OPTIONS"]::after{background:var(--op-other-f)}
 
-/* ---------- KV Table ---------- */
+/*  KV table  */
 .kvTable{width:100%; border-collapse:collapse; background:#0000; border:1px solid var(--divider); border-radius:10px; overflow:hidden; font-size:13px}
 .kvTable thead th{background:var(--soft); font-size:12px; letter-spacing:.3px; color:var(--muted); text-transform:uppercase}
 .kvTable tbody tr:not(:last-child) td{border-bottom:1px solid var(--divider)}
@@ -89,7 +109,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .kvOn{width:48px; text-align:center}
 .kvHint{font-size:12px; color:var(--muted); padding:8px 2px}
 
-/* ---------- Scripts ---------- */
+/* scripts tab */
 .scriptsSwitcher{display:flex; gap:8px; padding:10px 12px; background:var(--soft); border-bottom:1px solid var(--divider)}
 .scriptsSwitcher button{padding:6px 10px; border-radius:6px; background:#0000; border:1px solid var(--divider); color:var(--fg); cursor:pointer}
 .scriptsSwitcher button.active{background:#0000000a; border-color:#c9dcff}
@@ -97,16 +117,14 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .scriptsArea{padding:12px; background:#0000}
 .scriptsArea textarea{width:100%; min-height:160px; border:1px solid var(--divider); border-radius:8px; background:#0000; color:var(--fg); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; padding:10px}
 
-/* Authorization tab (fix key/value layout) */
-/* --- Authorization tab rows --- */
-/* ==== Authorization tab fix ==== */
+/* auth tab */
 .authRow {
     display: grid !important;
-    grid-template-columns: 140px 1fr !important; /* под лейбл и поле */
+    grid-template-columns: 140px 1fr !important;
     align-items: center;
     gap: 12px;
     margin: 8px 0;
-    padding: 0 !important; /* убираем паддинги от .row */
+    padding: 0 !important;
 }
 
 .authRow .muted {
@@ -122,7 +140,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
     border: 1px solid var(--divider);
     font-size: 14px;
 }
-/* === Отступы внутри табов === */
+
 .tabPane {
     padding: 0;
     box-sizing: border-box;
@@ -131,7 +149,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .tabPane .authRow {
     margin-bottom: 14px;
 }
-/* --- Request body toolbar --- */
+/* request body toolbar  */
 .reqBodyToolbar {
     display: flex;
     align-items: center;
@@ -186,7 +204,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .tabPane { display:none; }
 .tabPane.active { display:block; }
 
-/* ==== Reset button ==== */
+/* reset button */
 #clearStorageBtn.danger-clear {
     display: flex;
     justify-content: center;
@@ -202,13 +220,15 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
     color: #dc2626;
 }
 
-/* hover — заливка красным */
 #clearStorageBtn.danger-clear:hover {
     background-color: #dc2626;
     color: #fff;
 }
+#clearStorageBtn.danger-clear:active {
+    background-color: #b31e1e;
+    color: #fff;
+}
 
-/* ==== Dark theme ==== */
 [data-theme="dark"] #clearStorageBtn.danger-clear {
     border-color: #f87171;
     color: #f87171;
@@ -219,7 +239,12 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
     border-color: #dc2626;
     color: #fff;
 }
-/* ===== Theme Switch (слайдер) ===== */
+[data-theme="dark"] #clearStorageBtn.danger-clear:active {
+                       background-color: #a81c1c;
+                       border-color: #a81c1c;
+                       color: #fff;
+                   }
+/* theme switch  */
 .theme-toggle {
     position: relative;
     display: inline-flex;
@@ -272,7 +297,6 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .theme-toggle-label:hover::after {
     transform: translateX(6px) rotate(65deg);
 }
-
 /* sun hover  */
 .theme-toggle-input:checked + .theme-toggle-label:hover::after {
     transform: translateX(30px) rotate(345deg);
@@ -282,14 +306,14 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 input[type="file"]{display:none}
 label.file{padding:8px 10px; border:1px dashed var(--divider); border-radius:8px; cursor:pointer; background:var(--soft)}
 .themeToggle{min-width:44px}
-/* === Authorize modal – overlay темнее + блокируем скролл страницы === */
+
 #authModal.modal{
     background: rgba(2, 6, 23, .58);
     backdrop-filter: saturate(1.2) blur(2px);
 }
 html:has(#authModal:not([hidden])){ overflow: hidden; }
-/* env Dropdown */
 
+/* env Dropdown */
 .envDropdown {
     margin-left: 8px;
     position: relative;
@@ -299,8 +323,6 @@ html:has(#authModal:not([hidden])){ overflow: hidden; }
     cursor: pointer;
     user-select: none;
 }
-
-
 .envList {
     position: absolute;
     top: calc(100% + 4px);
@@ -360,7 +382,7 @@ html:has(#authModal:not([hidden])){ overflow: hidden; }
 
 .tabPane th,
 .tabPane td {
-    padding: 8px 10px;     /* одинаковый отступ в ячейках */
+    padding: 8px 10px;
 }
 
 #paneAuth.tabPane {
@@ -368,11 +390,11 @@ html:has(#authModal:not([hidden])){ overflow: hidden; }
 }
 
 #paneAuth .authRow {
-    margin-bottom: 14px; /* расстояние между строками */
+    margin-bottom: 14px;
 }
 
 #paneAuth .authRow:last-child {
-    margin-bottom: 0;    /* чтобы последняя строка не имела лишнего отступа снизу */
+    margin-bottom: 0;
 }
 .tabsBar {
     display: flex;

@@ -1,6 +1,3 @@
-/* ===========================
-   Общий стиль для кнопок верхней панели
-   =========================== */
 .authBtn,
 #varsBtn,
 .envCurrent {
@@ -26,15 +23,12 @@
 
     transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
-
-/* --- Hover --- */
 .authBtn:hover,
 #varsBtn:hover,
 .envCurrent:hover {
     filter: brightness(1.05);
 }
 
-/* --- Активное состояние --- */
 .authBtn.active,
 #varsBtn.active,
 .envCurrent.active {
@@ -43,7 +37,6 @@
     --divider: #374151;
 }
 
-/*  Замочек внутри кнопки авторизации  */
 .authBtn .lockIcon {
     width: 18px;
     height: 18px;
@@ -54,8 +47,6 @@
     fill: #fff;
 }
 
-
-/* light theme */
 [data-theme="light"] .authBtn,
 [data-theme="light"] #varsBtn,
 [data-theme="light"] .envCurrent {
@@ -80,7 +71,6 @@
     fill: #16a34a;
 }
 
-/* dark theme */
 [data-theme="dark"] .authBtn,
 [data-theme="dark"] #varsBtn,
 [data-theme="dark"] .envCurrent {
@@ -106,9 +96,7 @@
     fill: #16a34a;
 }
 
-/* ===========================
-   Env Dropdown
-   =========================== */
+/* env dropdown */
 .envDropdown {
     margin-left: 8px;
     position: relative;
@@ -149,7 +137,6 @@
     filter: brightness(0.95);
 }
 
-/* Цветовое обозначение активного окружения */
 .envCurrent.dev    { border-color: #16a34a; color: #16a34a; }
 .envCurrent.staging{ border-color: #ca8a04; color: #ca8a04; }
 .envCurrent.prod   { border-color: #dc2626; color: #dc2626; }

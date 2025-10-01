@@ -3,7 +3,7 @@ import { state, resolveVars } from './state.js';
 import { buildVarMap } from './vars.js';
 import { fetchWithTimeout } from './config.js';
 
-// Content-Type detection
+// detection content type
 export function detectContentType(body){
     const s = (body||'').trim();
     if (!s) return null;
@@ -17,21 +17,52 @@ export function detectContentType(body){
 export async function runUserScript(code, ctx){
     const pm = makePmAdapter(ctx);
 
-    // Подгружаем глобальные функции в scope
+    // global functions
     const globalFns = Object.entries(state.GLOBALS || {})
         .filter(([k]) => k.endsWith("Fn"))
         .map(([k, v]) => v)
         .join("\n");
 
-    try {
-        const fn = new Function('ctx','pm', `
-            "use strict";
-            const console = { log: (...a)=> (ctx._logs.push(a.map(String).join(' '))) };
-            ${globalFns}
-            ${code}
-        `);
+    // try to load collection functionsFN
+    const collectionFns = Object.entries(state.COLLECTION_VARS || {})
+        .filter(([k, v]) => k.endsWith("Fn") && typeof v === "string" && v.trim())
+        .map(([k, v]) => {
+            return v;
+        })
+        .join("\n");
 
-        fn(ctx, pm);
+    try {
+        const fn = new Function('ctx','pm','state', `
+    "use strict";
+    const console = { 
+        log: (...a) => {
+            const msg = a.map(x => 
+                typeof x === 'object' ? JSON.stringify(x) : String(x)
+            ).join(' ');
+            ctx._logs.push(msg);                      
+            state.LOGS.push("Postman script: " + msg); 
+        },
+        warn: (...a) => {
+            const msg = a.map(x => 
+                typeof x === 'object' ? JSON.stringify(x) : String(x)
+            ).join(' ');
+            ctx._logs.push("[WARN] " + msg);
+            state.LOGS.push("Postman script: [WARN] " + msg);
+        },
+        error: (...a) => {
+            const msg = a.map(x => 
+                typeof x === 'object' ? JSON.stringify(x) : String(x)
+            ).join(' ');
+            ctx._logs.push("[ERROR] " + msg);
+            state.LOGS.push("Postman script: [ERROR] " + msg);
+        }
+    };
+    ${globalFns}
+    ${collectionFns}
+    ${code}
+`);
+
+        fn(ctx, pm, state);
         await Promise.all(ctx._promises || []);
         if (ctx._logs.length) {
             console.log("Script logs:", ctx._logs);
@@ -54,7 +85,7 @@ export function makePreCtx({method, url, params, headers, body}){
     };
     return ctx;
 }
-// ===== Request UI (сокращённо — ядро сохранено) =====
+// request ui
 export function makePostCtx({request, response, error}){
     const ctx = {
         _logs: [],
@@ -70,7 +101,7 @@ export function makePostCtx({request, response, error}){
 
 // pm adapter
 export function makePmAdapter(ctx) {
-    // ---- ENV helpers ----
+    // env helpers
     const setEnv = (key, value) => {
         state.VARS[key] = value;
         if (!state.ENV) state.ENV = { values: [] };
@@ -92,7 +123,7 @@ export function makePmAdapter(ctx) {
         return state.VARS[key];
     };
 
-    // ---- Response facade (для post-сценариев) ----
+    // response facade for post request
     const response = {
         code: ctx.response?.status ?? 0,
         text: () => ctx.response?.bodyText ?? '',
@@ -103,14 +134,13 @@ export function makePmAdapter(ctx) {
         }
     };
 
-     //  Headers API (как в Postman)
-    // ---- Headers API (как в Postman) ----
+     //  headers like in postman
     if (!Array.isArray(ctx.request.headers)) ctx.request.headers = [];
 
     const headerAPI = {
         add({ key, value }) {
             if (!key) return;
-            // ищем существующий хедер (case-insensitive)
+            // search headers + case insensitive
             const idx = ctx.request.headers.findIndex(h => String(h.key).toLowerCase() === String(key).toLowerCase());
             if (idx >= 0) {
                 ctx.request.headers[idx].value = value;
@@ -136,7 +166,7 @@ export function makePmAdapter(ctx) {
         }
     };
 
-    // ---- pm facade ----
+    // pm facade
     return {
         environment: { set: setEnv, get: getEnv, unset: (key) => {
                 if (!Array.isArray(state.ENV?.values)) state.ENV.values = [];
@@ -145,7 +175,29 @@ export function makePmAdapter(ctx) {
                 delete state.VARS[key];
                 buildVarMap();
             }},
-        variables: { get: getEnv, set: setEnv },
+        variables: {
+            get: getEnv,
+            set: setEnv,
+            // replace in string(for scriipts)
+            replaceIn: (str) => {
+                if (typeof str !== "string") return str;
+
+                return str.replace(/\{\{\s*([^}]+)\s*\}\}/g, (m, name) => {
+                    const val = getEnv(name) || state.COLLECTION_VARS[name] || state.GLOBALS[name];
+                    if (val) return val;
+
+                    // generator UUID
+                    if (name === "$randomUUID") {
+                        return (crypto.randomUUID ? crypto.randomUUID() :
+                            'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                                return v.toString(16);
+                            }));
+                    }
+                    return `"${uuid}"`;
+                });
+            }
+        },
         globals: {
             get: (key) => state.GLOBALS[key] ?? undefined,
             set: (key, value) => { state.GLOBALS[key] = value; },
@@ -153,11 +205,48 @@ export function makePmAdapter(ctx) {
         },
         collectionVariables: {
             get: (key) => state.COLLECTION_VARS[key],
-            set: (key, value) => { state.COLLECTION_VARS[key] = value; },
-            unset: (key) => { delete state.COLLECTION_VARS[key]; }
+            set: (key, value) => {
+                // write collectionVariables
+                state.COLLECTION_VARS[key] = value;
+                state.VARS[key] = value;
+                buildVarMap();
+
+                // copy in environment (ls to pm_env_dev / staging / prod)
+                if (!state.ENV) state.ENV = { values: [] };
+                if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
+                const row = state.ENV.values.find(v => v.key === key);
+                if (row) {
+                    row.value = value;
+                    row.enabled = true;
+                } else {
+                    state.ENV.values.push({ key, value, enabled: true });
+                }
+
+                try {
+                    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+                    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+                } catch (e) {
+                    console.warn("Failed to persist env var", e);
+                }
+            },
+            unset: (key) => {
+                delete state.COLLECTION_VARS[key];
+                delete state.VARS[key];
+
+                if (Array.isArray(state.ENV?.values)) {
+                    const idx = state.ENV.values.findIndex(v => v.key === key);
+                    if (idx >= 0) state.ENV.values.splice(idx, 1);
+                }
+
+                buildVarMap();
+
+                try {
+                    const currentEnv = localStorage.getItem('selected_env') || 'dev';
+                    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+                } catch {}
+            }
         },
 
-        // даём доступ к текущему запросу и возможность менять его
         request: {
             get method(){ return ctx.request.method; },
             set method(v){ ctx.request.method = String(v || 'GET').toUpperCase(); },
@@ -172,12 +261,33 @@ export function makePmAdapter(ctx) {
 
         response,
 
-        // --- pm.sendRequest:
+        // pm.sendRequest:
         sendRequest: async (req, cb) => {
             let url = req.url;
             let method = req.method || 'GET';
-            let headers = req.header ? Object.fromEntries(req.header.map(h => [h.key, h.value])) : {};
+            let headers = {};
+            if (Array.isArray(req.header)) {
+                // array of postman objects
+                headers = Object.fromEntries(req.header.map(h => [h.key, h.value]));
+            } else if (req.header && typeof req.header === "object") {
+                // if passed as an object in the script { "Content-Type": "application/json" }
+                headers = req.header;
+            }
             let body;
+            const normalized = {};
+            Object.entries(headers).forEach(([k, v]) => {
+                if (!k) return;
+                const keyLower = String(k).toLowerCase();
+                // normalized "content-type" to "Content-Type"
+                if (keyLower === "content-type") {
+                    normalized["Content-Type"] = v;
+                } else if (keyLower === "authorization") {
+                    normalized["Authorization"] = v;
+                } else {
+                    normalized[k] = v;
+                }
+            });
+            headers = normalized;
 
             if (req.body) {
                 if (req.body.mode === 'raw' && typeof req.body.raw !== 'undefined') {
@@ -218,8 +328,7 @@ export function makePmAdapter(ctx) {
         },
 
 
-
-        // простенькие тест-хелперы, чтобы не падало
+        // test helpers
         test: (name, fn) => {
             try { fn(); ctx._logs.push(`Test passed: ${name}`); }
             catch (err) { ctx._logs.push(`Test failed: ${name} - ${err.message}`); }

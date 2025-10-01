@@ -1,5 +1,10 @@
 // hotkeys.js
 import { toggleTheme } from './ui.js';
+import { buildVarMap, buildVarsTableBody, updateVarsBtnCounter } from './vars.js';
+import { renderTree } from './sidebar.js';
+import { openRequest } from './feature.js';
+import { highlightMissingVars, showAlert } from './ui.js';
+import { state, loadJson } from './state.js';
 
 export const HOTKEYS = [
     {
@@ -38,7 +43,20 @@ export const HOTKEYS = [
         description: "Toggle light/dark theme",
         action: () => toggleTheme()
     },
-    // --- Requests ---
+    //  env
+    {
+        group: "Environment",
+        keys: ["Mod+L"],
+        description: "Switch environment",
+        action: () => cycleEnvironment()
+    },
+    {
+        group: "Environment",
+        keys: ["Mod+E"],
+        description: "Toggle Variables modal",
+        action: (toggleVarsModal) => toggleVarsModal?.()
+    },
+    //  requests
     {
         group: "Requests",
         keys: ["Mod+Enter"],
@@ -59,12 +77,6 @@ export const HOTKEYS = [
     },
     {
         group: "Requests",
-        keys: ["Mod+E"],
-        description: "Toggle Variables modal",
-        action: (toggleVarsModal) => toggleVarsModal?.()
-    },
-    {
-        group: "Requests",
         keys: ["Mod+P"],
         description: "Pin/Unpin current request",
         action: (togglePinCurrent) => togglePinCurrent?.()
@@ -81,7 +93,7 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
     };
     const close = () => sidebar?.classList.remove('open');
 
-// кнопка ⚙️
+// button settings on sidebar
     btnSettings?.addEventListener('click', (e) => {
         e.preventDefault();
         if (sidebar?.classList.contains('open')) {
@@ -93,7 +105,6 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
 
 
     document.addEventListener('keydown', (e) => {
-        console.log("keydown:", e.key, e.code, e.metaKey, e.ctrlKey);
         const tag = (e.target.tagName || '').toLowerCase();
         const inEditable = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
         if (inEditable && !(e.metaKey || e.ctrlKey)) return;
@@ -107,6 +118,7 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
 
         if (isMod(e) && isKey(e,'k') && !e.shiftKey) {
             e.preventDefault();
+            e.stopImmediatePropagation();
             if (searchWrap) {
                 if (searchWrap.hidden) {
                     btnSearch?.click();
@@ -120,9 +132,10 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
         }
 
 
-        //  Mod + D → toggle settings sidebar
+        //  mod + d show settings sidebar
         if (isMod(e) && isKey(e,'d')) {
             e.preventDefault();
+            e.stopImmediatePropagation();
             if (sidebar?.classList.contains('open')) {
                 close();
             } else {
@@ -130,7 +143,7 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
             }
             return;
         }
-        // --- Requests ---
+        // requests
         if (isMod(e) && (key === 'Enter' || code === 'Enter')) {
             e.preventDefault();
             sendBtn?.click();
@@ -160,7 +173,12 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
             e.preventDefault();
             e.stopImmediatePropagation();
             toggleTheme();
-            console.log("🌗 Theme toggled!");
+            return;
+        }
+        if (isMod(e) && isKey(e, 'l')) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            cycleEnvironment();
             return;
         }
     }, true);
@@ -225,4 +243,61 @@ export function renderHotkeysList(containerId = "hotkeysList") {
         groupEl.appendChild(ul);
         container.appendChild(groupEl);
     });
+}
+
+
+async function cycleEnvironment() {
+    const order = ["dev", "staging", "prod"];
+    let current = localStorage.getItem('selected_env') || 'dev';
+    let idx = order.indexOf(current);
+    let next = order[(idx + 1) % order.length];
+
+    let newPath;
+    if (next === 'dev') newPath = './data/dev_environment.json';
+    if (next === 'staging') newPath = './data/staging_enviroment.json';
+    if (next === 'prod') newPath = './data/prod_environment.json';
+
+    let savedEnv = null;
+    try {
+        const raw = localStorage.getItem(`pm_env_${next}`);
+        if (raw) savedEnv = JSON.parse(raw);
+    } catch {}
+
+    if (savedEnv && Array.isArray(savedEnv.values)) {
+        state.ENV = savedEnv;
+    } else {
+        try {
+            const newEnv = await loadJson(newPath);
+            state.ENV = newEnv;
+            localStorage.setItem(`pm_env_${next}`, JSON.stringify(newEnv));
+        } catch (err) {
+            showAlert(`Failed to load environment: ${next}`, 'error');
+            state.ENV = { values: [] };
+            localStorage.setItem(`pm_env_${next}`, JSON.stringify(state.ENV));
+        }
+    }
+
+    localStorage.setItem('selected_env', next);
+
+    buildVarMap();
+    renderTree('', { onRequestClick: openRequest });
+    highlightMissingVars(document, state.VARS);
+    updateVarsBtnCounter();
+
+    const varsModal = document.getElementById('varsModal');
+    if (varsModal && !varsModal.hidden) buildVarsTableBody();
+
+    const envCurrent = document.querySelector('#envDropdown .envCurrent');
+    if (envCurrent) {
+        envCurrent.innerHTML = next.toUpperCase() + ' <span class="arrow">▼</span>';
+        envCurrent.className = 'envCurrent ' + next;
+    }
+
+    document.documentElement.setAttribute('data-env', next);
+    showAlert(`Environment switched: ${next.toUpperCase()}`, 'success');
+
+    if (state.CURRENT_REQ_ID) {
+        const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
+        if (item) openRequest(item, true);
+    }
 }

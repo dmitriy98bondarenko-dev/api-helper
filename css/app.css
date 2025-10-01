@@ -1,5 +1,4 @@
-
-/* Переменные {{var}} внутри JSON */
+/* app.css */
 .json-var {
   color:#D7BA7D;
   background:#fff0;
@@ -34,12 +33,12 @@
     font-weight: 600;
     background: var(--soft);
 }
-/* Унифицируем JSON-редакторы */
+/* JSON editor */
 .reqBodyWrap pre,
 .reqBodyWrap code,
 .reqBodyWrap textarea,
 
-/* === Request body editor (новый <pre><code contenteditable>) === */
+/* request body editor  */
 .reqBodyWrap pre.code-editor {
     margin: 0;
     border-radius: 0;
@@ -66,7 +65,6 @@
   outline: none;
 }
 
-/* Dark theme */
 [data-theme="dark"] .reqBodyWrap pre.code-editor {
   background: #111827;
   color: #f3f4f6;
@@ -98,9 +96,6 @@
 .statusPill.ok { background: #16a34a; color: #fff; }
 .statusPill.err { background: #dc2626; color: #fff; }
 
-.respMeta {
-    color: #555;
-}
 
 pre.headers {
     background: #f9fafb;
@@ -111,11 +106,11 @@ pre.headers {
     font-size: 12px;
     color: #374151;
 }
-/* Response card */
+/* response card */
 .respCard { background: var(--panel); border:1px solid var(--divider); border-radius:8px; margin:12px 0; }
 
 .tabPanes { padding: 6px;
-color: #fff0f0}
+}
 
 .tabPane { display:none; }
 .tabPane.active { display:block; }
@@ -124,7 +119,7 @@ pre {
     word-break: break-word;
     overflow-x: auto;
 }
-/* ---------- Response Title ---------- */
+/*  response title  */
 .respTitle {
     background: #0000;
     margin: 0;
@@ -136,7 +131,7 @@ pre {
     background: var(--soft);
     border-bottom: 1px solid var(--divider);
     line-height: 1.4;
-    height: 48px;             /* фиксированная высота */
+    height: 48px;
     display: flex;
     align-items: center;
 }
@@ -152,7 +147,7 @@ pre {
     border: 0;
 }
 
-/* общий JSON стиль */
+/* JSON  */
 .json-key    { color:#569CD6; font-weight:500; }
 .json-string { color:#CE9178; }
 .json-number { color:#B5CEA8; }
@@ -160,11 +155,11 @@ pre {
 .json-null    { color: #e06c75; }   /* красный */
 .json-url    { color:#D7BA7D; text-decoration:underline; cursor:pointer; }
 
-/* Редактор тела запроса */
+
 .reqBodyWrapInner {
     padding: 0;
     position: relative;
-    height: 300px; /* можно подогнать под себя */
+    height: 300px;
 }
 
 .reqBodyWrapInner textarea.bodyEditor,
@@ -187,13 +182,13 @@ pre {
     position: absolute;
     inset: 0;
     background: transparent;
-    color: transparent;     /* текст скрыт */
-    caret-color: black;     /* курсор чёрный */
+    color: transparent;
+    caret-color: black;     /* cursor */
     resize: none;
     z-index: 2;
 }
 
 .reqBodyWrapInner pre.bodyHighlight {
-    pointer-events: none;   /* клики проходят сквозь */
+    pointer-events: none;
     z-index: 1;
 }
