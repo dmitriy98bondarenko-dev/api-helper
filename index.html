@@ -1,20 +1,27 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
+    <base href="/api-helper/">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" href="./icons/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16x16.png">
-<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="./icons/android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="./icons/android-chrome-512x512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32x32.png?v=2">
+<link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16x16.png?v=2">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/android-chrome-192x192.png?v=2">
+<link rel="icon" type="image/png" sizes="512x512" href="./icons/android-chrome-512x512.png?v=2">
 <link rel="stylesheet" href="./css/app.css">
-    <link rel="stylesheet" href="./css/theme.css">
     <link rel="stylesheet" href="./css/layout.css">
     <link rel="stylesheet" href="./css/components.css">
     <link rel="stylesheet" href="./css/alert.css">
-<title>API Helper</title>
+    <link rel="stylesheet" href="./css/responce.css">
+    <link rel="stylesheet" href="./css/sidebar.css">
+    <link rel="stylesheet" href="./css/modals.css">
+    <link rel="stylesheet" href="./css/requestBody.css">
+    <link rel="stylesheet" href="./css/header.css">
+    <link rel="stylesheet" href="./css/vars.css">
+    <link rel="stylesheet" href="./css/theme.css">
+    <title>API Helper</title>
 </head>
 <body>
   <header>
@@ -37,26 +44,59 @@
                 <div class="envOption prod" data-value="prod">PROD</div>
             </div>
         </div>
-        <div class="theme-toggle">
-      <input type="checkbox" id="themeToggleSwitch" class="theme-toggle-input" />
-      <label for="themeToggleSwitch" class="theme-toggle-label"></label>
-    </div>
-
       <span id="loadedInfo" class="rightInfo"></span>
     </div>
-     <button id="clearStorageBtn" class="danger-clear" title="Clear environments and token">Reset</button>
   </header>
 
   <aside class="left">
+      <div class="leftLayout">
+      <div class="navSwitch">
+          <button id="navFolders" class="navBtn active" title="API Collection">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+              </svg>
+          </button>
+          <button id="navHistory" class="navBtn" title="History">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+          </button>
+          <button id="navSearch" class="navBtn searchBtn" title="Search">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                   viewBox="0 -1 24 24" stroke-width="1.5"
+                   stroke="currentColor" class="searchIcon">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m21 21-5.197-5.197m0 0
+           A7.5 7.5 0 1 0 5.196 5.196
+           a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
+          </button>
+          <button id="navSettings" class="navBtn" title="Settings">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.964m11.49-9.642 1.149-.964M7.501 19.795l.75-1.3m7.5-12.99.75-1.3m-6.063 16.658.26-1.477m2.605-14.772.26-1.477m0 17.726-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205 12 12m6.894 5.785-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495" />
+              </svg>
+          </button>
+      </div>
     <div class="section">
-        <div class="searchWrap">
+        <div class="searchWrap" hidden>
         <label for="search" class="visually-hidden" >Search</label>
         <input id="search" class="search" placeholder="Search by name/path…" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                 stroke-width="1.5" stroke="currentColor" class="searchIcon">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <svg id="clearSearch" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                 stroke-width="1.5" stroke="currentColor" class="clearIcon">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
         </div>
         <div id="tree" class="tree"></div>
+        <div id="historyPane" class="tree" hidden></div>
     </div>
+      </div>
   </aside>
-
   <main class="right">
     <div class="pane">
       <div class="card" id="welcomeCard">
@@ -72,56 +112,151 @@
     </div>
   </main>
 
-  <!-- Authorize modal -->
+  <!-- authorize modal -->
   <div id="authModal" class="modal" hidden>
     <div class="modalCard">
-      <h3>Authorize</h3>
+        <div class="modalHeader">
+            <h3>Authorize</h3>
+            <button class="modalClose"aria-label="Close">&times;</button>
+        </div>
       <div class="row">
           <label for="authToken" class="visually-hidden">Bearer token</label>
           <input id="authToken" placeholder="Bearer token" />
       </div>
       <div class="modalActions">
         <div class="authState" id="authState" style="display:none;"></div>
-        <div>
-          <button id="authClear" class="auth-bad">Clear</button>
-          <button id="authCancel">Cancel</button>
           <button id="authSave" class="auth-ok">Save</button>
+        <div>
+            <button id="authCancel">Cancel</button>
+            <button id="authClear" class="auth-bad">Clear</button>
         </div>
       </div>
     </div>
   </div>
-<!-- Variables modal -->
+<!-- variables modal -->
   <div id="varsModal" class="modal" hidden>
     <div class="modalCard">
-      <h3>Environment variables</h3>
+        <div class="modalHeader">
+            <h3>Environment variables</h3>
+            <button class="modalClose"aria-label="Close">&times;</button>
+        </div>
       <div class="kvs" style="max-height:42vh; overflow:auto; border:1px solid var(--divider); border-radius:10px">
         <table id="varsTable" class="varsTable">
           <thead>
-            <tr><th style="width:40%">Key</th><th>Value</th><th style="width:80px">On</th></tr>
+            <tr><th style="width:40%">Key</th><th>Value</th><th style="width:80px">On</th><th>Delete</th></tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
       <div class="modalActions">
-        <button id="varsImportBtn" type="button">Import JSON</button>
-          <button id="varsAdd" class="varAdd">+ Add variable</button>
-          <button id="varsCancel">Cancel</button>
-        <button id="varsSave" class="auth-ok">Save</button>
+          <div class="modalActions-left">
+              <button id="varsSave" class="auth-ok">Save</button>
+              <button id="varsAdd" class="varAdd">+ Add variable</button>
+              <div class="dropdown">
+                  <button class="jsonMenuBtn" id="jsonMenuBtn" >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
+                      </svg>
+                      JSON
+                  </button>
+                  <div class="dropdown-content">
+                      <button id="varsImportBtn">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                          </svg>
+                          Import JSON
+                      </button>
+                      <button id="varsExportBtn">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                          </svg>
+                          Export JSON
+                      </button>
+                  </div>
+              </div>
+          </div>
+          <div class="modalActions-right">
+              <button id="varsCancel">Cancel</button>
+          </div>
       </div>
     </div>
   </div>
-  
-<!-- Variable edit modal -->
-  <!-- Variable edit modal -->
+  <!-- settings sidebar -->
+  <div id="settingsSidebar" class="settingsSidebar">
+      <div class="settingsContent">
+          <div class="settingsHeader">
+              <h3>Settings</h3>
+              <button class="closeSettings" type="button" aria-label="Close">&times;</button>
+          </div>
+          <div class="settingsBody">
+              <div class="settingsRow">
+                  <span class="settingsLabel">Theme:</span>
+                  <div class="theme-toggle">
+                      <input type="checkbox" id="themeToggleSwitch" class="theme-toggle-input" />
+                      <label for="themeToggleSwitch" class="theme-toggle-label"></label>
+                  </div>
+              </div>
+              <h4>General:</h4>
+                  <span class="settings">Internal helper for fast API operations</span>
+              <ul>
+                  <li>Postman collections & scripts support</li>
+                  <li>Multi-environment setup</li>
+                  <li>Centralized auth with auto token refresh</li>
+                  <li>Clean UI with history and logs tab</li>
+              </ul>
+              <h4>Keyboard Shortcuts</h4>
+              <div id="hotkeysList"></div>
+              <div class="settingsRow">
+                  <span class="settingsLabel">Reset local storage:</span>
+                  <button id="clearStorageBtn" class="danger-clear" title="Clear environments and token">Reset</button>
+              </div>
+              <div class="settingsRow">
+                  <span class="settingsLabel">About</span>
+                  <p>API Helper v1.0</p>
+              </div>
+          </div>
+      </div>
+  </div>
+
+
+  <!-- unused modal -->
+  <div id="settingsModal" class="modal" hidden>
+      <div class="modalOverlay"></div>
+      <div class="modalCard">
+          <div class="modalHeader">
+              <h3>Settings</h3>
+              <button class="modalClose" aria-label="Close">&times;</button>
+          </div>
+
+          <div class="modalBody">
+              <div class="settingsSection">
+                  <h4>General</h4>
+                  <ul>
+                      <li>Theme: <span id="currentTheme">Dark</span></li>
+                      <li>Keyboard shortcuts <kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>/</kbd></li>
+                  </ul>
+              </div>
+
+              <div class="settingsSection">
+                  <h4>About</h4>
+                  <p>API Helper v1.0</p>
+              </div>
+          </div>
+      </div>
+  </div>
+<!-- variable edit modal -->
   <div id="varEditModal" class="modal" hidden>
       <div class="modalCard" style="max-width:420px">
-          <h3 id="varEditTitle">Edit variable</h3>
+          <div class="modalHeader">
+          <h3>Environment variables</h3>
+          <button class="modalClose"aria-label="Close">&times;</button>
+      </div>
           <div class="row">
               <input id="varEditValue" placeholder="Value…" />
           </div>
           <div class="modalActions">
-              <button id="varEditCancel">Cancel</button>
               <button id="varEditSave" class="auth-ok">Save</button>
+              <button id="varEditCancel">Cancel</button>
           </div>
       </div>
   </div>
@@ -135,10 +270,13 @@
     </div>
   </div>
 </div>
-<!-- Reset modal -->
+<!-- reset modal -->
   <div id="resetModal" class="modal" hidden>
     <div class="modalCard" style="max-width:420px;">
-      <h3>Reset options</h3>
+        <div class="modalHeader">
+            <h3>Reset options</h3>
+            <button class="modalClose" aria-label="Close">&times;</button>
+        </div>
       <p style="margin: 12px 0 18px; color:var(--muted);">
         Choose what you want to reset.
       </p>
@@ -153,7 +291,21 @@
 
   <div id="loader" class="loaderOverlay" hidden><div class="spinner"></div></div>
   <div id="alertsContainer"></div>
-  <!-- Был обычный скрипт, заменяем на модуль -->
+  <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+      </symbol>
+  </svg>
+  <button style="display:none">
+      <svg class="icon-trash"><use href="#icon-trash"/></svg>
+  </button>
+  <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="icon-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+      </symbol>
+  </svg>
+
   <script type="module" src="./js/app.js"></script>
 </body>
 </html>

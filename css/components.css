@@ -1,6 +1,6 @@
 *{box-sizing:border-box}
 
-/* ---------- Base ---------- */
+/*- base  */
 body{
     margin: 0;
     font-family: ui-sans-serif,system-ui,Segoe UI,Roboto,Arial;
@@ -13,11 +13,31 @@ body{
     overflow-x: hidden;
 }
 
-/* ---------- Cards ---------- */
-.card{background:var(--panel); border:1px solid var(--divider); border-radius:12px; overflow:hidden; margin-bottom:16px}
-.card h3{margin:0; padding:22px 14px; border-bottom:1px solid var(--divider); font-size:14px; letter-spacing:.2px; color:var(--ink); background:var(--soft)}
+/* cards  */
+.card{
+    background:var(--panel);
+    border:1px solid var(--divider);
+    border-radius:12px;
+    overflow:hidden;
+    margin-bottom:16px
+}
+.card h3{
+    margin:0;
+    padding:22px 14px;
+    border-bottom:1px solid var(--divider);
+    font-size:14px;
+    letter-spacing:.2px;
+    color:var(--ink);
+    background:var(--soft)
+}
 
-.row{display:grid; grid-template-columns: 110px 1fr; gap:8px; padding:10px 12px; align-items:center}
+.row{
+    display:grid;
+    grid-template-columns: 110px 1fr;
+    gap:8px;
+    padding:10px 12px;
+    align-items:center
+}
 .row input, .row textarea, .row select{
     width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); background:#0000; color:var(--fg); font-family:inherit; font-size:14px
 }
@@ -41,7 +61,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .inline{display:flex; gap:8px; align-items:center}
 .rightInfo{font-size:12px; color:var(--muted)}
 
-/* ---------- API tree ---------- */
+/* api tree  */
 .tree{margin-top:12px}
 .folder{color:var(--ink); font-weight:800; text-transform:none; letter-spacing:.2px; font-size:18px; margin:18px 10px 6px;}
 .op{display:flex; align-items:center; gap:12px; border-radius:8px; padding:10px 12px; margin:8px 6px; border:1px solid var(--divider); cursor:pointer; background:#0000; transition:transform .05s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease; box-shadow:0 1px 0 rgba(15,23,42,.03);}
@@ -61,7 +81,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .op.HEAD,.op.OPTIONS,.op.TRACE{background:var(--op-other)}
 .op.HEAD .op-method,.op.OPTIONS .op-method,.op.TRACE .op-method{background:var(--op-other-b); color:var(--op-other-f)}
 
-/* ---------- Tabs ---------- */
+/* tabs  */
 .tabs{display:flex; gap:18px; padding:8px 10px; border-bottom:1px solid var(--divider); background:var(--soft)}
 .tab{padding:10px 4px; font-size:14px; font-weight:600; color:var(--muted); cursor:pointer; position:relative; transition:color .15s ease; border:1px solid transparent; border-radius:8px; background:none}
 .tab:hover{color:var(--ink)}
@@ -76,7 +96,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .tab.active[data-method="HEAD"]::after,
 .tab.active[data-method="OPTIONS"]::after{background:var(--op-other-f)}
 
-/* ---------- KV Table ---------- */
+/*  KV table  */
 .kvTable{width:100%; border-collapse:collapse; background:#0000; border:1px solid var(--divider); border-radius:10px; overflow:hidden; font-size:13px}
 .kvTable thead th{background:var(--soft); font-size:12px; letter-spacing:.3px; color:var(--muted); text-transform:uppercase}
 .kvTable tbody tr:not(:last-child) td{border-bottom:1px solid var(--divider)}
@@ -89,7 +109,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .kvOn{width:48px; text-align:center}
 .kvHint{font-size:12px; color:var(--muted); padding:8px 2px}
 
-/* ---------- Scripts ---------- */
+/* scripts tab */
 .scriptsSwitcher{display:flex; gap:8px; padding:10px 12px; background:var(--soft); border-bottom:1px solid var(--divider)}
 .scriptsSwitcher button{padding:6px 10px; border-radius:6px; background:#0000; border:1px solid var(--divider); color:var(--fg); cursor:pointer}
 .scriptsSwitcher button.active{background:#0000000a; border-color:#c9dcff}
@@ -97,29 +117,14 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .scriptsArea{padding:12px; background:#0000}
 .scriptsArea textarea{width:100%; min-height:160px; border:1px solid var(--divider); border-radius:8px; background:#0000; color:var(--fg); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; padding:10px}
 
-/* ---------- Modals ---------- */
-.modal{position:fixed; inset:0; background:rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; z-index:10000}
-.modal[hidden]{display:none}
-.modalCard{width:520px; max-width:90%; max-height:80vh; overflow:auto; background:var(--panel); border:1px solid var(--divider); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.08); padding:20px}
-.modalCard h3{margin:0 0 14px 0; font-size:16px; color:var(--ink)}
-.modalCard .row input{width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--divider); font-size:14px; background:#0000; color:var(--fg)}
-.modalActions{display:flex; justify-content:flex-end; gap:10px; margin-top:16px}
-.modalActions button{min-width:80px; padding:8px 14px; border-radius:8px; font-size:14px}
-.auth-ok{background:#10b981; color:#fff; border:none}
-.auth-bad{background:var(--chip-bg); color:var(--fg)}
-.authState{font-size:12px; color:#065f46}
-[data-theme="dark"] .authState{color:#34d399}
-
-/* Authorization tab (fix key/value layout) */
-/* --- Authorization tab rows --- */
-/* ==== Authorization tab fix ==== */
+/* auth tab */
 .authRow {
     display: grid !important;
-    grid-template-columns: 140px 1fr !important; /* под лейбл и поле */
+    grid-template-columns: 140px 1fr !important;
     align-items: center;
     gap: 12px;
     margin: 8px 0;
-    padding: 0 !important; /* убираем паддинги от .row */
+    padding: 0 !important;
 }
 
 .authRow .muted {
@@ -135,7 +140,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
     border: 1px solid var(--divider);
     font-size: 14px;
 }
-/* === Отступы внутри табов === */
+
 .tabPane {
     padding: 0;
     box-sizing: border-box;
@@ -144,7 +149,7 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
 .tabPane .authRow {
     margin-bottom: 14px;
 }
-/* --- Request body toolbar --- */
+/* request body toolbar  */
 .reqBodyToolbar {
     display: flex;
     align-items: center;
@@ -190,125 +195,16 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
     color: #fca5a5;
 }
 
-/* Vars */
-.varsTable{ width:100%; border-collapse:collapse; font-size:14px; background:#0000 }
-.varsTable th,.varsTable td{ border-bottom:1px solid var(--divider); padding:8px }
-.varsTable th{ position:sticky; top:0; z-index:2; background:var(--soft); color:var(--muted); font-weight:600; text-align:left; box-shadow:0 2px 0 var(--divider); }
-.varsTable td input[type="text"]{ width:100%; padding:6px 8px; border:1px solid var(--divider); border-radius:6px; font-size:13px; background:#0000; color:var(--fg) }
-.varsTable td input[type="checkbox"]{ width:auto; margin:auto; display:block; }
-.varsHelp{ font-size:12px; color:var(--muted); }
-
 /* loader */
 .loaderOverlay{ position:fixed; inset:56px 0 0 0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.2); z-index:9999; backdrop-filter:saturate(1.2) blur(2px); }
 .loaderOverlay[hidden]{ display:none }
 .spinner{ width:40px; height:40px; border-radius:50%; border:4px solid #dbe3ed; border-top-color: var(--accent); animation: spin 0.9s linear infinite }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Tabs fix */
 .tabPane { display:none; }
 .tabPane.active { display:block; }
 
-.reqHeader select {
-    background: var(--chip-bg);
-    font-weight: 700;
-    cursor: pointer;
-    min-width: 90px;
-    border-right: 1px solid var(--divider);
-}
-
-.reqHeader input {
-    flex: 1;
-    min-width: 0;
-}
-
-.reqHeader .send {
-    background: var(--accent);
-    color: #fff;
-    font-weight: 700;
-    border: none;
-    padding: 0 18px;
-    cursor: pointer;
-}
-.methodDropdown {
-    position: relative;
-    min-width: 90px;
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-}
-.methodCurrent {
-    padding: 10px 12px;
-    border-right: 1px solid var(--divider);
-    border-radius: 6px 0 0 6px;
-    text-align: center;
-}
-.methodList {
-    position: absolute;
-    top: 100%; left: 0; right: 0;
-    border: 1px solid var(--divider);
-    border-radius: 6px;
-    overflow: hidden;
-    z-index: 10;
-}
-.methodOption {
-    padding: 8px 12px;
-    font-size: 14px;
-}
-.methodOption:hover {
-    filter: brightness(1.1);
-}
-
-#urlInpDisplay {
-    outline: none;
-}
-
-/* === Hover fix (только токены) === */
-#urlInpDisplay:hover { background: none; }
-.var-token:hover { filter: brightness(1.15); }
-/* === Fix URL row layout === */
-.reqHeader {
-    display: grid;
-    grid-template-columns: 120px 1fr 120px; /* метод | URL | кнопка */
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    background: #fff7e8;
-    border-bottom: 1px solid var(--divider);
-}
-[data-theme="dark"] .reqHeader { background:#2a1f0f; }
-
-.reqHeader .urlWrap {
-    display: block;
-    width: 100%;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 14px;
-    padding: 6px 8px;
-    background: #0000;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    min-height: 30px;
-    line-height: 1.4;
-    overflow-x: auto;
-    white-space: nowrap;
-}
-
-#urlInpDisplay {
-    outline: none;
-    display: inline-block;
-}
-
-.reqHeader .send {
-    width: 100%;
-    height: 100%;
-    background: var(--accent);
-    color: #fff;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    border-radius: 6px;
-}
-
-/* ==== Reset button ==== */
+/* reset button */
 #clearStorageBtn.danger-clear {
     display: flex;
     justify-content: center;
@@ -324,13 +220,15 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
     color: #dc2626;
 }
 
-/* hover — заливка красным */
 #clearStorageBtn.danger-clear:hover {
     background-color: #dc2626;
     color: #fff;
 }
+#clearStorageBtn.danger-clear:active {
+    background-color: #b31e1e;
+    color: #fff;
+}
 
-/* ==== Dark theme ==== */
 [data-theme="dark"] #clearStorageBtn.danger-clear {
     border-color: #f87171;
     color: #f87171;
@@ -341,110 +239,12 @@ th{color:var(--muted); text-align:left; background:var(--soft); position:sticky;
     border-color: #dc2626;
     color: #fff;
 }
-/* ==== Unify top bar buttons height ==== */
-.authBtn,
-#varsBtn,
-.envCurrent,
-#clearStorageBtn.danger-clear {
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 14px;
-    font-size: 14px;
-    line-height: 1;
-    border-radius: 6px;
-    box-sizing: border-box;
-}
-/* delete var remove rows */
-.varRemove {
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 700;
-    color: #dc2626;
-    background: none;
-    border: none;
-    padding: 0 6px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    transition: background 0.15s;
-}
-.varRemove:hover {
-    background: rgba(220, 38, 38, 0.1);
-}
-
-.bar {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-    flex: 1;
-}
-.btn, button{
-    background:var(--chip-bg); color:var(--fg); border:1px solid var(--divider);
-    padding:8px 10px; border-radius:8px; cursor:pointer
-}
-/* Верхняя панель */
-.authBtn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    font-weight: 600;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 2px solid #16a34a; /* зелёный */
-    background: transparent;
-    color: #16a34a;
-    transition: background 0.2s, color 0.2s;
-}
-.authBtn .lockIcon {
-    width: 18px;
-    height: 18px;
-    fill: #16a34a;
-    transition: fill 0.2s;
-}
-.authBtn:hover {
-    background: rgba(22, 163, 74, 0.08);
-}
-.authBtn.active {
-    background: #16a34a;
-    color: #fff;
-}
-.authBtn.active .lockIcon {
-    fill: #fff;
-}
-
-/* Кнопка Environment Variables */
-#varsBtn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    border-radius: 6px;
-    cursor: pointer;
-    background: transparent;
-    border: 2px solid transparent;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
-}
-
-html[data-env="dev"]     #varsBtn { border-color: #16a34a; color: #16a34a; }
-html[data-env="staging"] #varsBtn { border-color: #ca8a04; color: #ca8a04; }
-html[data-env="prod"]    #varsBtn { border-color: #dc2626; color: #dc2626; }
-
-#varsBtn:hover {
-    background: rgba(0,0,0,0.04);
-}
-[data-theme="dark"] #varsBtn:hover {
-    background: rgba(255,255,255,0.05);
-}
-
-/* ===== Theme Switch (слайдер) ===== */
+[data-theme="dark"] #clearStorageBtn.danger-clear:active {
+                       background-color: #a81c1c;
+                       border-color: #a81c1c;
+                       color: #fff;
+                   }
+/* theme switch  */
 .theme-toggle {
     position: relative;
     display: inline-flex;
@@ -497,7 +297,6 @@ html[data-env="prod"]    #varsBtn { border-color: #dc2626; color: #dc2626; }
 .theme-toggle-label:hover::after {
     transform: translateX(6px) rotate(65deg);
 }
-
 /* sun hover  */
 .theme-toggle-input:checked + .theme-toggle-label:hover::after {
     transform: translateX(30px) rotate(345deg);
@@ -507,204 +306,14 @@ html[data-env="prod"]    #varsBtn { border-color: #dc2626; color: #dc2626; }
 input[type="file"]{display:none}
 label.file{padding:8px 10px; border:1px dashed var(--divider); border-radius:8px; cursor:pointer; background:var(--soft)}
 .themeToggle{min-width:44px}
-/* === Authorize modal – overlay темнее + блокируем скролл страницы === */
+
 #authModal.modal{
     background: rgba(2, 6, 23, .58);
     backdrop-filter: saturate(1.2) blur(2px);
 }
 html:has(#authModal:not([hidden])){ overflow: hidden; }
 
-#authModal .modalCard{
-    width: 760px;
-    max-width: 92vw;
-    padding: 24px 28px;
-    border-radius: 14px;
-    border: 1px solid var(--divider);
-    box-shadow: 0 20px 60px rgba(0,0,0,.18);
-}
-#authModal .modalCard h3{
-    font-size: 24px;
-    line-height: 1.25;
-    font-weight: 800;
-    margin: 0 0 18px 0;
-    color: var(--ink);
-}
-#authModal .row{ display: block; padding: 0; margin: 6px 0 0 0; }
-#authModal .row::before{
-    content: "Value:";
-    display: block;
-    font-weight: 700;
-    color: var(--muted);
-    margin: 0 0 6px 0;
-}
-#authModal .row input{
-    width: 100%;
-    height: 48px;
-    padding: 10px 12px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 14px;
-    border-radius: 10px;
-    border: 1px solid var(--divider);
-    background: #0000;
-    color: var(--fg);
-}
-#authModal .authState{ margin-top: 12px; font-size: 13px; color: #065f46; }
-[data-theme="dark"] #authModal .authState{ color:#34d399; }
-#authModal .modalActions{
-    display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 18px;
-}
-#authModal .modalActions > div{ display: flex; gap: 10px; align-items: center; }
-#authModal .modalActions button{
-    padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 700;
-}
-#authModal #authSave{   order: 1; background: #10b981; color: #fff; border: none; }
-#authModal #authSave:hover{ filter: brightness(1.05); }
-#authModal #authCancel{ order: 2; background: var(--panel); color: var(--fg); border: 1px solid var(--divider); }
-#authModal #authCancel:hover{ filter: brightness(1.02); }
-#authModal #authClear{  order: 3; background: var(--soft); color: var(--muted); border: 1px solid var(--divider); }
-[data-theme="dark"] #authModal #authClear{
-    color: var(--muted); background: #121a2a; border-color: #25314a;
-}
-/* === Environment modal – overlay с блюром + фиксы === */
-#varsModal.modal{
-    background: rgba(2, 6, 23, .58);
-    backdrop-filter: saturate(1.2) blur(2px);
-}
-html:has(#varsModal:not([hidden])){ overflow: hidden; }
-
-#varsModal .modalCard{
-    width: 760px;
-    max-width: 92vw;
-    max-height: 80vh;
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
-    padding: 24px 28px;
-    border-radius: 14px;
-    border: 1px solid var(--divider);
-    background: var(--panel);
-    box-shadow: 0 20px 60px rgba(0,0,0,.18);
-    animation: fadeIn .25s ease, scaleIn .25s ease;
-}
-
-#varsModal .modalCard h3{
-    position: sticky;
-    top: 0;
-    background: var(--panel);
-    padding-bottom: 10px;
-    margin: 0 0 14px 0;
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--ink);
-    border-bottom: 1px solid var(--divider);
-    z-index: 2;
-}
-
-#varsModal .kvs{
-    flex: 1;
-    overflow: auto;
-    border: 1px solid var(--divider);
-    border-radius: 10px;
-    margin-bottom: 18px;
-    padding: 0;
-}
-
-#varsModal .modalActions{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-top: 12px;
-    position: sticky;
-    bottom: 0;
-    background: var(--panel);
-    padding-top: 12px;
-    border-top: 1px solid var(--divider);
-}
-
-#varsModal .modalActions button,
-#varsModal .modalActions label.file{
-    padding: 10px 18px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-#varsModal #varsSave{
-    background: #10b981;
-    color: #fff;
-    border: none;
-}
-#varsModal #varsSave:hover{ filter: brightness(1.05); }
-
-#varsModal #varsCancel{
-    background: var(--panel);
-    color: var(--fg);
-    border: 1px solid var(--divider);
-}
-#varsModal #varsCancel:hover{ filter: brightness(1.02); }
-
-#varsModal label.file{
-    background: var(--soft);
-    color: var(--muted);
-    border: 1px dashed var(--divider);
-}
-#varsModal label.file:hover{ filter: brightness(1.05); }
-
-/* === Modal for variable edit === */
-#varEditModal.modal {
-    background: rgba(2, 6, 23, .58);
-    backdrop-filter: saturate(1.2) blur(2px);
-}
-html:has(#varEditModal:not([hidden])) { overflow: hidden; }
-
-#varEditModal .modalCard {
-    width: 420px;
-    max-width: 92vw;
-    padding: 20px 24px;
-    border-radius: 12px;
-    border: 1px solid var(--divider);
-    background: var(--panel);
-    box-shadow: 0 20px 60px rgba(0,0,0,.18);
-}
-
-#varEditModal .modalCard h3 {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0 0 14px 0;
-    color: var(--ink);
-}
-
-#varEditModal .row {
-    display: block;
-    margin: 10px 0;
-}
-#varEditModal .row input {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--divider);
-    font-size: 14px;
-    background: #0000;
-    color: var(--fg);
-}
-
-#varEditModal .modalActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 18px;
-}
-#varEditModal .modalActions button {
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 14px;
-}
-#varEditModal #varEditSave { background:#10b981; color:#fff; border:none; }
-#varEditModal #varEditCancel { background:var(--panel); color:var(--fg); border:1px solid var(--divider); }
 /* env Dropdown */
-
 .envDropdown {
     margin-left: 8px;
     position: relative;
@@ -714,8 +323,6 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
     cursor: pointer;
     user-select: none;
 }
-
-
 .envList {
     position: absolute;
     top: calc(100% + 4px);
@@ -775,7 +382,7 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 
 .tabPane th,
 .tabPane td {
-    padding: 8px 10px;     /* одинаковый отступ в ячейках */
+    padding: 8px 10px;
 }
 
 #paneAuth.tabPane {
@@ -783,11 +390,11 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 }
 
 #paneAuth .authRow {
-    margin-bottom: 14px; /* расстояние между строками */
+    margin-bottom: 14px;
 }
 
 #paneAuth .authRow:last-child {
-    margin-bottom: 0;    /* чтобы последняя строка не имела лишнего отступа снизу */
+    margin-bottom: 0;
 }
 .tabsBar {
     display: flex;
@@ -817,3 +424,4 @@ html:has(#varEditModal:not([hidden])) { overflow: hidden; }
 .btnCurl:hover {
     filter: brightness(1.05);
 }
+

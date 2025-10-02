@@ -23,13 +23,13 @@
     animation: fadeIn 0.3s forwards, fadeOut 0.3s 4s forwards;
 }
 
-/* Иконка слева */
+/* left icon */
 .alert__icon {
     width: 20px;
     height: 20px;
     transform: translateY(-2px);
     margin-right: 8px;
-    color: #fff; /* цвет для fill="currentColor" */
+    color: #fff;
 }
 .alert__icon svg {
     display: block;
@@ -37,20 +37,20 @@
     height: 100%;
 }
 
-/* Текст */
+/* text */
 .alert__title {
     font-weight: 500;
     font-size: 14px;
     color: #fff;
 }
 
-/* Крестик справа */
+/* close button */
 .alert__close {
     width: 20px;
     height: 20px;
     cursor: pointer;
     margin-left: auto;
-    color: #fff; /* цвет для fill="currentColor" */
+    color: #fff;
 }
 .alert__close svg {
     display: block;
@@ -58,11 +58,10 @@
     height: 100%;
 }
 
-/* Варианты */
-.alert.error   { background: #EF665B; } /* красный */
-.alert.success { background: #16a34a; } /* зелёный */
+.alert.error   { background: #EF665B; }
+.alert.success { background: #16a34a; }
 
-/* Анимации */
+/* animations */
 @keyframes fadeIn {
     to { opacity: 1; transform: translateY(0); }
 }

@@ -7,39 +7,40 @@ import { renderTree, updateEnvDropdown, setPinnedIds } from './sidebar.js';
 import { openRequest } from './feature.js';
 import { highlightJSON, saveSelection, restoreSelection } from './ui.js';
 
-// ===== Variables & helpers =====
-
+// vriables and helpers
 export function buildVarMap() {
-    const map = {};
+    const next = {};
 
-    // 1. Значения из коллекции (дефолты)
-    if (state.COLLECTION?.variable) {
-        state.COLLECTION.variable.forEach(v => {
-            if (!v) return;
-            const key = v.key ?? v.name;
-            if (key) map[key] = getVal(v);
+    // ENV most priority
+    const envVals = Array.isArray(state.ENV?.values) ? state.ENV.values : [];
+    envVals.filter(v => v && v.key && v.enabled !== false)
+        .forEach(v => {
+            const val = String(v.value ?? '').trim();
+            if (val) next[v.key] = val;
+        });
+
+    // COLLECTION_VARS if ENV empty
+    if (state.COLLECTION_VARS) {
+        Object.entries(state.COLLECTION_VARS).forEach(([k, v]) => {
+            if (!(k in next)) next[k] = v ?? '';
         });
     }
 
-    // 2. Переменные из ENV (перекрывают коллекцию)
-    if (state.ENV?.values) {
-        state.ENV.values.forEach(v => {
-            if (!v || v.enabled === false) return;
-            const key = v.key ?? v.name;
-            if (key) map[key] = getVal(v); // всегда перезаписываем
+    // GLOBALS
+    if (state.GLOBALS) {
+        Object.entries(state.GLOBALS).forEach(([k, v]) => {
+            if (!(k in next)) next[k] = v ?? '';
         });
     }
 
-    state.VARS = map;
-    updateVarsBtnCounter();
-    const bodyEditor = document.querySelector('#bodyRawArea');
-    if (bodyEditor) {
-        const raw = bodyEditor.textContent || '';
-        const offset = saveSelection(bodyEditor);
-        bodyEditor.innerHTML = highlightJSON(raw);
-        restoreSelection(bodyEditor, offset);
-    }
+    // update state.VARS
+    const target = state.VARS || (state.VARS = {});
+    Object.keys(target).forEach(k => delete target[k]);
+    Object.assign(target, next);
+
+    return target;
 }
+
 
 export function buildVarsTableBody() {
     const tb = $('#varsTable tbody');
@@ -55,17 +56,17 @@ export function buildVarsTableBody() {
         const delBtn = el('button', {
             class: 'varRemove',
             title: 'Delete',
-            onclick: () => removeVar(key) // удаление “старых” переменных как и раньше
+            onclick: () => removeVar(key) // remove var from env
         }, '✖');
 
-        // чекбокс активен только если есть и key, и value
+        // active checkbox if has key and value
         const enabled = !!key && !!val && v.enabled !== false;
 
         const keyInp = el('input', { value: key, 'data-idx': i, 'data-field': 'key', type: 'text' });
         const valInp = el('input', { value: val, 'data-idx': i, 'data-field': 'value', type: 'text' });
         const chkInp = el('input', { type: 'checkbox', checked: enabled, 'data-idx': i, 'data-field': 'enabled' });
 
-        // автоуправление чекбоксом
+        // checkbox control
               const autoToggle = () => {
                        if (keyInp.value.trim() && valInp.value.trim()) {
                                chkInp.checked = true;
@@ -88,12 +89,11 @@ export function buildVarsTableBody() {
 
         tb.append(tr);
         updateVarsBtnCounter();
-        // слушатели для динамического обновления счётчика + VARS + подсветка URL
         tb.querySelectorAll('input').forEach(inp => {
             const handler = () => {
                 updateVarsBtnCounter();
                 syncRemoveButtons();
-                buildVarMap(); // 🔹 пересобираем карту переменных
+                buildVarMap(); // recalculate vars map
                 const urlDisp = document.querySelector('#urlInpDisplay');
                 if (urlDisp) {
                     const raw = document.querySelector('#urlInp')?.value?.trim() || '';
@@ -107,7 +107,7 @@ export function buildVarsTableBody() {
 
         syncRemoveButtons();
     });
-    // если окружение пустое — добавим одну пустую обычную строку
+    // if env empty add 1 row
     if (!tb.querySelector('tr.varRow')) {
         const tr = document.createElement('tr');
         tr.classList.add('varRow');
@@ -140,11 +140,10 @@ export function buildVarsTableBody() {
         tb.append(tr);
     }
 
-    // обновляем счётчик и видимость крестиков после рендера
+    // update counter
     updateVarsBtnCounter();
     syncRemoveButtons();
 
-    // слушатели для динамического обновления счётчика
     tb.querySelectorAll('input').forEach(inp => {
         inp.addEventListener('input', () => { updateVarsBtnCounter(); syncRemoveButtons(); });
         inp.addEventListener('change', () => { updateVarsBtnCounter(); syncRemoveButtons(); });
@@ -162,11 +161,12 @@ function removeVar(keyToRemove) {
 function refreshVarsUI() {
     buildVarsTableBody();
     buildVarMap();
-    refreshCurrentRequest();
-    highlightMissingVars(document, state.VARS);
+    refreshAllVarsHighlight();
+    highlightMissingVars(document, getEnvVarsOnly());
     if (typeof updateVarsBtn === 'function') updateVarsBtn();
     updateVarsBtnCounter();
     syncRemoveButtons();
+    refreshBodyEditorHighlight();
 }
 
 function saveEnvToLocal() {
@@ -176,13 +176,13 @@ function saveEnvToLocal() {
     } catch {}
 }
 
-// --- Модал Environment Variables ---
+// modal env variables
 export function initVarsModal() {
     const varsBtn = $('#varsBtn');
     const varsModal = $('#varsModal');
     const varsCancel = $('#varsCancel');
     const varsSave = $('#varsSave');
-    const varsAdd = $('#varsAdd'); // кнопка Add variable
+    const varsAdd = $('#varsAdd'); // add variable button
 
 
     if (varsBtn && varsModal) {
@@ -211,7 +211,7 @@ export function initVarsModal() {
 
             saveEnvToLocal();
             refreshVarsUI();
-            refreshCurrentRequest();
+            refreshAllVarsHighlight();
 
             varsModal.hidden = true;
             showAlert('Variables saved', 'success');
@@ -242,12 +242,12 @@ export function initVarsModal() {
             valInp.addEventListener('input', autoToggle);
 
             const delBtn = el('button', {
-                class: 'varRemove',
+                class: 'clearPinsBtn',
                 title: 'Delete',
                 onclick: () => {
-                    tr.remove();                 // временные строки просто убираем из DOM
+                    tr.remove();
                     updateVarsBtnCounter();
-                    syncRemoveButtons();         // ← пересчитать видимость крестиков
+                    syncRemoveButtons();
                 }
             }, '✖');
 
@@ -260,7 +260,7 @@ export function initVarsModal() {
 
             tb.append(tr);
             updateVarsBtnCounter();
-            syncRemoveButtons();             // ← показать крестики везде, кроме случая 1 строки
+            syncRemoveButtons();             // do not show remove button for only one row
 
             tr.scrollIntoView({ behavior: 'smooth', block: 'end' });
             keyInp.focus();
@@ -269,7 +269,6 @@ export function initVarsModal() {
     const varsImportBtn = $('#varsImportBtn');
     if (varsImportBtn) {
         varsImportBtn.addEventListener('click', () => {
-            // создаём скрытый input[type=file]
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
             fileInput.accept = 'application/json';
@@ -283,21 +282,23 @@ export function initVarsModal() {
                     const json = JSON.parse(text);
 
                     if (!Array.isArray(json.values)) {
-                        showAlert('Invalid JSON format (no "values" array)', 'error');
+                        showAlert('Invalid JSON format', 'error');
                         return;
                     }
 
-                    // заменяем ENV
+                    // change env on new data
                     state.ENV = { values: json.values };
 
-                    // сохраняем в LS
+                    // save to ls
                     saveEnvToLocal();
 
-                    // обновляем UI
+                    // udate ui
                     refreshVarsUI();
                     buildVarsTableBody();
 
                     showAlert(`Imported ${json.values.length} variables`, 'success');
+                    jsonDropdown.classList.remove('open');
+                    dropdownContent.style.display = 'none';
                 } catch (err) {
                     console.error(err);
                     showAlert('Failed to import JSON: ' + err.message, 'error');
@@ -310,7 +311,7 @@ export function initVarsModal() {
 
 }
 
-// --- Reset Local Storage ---
+// reset local storage
 export function initResetModal() {
     const resetBtn = $('#clearStorageBtn');
     const resetModal = $('#resetModal');
@@ -347,7 +348,19 @@ export function initResetModal() {
             state.VARS = {};
             buildVarMap();
             updateVarsBtnCounter();
-            refreshCurrentRequest();
+            refreshVarsUI();
+            Object.keys(localStorage).forEach(k => {
+                if (k.startsWith('pm_req_')) {
+                    localStorage.removeItem(k);
+                }
+            });
+            if (state.CURRENT_REQ_ID) {
+                const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
+                if (item) {
+                    openRequest(item, true);
+                }
+            }
+
 
             resetModal.hidden = true;
             showAlert('Environments and authorization reset. Default DEV loaded.', 'success');
@@ -357,7 +370,7 @@ export function initResetModal() {
             updateEnvDropdown(envKey);
 
             renderTree('', { onRequestClick: openRequest });
-            highlightMissingVars(document, state.VARS);
+            highlightMissingVars(document, getEnvVarsOnly());
             updateVarsBtnCounter();
         });
     }
@@ -365,13 +378,16 @@ export function initResetModal() {
     if (resetFull) {
         resetFull.addEventListener('click', () => {
             clearLocalStorage(['pm_env_', 'pm_req_'], ['selected_env', 'global_bearer']);
+            localStorage.removeItem('req_history');
             setGlobalBearer('');
             setPinnedIds([]);
             updateAuthUI();
 
             resetModal.hidden = true;
             updateVarsBtnCounter();
-            showAlert('Full reset completed. Please reload the page…', 'success');
+            refreshBodyEditorHighlight();
+            highlightMissingVars(document, getEnvVarsOnly());
+            showAlert('Full reset completed. Page is reloading…', 'success');
 
             setTimeout(() => location.reload(), 500);
         });
@@ -384,7 +400,6 @@ export function updateVarsBtnCounter() {
     const varsModal = $('#varsModal');
     const tb = $('#varsTable tbody');
 
-    // считаем по DOM только когда модалка реально открыта и есть строки
     const canUseDom =
         !!varsModal &&
         varsModal.hidden === false &&
@@ -416,7 +431,7 @@ export function updateVarsBtnCounter() {
         return;
     }
 
-    // fallback: считаем по state.ENV, когда модалка закрыта/не готова
+    // fallback state.ENV
     const list = Array.isArray(state.ENV?.values) ? state.ENV.values : [];
     let total = 0, active = 0;
 
@@ -432,7 +447,7 @@ export function updateVarsBtnCounter() {
 }
 
 export function syncRemoveButtons(){
-    // считаем только реальные строки с переменными, без футеров и т.п.
+    // count rows
     const rows = Array.from(document.querySelectorAll('#varsTable tbody tr.varRow'));
     const show = rows.length > 1;
     rows.forEach(tr => {
@@ -450,8 +465,8 @@ function refreshCurrentRequest() {
             const urlDisp = document.querySelector('#urlInpDisplay');
             if (urlDisp) {
                 const raw = document.querySelector('#urlInp')?.value?.trim() || '';
-                urlDisp.innerHTML = renderUrlWithVars(raw, state.VARS);
-                highlightMissingVars(urlDisp, state.VARS);
+                urlDisp.innerHTML = renderUrlWithVars(raw, getEnvVarsOnly());
+                highlightMissingVars(urlDisp, getEnvVarsOnly());
             } else {
                 openRequest(item, true);
             }
@@ -459,7 +474,7 @@ function refreshCurrentRequest() {
     }
 }
 
-// --- Modal for editing single variable ---
+// modal for editing single var
 export function initVarEditModal() {
     const modal = $('#varEditModal');
     const inp   = $('#varEditValue');
@@ -504,6 +519,118 @@ export function initVarEditModal() {
         showAlert(`Variable ${currentKey} updated`, 'success');
     });
 
-    // expose globally, чтобы вызывать из feature.js
+    // expose globally
     window.openVarEdit = openVarEdit;
+}
+// json dropdown menu
+const varsImportBtn = document.querySelector('#varsImportBtn');
+const varsExportBtn = document.querySelector('#varsExportBtn');
+const jsonDropdown = document.querySelector('.dropdown');
+const jsonMenuBtn  = jsonDropdown?.querySelector('.jsonMenuBtn');
+const dropdownContent = jsonDropdown?.querySelector('.dropdown-content');
+
+if (jsonDropdown && jsonMenuBtn && dropdownContent) {
+    jsonMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        jsonDropdown.classList.toggle('open');
+        dropdownContent.style.display = jsonDropdown.classList.contains('open') ? 'flex' : 'none';
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!jsonDropdown.contains(e.target)) {
+            jsonDropdown.classList.remove('open');
+            dropdownContent.style.display = 'none';
+        }
+    });
+}
+
+// export json
+if (varsExportBtn) {
+    varsExportBtn.addEventListener('click', () => {
+        const currentEnv = localStorage.getItem('selected_env') || 'dev';
+        const env = { values: state.ENV?.values || [] };
+        const blob = new Blob([JSON.stringify(env, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${currentEnv}_environment.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        showAlert(`Exported ${currentEnv}_environment.json`, 'success');
+        jsonDropdown.classList.remove('open');
+        dropdownContent.style.display = 'none';
+    });
+}
+
+// modal close buttons
+document.querySelectorAll('.modalClose').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const modal = btn.closest('.modal');
+        if (modal) modal.hidden = true;
+    });
+});
+
+// highlight request body
+export function refreshBodyEditorHighlight() {
+    const bodyEditor = document.querySelector('#bodyRawArea');
+    if (!bodyEditor) return;
+
+    const raw = bodyEditor.dataset.raw || bodyEditor.textContent || '';
+    const offset = saveSelection(bodyEditor);
+
+    let highlighted = highlightJSON(raw);
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = highlighted;
+    highlightMissingVars(tempDiv, getEnvVarsOnly());
+    bodyEditor.innerHTML = tempDiv.innerHTML;
+
+    restoreSelection(bodyEditor, offset);
+}
+
+
+export function toggleVarsModal() {
+    const modal = document.querySelector('#varsModal');
+    if (!modal) return;
+    if (modal.hidden) {
+        buildVarsTableBody();
+        modal.hidden = false;
+    } else {
+        modal.hidden = true;
+    }
+}
+
+
+export function refreshAllVarsHighlight() {
+    const envMap = getEnvVarsOnly();
+
+    // URL
+    const urlDisp = document.querySelector('#urlInpDisplay');
+    if (urlDisp) {
+        const rawUrl = document.querySelector('#urlInp')?.value?.trim() || '';
+        urlDisp.innerHTML = renderUrlWithVars(rawUrl, envMap);
+        highlightMissingVars(urlDisp, envMap);
+    }
+
+    // Headers
+    document.querySelectorAll('#paneHeaders .kvValue').forEach(valCell => {
+        const rawText = valCell.textContent.trim();
+        if (/{{\s*[^}]+\s*}}/.test(rawText)) {
+            valCell.innerHTML = renderUrlWithVars(rawText, envMap);
+        }
+        highlightMissingVars(valCell, envMap);
+    });
+
+    // Body
+    refreshBodyEditorHighlight();
+}
+export function getEnvVarsOnly() {
+    return Object.fromEntries(
+        (state.ENV?.values || [])
+            .filter(v => v.enabled !== false)
+            .map(v => [v.key, String(v.value || '').trim()])
+    );
 }

@@ -1,0 +1,109 @@
+{
+  "values": [
+    {
+      "key": "adminUsername",
+      "value": "admin@uklon.com.ua",
+      "enabled": true
+    },
+    {
+      "key": "adminPassword",
+      "value": "uk",
+      "enabled": true
+    },
+    {
+      "key": "driverPhone",
+      "value": "380989089898",
+      "enabled": true
+    },
+    {
+      "key": "driverPassword",
+      "value": "q",
+      "enabled": true
+    },
+    {
+      "key": "riderUserName",
+      "value": "380935513833",
+      "enabled": true
+    },
+    {
+      "key": "riderPassword",
+      "value": "Qwerty11",
+      "enabled": true
+    },
+    {
+      "key": "corporateRiderUserName",
+      "value": "test_5@tst.com",
+      "enabled": true
+    },
+    {
+      "key": "corporatePassword",
+      "value": "Qwerty41",
+      "enabled": true
+    },
+    {
+      "key": "riderId",
+      "value": "bc4c2f51-dc8f-479c-9317-53900f7ee6c7",
+      "enabled": true
+    },
+    {
+      "key": "driverId",
+      "value": "81e6c948-f736-4770-a28b-8216186c1ee8",
+      "enabled": true
+    },
+    {
+      "key": "walletId",
+      "value": "0afd3c7c-30ff-42b0-a6cb-77052bdfc21b",
+      "enabled": true
+    },
+    {
+      "key": "promoCodeName",
+      "value": "DRIVER",
+      "enabled": true
+    },
+    {
+      "key": "driverGatewayHost",
+      "value": "https://driver.staging.uklon.com.ua",
+      "enabled": true
+    },
+    {
+      "key": "partnersIdentityHost",
+      "value": "https://partnersidentity.staging.uklon.net",
+      "enabled": true
+    },
+    {
+      "key": "paymentProcessorHost",
+      "value": "https://paymentprocessor.staging.uklon.net",
+      "enabled": true
+    },
+    {
+      "key": "partnersHost",
+      "value": "https://partners.staging.uklon.net",
+      "enabled": true
+    },
+    {
+      "key": "riderGatewayHost",
+      "value": "https://rider.staging.uklon.com.ua",
+      "enabled": true
+    },
+    {
+      "key": "adminGatewayHost",
+      "value": "https://ag.staging.uklon.com.ua",
+      "enabled": true
+    },
+    {
+      "key": "identityHost",
+      "value": "https://identity2.staging.uklon.net",
+      "enabled": true
+    },
+    {
+      "key": "internalIdentityHost",
+      "value": "https://internalidentity.staging.uklon.net",
+      "enabled": true
+    },
+    {
+      "key": "orderHost",
+      "value": "rider.staging.uklon.com.ua",
+      "enabled": true
+    }
+  ]
+}
