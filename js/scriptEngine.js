@@ -76,12 +76,14 @@ export async function runUserScript(code, ctx){
 //  contexts
 export function makePreCtx({method, url, params, headers, body}){
     const ctx = {
+
         _logs: [], _promises: [], vars: {...state.VARS}, setVar: (k,v)=>{ state.VARS[k]=v; },
         request: { method, url, params: JSON.parse(JSON.stringify(params)), headers: JSON.parse(JSON.stringify(headers)), body },
         setHeader: (k,v)=>{ ctx.request.headers[k]=v; },
         setParam: (k,v)=>{ const p=ctx.request.params.find(x=>x.key===k); if(p) p.value=v; else ctx.request.params.push({key:k,value:v}); },
         setBody: v=>{ ctx.request.body = v; }, setMethod: m=>{ ctx.request.method = String(m||'GET').toUpperCase(); }, setUrl: u=>{ ctx.request.url = String(u||''); },
         log: (...a)=>ctx._logs.push(a.map(String).join(' '))
+
     };
     return ctx;
 }
@@ -89,6 +91,7 @@ export function makePreCtx({method, url, params, headers, body}){
 export function makePostCtx({request, response, error}){
     const ctx = {
         _logs: [],
+        _promises: [],
         vars: { ...state.VARS },
         request,
         response,

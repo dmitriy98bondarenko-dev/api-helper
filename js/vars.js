@@ -11,29 +11,29 @@ import { highlightJSON, saveSelection, restoreSelection } from './ui.js';
 export function buildVarMap() {
     const next = {};
 
-    // 1. сначала дефолты из коллекции
+    // collection vars
     if (state.COLLECTION_VARS) {
         Object.entries(state.COLLECTION_VARS).forEach(([k, v]) => {
             if (!(k in next)) next[k] = v ?? '';
         });
     }
 
-    // 2. ENV перекрывает коллекцию
+    // ENV
     const envVals = Array.isArray(state.ENV?.values) ? state.ENV.values : [];
     envVals.filter(v => v && v.key && v.enabled !== false)
         .forEach(v => {
             const val = String(v.value ?? '').trim();
-            next[v.key] = val;   // всегда перезаписывает
+            next[v.key] = val;
         });
 
-    // 3. globals (если ключа ещё нет)
+    // globals
     if (state.GLOBALS) {
         Object.entries(state.GLOBALS).forEach(([k, v]) => {
             if (!(k in next)) next[k] = v ?? '';
         });
     }
 
-    // обновляем state.VARS
+    //  state.VARS
     const target = state.VARS || (state.VARS = {});
     Object.keys(target).forEach(k => delete target[k]);
     Object.assign(target, next);
@@ -436,10 +436,10 @@ export function updateVarsBtnCounter() {
     let total = 0, active = 0;
 
     for (const v of list) {
-        const key = (v.key ?? '').trim();
+        const key = String(v.key ?? '').trim();
         if (!key) continue;
         total++;
-        const val = (v.value ?? '').trim();
+        const val = String(v.value ?? '').trim();
         if (val && v.enabled !== false) active++;
     }
 
