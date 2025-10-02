@@ -745,8 +745,11 @@ export function openRequest(item, forceDefaults = false) {
             }
             catch (e) {
                 renderResponse(null, 'PRE error: ' + e.message, 0, finalUrl);
-                throw e;
+                return;
             }
+             finally {
+                             showScriptLoader(false);
+                         }
         }
         // final auth enforce
         (() => {
