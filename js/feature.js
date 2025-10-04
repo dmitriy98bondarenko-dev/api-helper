@@ -9,7 +9,7 @@ import {
 import {
     getGlobalBearer, loadReqState, saveReqState,
     clearReqState, loadScriptsLegacy,
-    fetchWithTimeout, clampStr, getVal, getSelectedCollection, setSelectedCollection
+    fetchWithTimeout, clampStr, getVal, getSelectedCollection, setSelectedCollection, initEnvDropdown
 } from './config.js';
 import {
     flattenItems, renderTree,
@@ -1143,6 +1143,8 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     import('./sidebar.js').then(({ initCollectionDropdown }) => {
         initCollectionDropdown();
     });
+    initEnvDropdown();
+
 
     initVarsModal();
     initResetModal();
@@ -1179,92 +1181,8 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
 
     //  env dropdown
-    const envDropdown = $('#envDropdown');
-    if (envDropdown) {
-        const envCurrent = envDropdown.querySelector('.envCurrent');
-        const envList = envDropdown.querySelector('.envList');
-        // derive env from LS
-        let currentEnv = localStorage.getItem('selected_env') || 'dev';
-        document.documentElement.setAttribute('data-env', currentEnv);
-        envCurrent.innerHTML = currentEnv.toUpperCase() + ' <span class="arrow">▼</span>';
-        envCurrent.className = 'envCurrent ' + currentEnv;
+    initEnvDropdown();
 
-
-        // opens env dropdown
-        envCurrent.addEventListener('click', () => {
-            const isOpen = envList.style.display === 'block';
-            envList.style.display = isOpen ? 'none' : 'block';
-            envCurrent.querySelector('.arrow').textContent = isOpen ? '▼' : '▲';
-        });
-
-        // select env
-        envList.querySelectorAll('.envOption').forEach(opt => {
-            opt.addEventListener('click', async () => {
-                const envKey = opt.dataset.value; // dev / staging / prod
-                let newPath;
-                if (envKey === 'dev') newPath = './data/dev_environment.json';
-                if (envKey === 'staging') newPath = './data/staging_enviroment.json';
-                if (envKey === 'prod') newPath = './data/prod_environment.json';
-
-                //  try LS
-                let savedEnv = null;
-                try {
-                    const raw = localStorage.getItem(`pm_env_${envKey}`);
-                    if (raw) savedEnv = JSON.parse(raw);
-                } catch {}
-
-                if (savedEnv && Array.isArray(savedEnv.values)) {
-                    // if env
-                    state.ENV = savedEnv;
-                } else {
-                    // if not try load from file
-                    try {
-                        const newEnv = await loadJson(newPath);
-                        state.ENV = newEnv;
-                        localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(newEnv));
-                    } catch (err) {
-                        showAlert(`Failed to load environment: ${envKey}`, 'error');
-                        state.ENV = { values: [] };
-                        localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(state.ENV));
-                    }
-                }
-
-                // update ls and ui
-                localStorage.setItem('selected_env', envKey);
-
-                buildVarMap();
-                renderTree('', { onRequestClick: openRequest });
-
-                import('./sidebar.js').then(({ initCollectionDropdown }) => {
-                    initCollectionDropdown();
-                });                highlightMissingVars(document, getEnvVarsOnly());
-                updateVarsBtnCounter();
-
-                const varsModal = $('#varsModal');
-                if (varsModal && !varsModal.hidden) buildVarsTableBody();
-
-                envCurrent.innerHTML = opt.textContent + ' <span class="arrow">▼</span>';
-                envCurrent.className = 'envCurrent ' + envKey;
-
-                envList.style.display = 'none';
-                document.documentElement.setAttribute('data-env', envKey);
-                showAlert(`Environment switched: ${envKey.toUpperCase()}`, 'success');
-                if (state.CURRENT_REQ_ID) {
-                    const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
-                    if (item) openRequest(item, true);
-                }
-            });
-        });
-
-
-        // close env dropdown
-        document.addEventListener('keydown', (e)=>{
-            if (e.key==='Escape') {
-                envList.style.display = 'none';
-                envCurrent.querySelector('.arrow').textContent = '▼';
-            }
-        });
-    }
 
 
     if (autoOpenFirst && state.ITEMS_FLAT[0]) {

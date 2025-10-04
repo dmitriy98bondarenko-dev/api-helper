@@ -313,20 +313,40 @@ export function initVarsModal() {
 
 // reset local storage
 export function initResetModal() {
-    const resetBtn = $('#clearStorageBtn');
+    let resetBtn = $('#clearStorageBtn');
     const resetModal = $('#resetModal');
-    const resetCancel = $('#resetCancel');
-    const resetEnvsAuth = $('#resetEnvsAuth');
-    const resetFull = $('#resetFull');
+    let resetCancel = $('#resetCancel');
+    let resetEnvsAuth = $('#resetEnvsAuth');
+    let resetFull = $('#resetFull');
 
+    // open reset modal
     if (resetBtn && resetModal) {
-        resetBtn.addEventListener('click', () => resetModal.hidden = false);
-    }
-    if (resetCancel) {
-        resetCancel.addEventListener('click', () => resetModal.hidden = true);
+        const newResetBtn = resetBtn.cloneNode(true);
+        resetBtn.parentNode.replaceChild(newResetBtn, resetBtn);
+        resetBtn = newResetBtn;
+
+        resetBtn.addEventListener('click', () => {
+            resetModal.hidden = false;
+        });
     }
 
+    // close reset modal
+    if (resetCancel) {
+        const newResetCancel = resetCancel.cloneNode(true);
+        resetCancel.parentNode.replaceChild(newResetCancel, resetCancel);
+        resetCancel = newResetCancel;
+
+        resetCancel.addEventListener('click', () => {
+            resetModal.hidden = true;
+        });
+    }
+
+    // reset env + auth
     if (resetEnvsAuth) {
+        const newResetEnvsAuth = resetEnvsAuth.cloneNode(true);
+        resetEnvsAuth.parentNode.replaceChild(newResetEnvsAuth, resetEnvsAuth);
+        resetEnvsAuth = newResetEnvsAuth;
+
         resetEnvsAuth.addEventListener('click', async () => {
             clearLocalStorage(['pm_env_'], ['selected_env', 'global_bearer']);
             setGlobalBearer('');
@@ -349,18 +369,19 @@ export function initResetModal() {
             buildVarMap();
             updateVarsBtnCounter();
             refreshVarsUI();
+
+            // delete all requests
             Object.keys(localStorage).forEach(k => {
                 if (k.startsWith('pm_req_')) {
                     localStorage.removeItem(k);
                 }
             });
+
+            // open current request if exists
             if (state.CURRENT_REQ_ID) {
                 const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
-                if (item) {
-                    openRequest(item, true);
-                }
+                if (item) openRequest(item, true);
             }
-
 
             resetModal.hidden = true;
             showAlert('Environments and authorization reset. Default DEV loaded.', 'success');
@@ -375,7 +396,12 @@ export function initResetModal() {
         });
     }
 
+    // full reset
     if (resetFull) {
+        const newResetFull = resetFull.cloneNode(true);
+        resetFull.parentNode.replaceChild(newResetFull, resetFull);
+        resetFull = newResetFull;
+
         resetFull.addEventListener('click', () => {
             clearLocalStorage(['pm_env_', 'pm_req_'], ['selected_env', 'global_bearer']);
             localStorage.removeItem('req_history');
@@ -393,6 +419,7 @@ export function initResetModal() {
         });
     }
 }
+
 export function updateVarsBtnCounter() {
     const varsBtn = $('#varsBtn');
     if (!varsBtn) return;
