@@ -18,25 +18,6 @@
     width: 100%;
 }
 
-.respTools input {
-    flex: 1;
-    min-width: 200px;
-    height: 40px;
-    padding-left: 36px; /* место под иконку */
-    padding-right: 12px;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    transition: 0.2s ease;
-}
-[data-theme="light"] .respTools input {
-    background-color: #f3f3f4;
-    color: #0d0c22;
-}
-[data-theme="light"] .respTools input::placeholder {
-    color: #9e9ea7;
-}
 [data-theme="light"] .respTools input:focus,
 [data-theme="light"] .respTools input:hover {
     background-color: #fff;
@@ -234,4 +215,36 @@
 [data-theme="dark"] #tab-auth,
 [data-theme="dark"] #respHeadersArea {
     color: #e5e5e5;
+}
+
+.respTools input {
+    width: 100%;
+    height: 40px;
+    padding-left: 36px;
+    padding-right: 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s ease;
+}
+
+[data-theme="light"] .respTools input {
+    background-color: #f3f3f4;
+    color: #0d0c22;
+}
+[data-theme="light"] .respTools input::placeholder {
+    color: #9e9ea7;
+}
+[data-theme="light"] .respTools input:focus,
+[data-theme="light"] .respTools input:hover {
+    background-color: #fff;
+    border-color: #b6b6b6;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+[data-theme="dark"] .respTools input:focus,
+[data-theme="dark"] .respTools input:hover {
+    background-color: #3a3a3d;
+    border-color: #4b5563;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
