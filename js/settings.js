@@ -52,53 +52,34 @@ export function initSettingsSidebar() {
     const btnOpen  = document.getElementById('navSettings');
     const btnClose = sidebar?.querySelector('.closeSettings');
 
-    if (!sidebar || !btnOpen) return;
+    if (!sidebar || !btnOpen) {
+        console.warn("Settings sidebar elements not found");
+        return;
+    }
+    btnOpen.replaceWith(btnOpen.cloneNode(true));
+    const newBtnOpen = document.getElementById('navSettings');
 
-    const open  = () => {
-        console.log("OPEN sidebar");
-        sidebar.classList.add('open');
-    };
+    const open  = () => sidebar.classList.add('open');
+    const close = () => sidebar.classList.remove('open');
 
-    const close = () => {
-        console.log("CLOSE sidebar");
-        sidebar.classList.remove('open');
-    };
-
-    // открыть
-    btnOpen.addEventListener('click', (e) => {
+    newBtnOpen.addEventListener('click', (e) => {
         e.preventDefault();
         open();
     });
 
-    // закрыть крестиком
     btnClose?.addEventListener('click', (e) => {
         e.preventDefault();
         close();
     });
 
-    // закрыть кликом по фону
     sidebar.addEventListener('click', (e) => {
-        if (e.target === sidebar) {
-            close();
-        }
+        if (e.target === sidebar) close();
     });
 
-    // закрыть по ESC
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && sidebar.classList.contains('open')) {
             e.preventDefault();
             close();
         }
-    });
-
-    // init hotkeys
-    initHotkeys({
-        btnFolders: document.getElementById('navFolders'),
-        btnHistory: document.getElementById('navHistory'),
-        btnSearch : document.getElementById('navSearch'),
-        searchWrap: document.querySelector('.searchWrap'),
-        filterInp : document.querySelector('#search'),
-        btnSettings: btnOpen,
-        sidebar
     });
 }

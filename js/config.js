@@ -1,10 +1,13 @@
 // js/config.js
 const urlParams = new URLSearchParams(location.search);
 
-export const DEFAULT_COLLECTION_PATH = urlParams.get('collection') || './data/postman_collection.json';
+export const DEFAULT_COLLECTION_PATH = urlParams.get('collection') || './data/smoke_collection.json';
 export const DEFAULT_ENV_PATH        = urlParams.get('env')        || './data/dev_environment.json';
 export const AUTO_OPEN_FIRST         = urlParams.get('autoOpen') !== '0';
-
+export const  COLLECTIONS = [
+    { name: 'Create Orders',  path: './data/smoke_collection.json' },
+    { name: 'Restrictions',   path: './data/restrictions_collection.json' }
+];
 
 let _GLOBAL_BEARER = localStorage.getItem('global_bearer') || '';
 export const getGlobalBearer = () => _GLOBAL_BEARER;
@@ -93,4 +96,10 @@ export function clampStr(s, max = RESPONSE_BODY_MAX) {
     const cut = s.slice(0, max);
     const note = `\n/* truncated: ${s.length - max} bytes not stored */`;
     return cut + note;
+}
+export function getSelectedCollection() {
+    return localStorage.getItem('selected_collection') || DEFAULT_COLLECTION_PATH;
+}
+export function setSelectedCollection(path) {
+    localStorage.setItem('selected_collection', path);
 }
