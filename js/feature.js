@@ -790,12 +790,15 @@ export function openRequest(item, forceDefaults = false) {
             });
             let text = await res.text();
             if (res.status === 401) {
-                console.warn("Got 401 need resetting needAuth");
+                console.warn("Got 401 on main request, resetting needAuth");
                 setNeedAuthInEnv('true');
                 state.COLLECTION_VARS.needAuth = "true";
                 buildVarMap();
                 updateVarsBtnCounter();
+
+                showAlert('Authorization expired — re-run auth and resend request', 'error');
             }
+
 
 
 

@@ -95,7 +95,8 @@ export function flattenItems(node, path = []) {
         const urlRaw = normalizeUrl(node.request.url);
 
         // stable id
-        const stableId = `${path.join('/')}_${method}_${urlRaw}`;
+        const namePart = (node.name || '').replace(/\s+/g, '_');
+        const stableId = `${path.join('/')}_${method}_${urlRaw}_${namePart}`;
 
         state.ITEMS_FLAT.push({
             id: stableId,

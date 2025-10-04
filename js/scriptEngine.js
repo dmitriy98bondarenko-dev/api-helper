@@ -311,13 +311,44 @@ export function makePmAdapter(ctx) {
                 const res = await fetchWithTimeout(url, { method, headers, body });
                 const text = await res.text();
 
+                //reset needAuth if got 401
+                if (res.status === 401) {
+                    console.warn("pm.sendRequest detected 401, resetting needAuth");
+                    try {
+                        const currentEnv = localStorage.getItem('selected_env') || 'dev';
+                        if (!state.ENV) state.ENV = { values: [] };
+                        if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
+                        let row = state.ENV.values.find(v => v.key === 'needAuth');
+                        if (row) {
+                            row.value = 'true';
+                            row.enabled = true;
+                        } else {
+                            state.ENV.values.push({ key: 'needAuth', value: 'true', enabled: true });
+                        }
+                        localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+                        state.COLLECTION_VARS.needAuth = "true";
+                        buildVarMap();
+                        updateVarsBtnCounter();
+                    } catch (e) {
+                        console.error("Failed to reset needAuth on 401:", e);
+                    }
+                }
+
+                // json response
                 const resObj = {
                     code: res.status,
                     status: res.statusText || String(res.status),
                     headers: Object.fromEntries(res.headers.entries()),
                     text: () => text,
-                    json: () => { try { return JSON.parse(text); } catch (e) { throw e; } }
+                    json: () => {
+                        try { return JSON.parse(text); }
+                        catch (e) {
+                            console.warn("pm.sendRequest JSON parse error:", e.message, text);
+                            return { raw: text };
+                        }
+                    }
                 };
+
 
                 ctx._logs.push(`pm.sendRequest → ${method} ${url} [${res.status}]`);
                 if (typeof cb === 'function') cb(null, resObj);
