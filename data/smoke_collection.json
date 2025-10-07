@@ -2908,7 +2908,7 @@
           "name": "Order.Deferred",
           "item": [
             {
-              "name": "[Cash + Standart] Deferred",
+              "name": "[Cash + Standart] in 55 min",
               "event": [
                 {
                   "listen": "prerequest",
@@ -2918,7 +2918,7 @@
                       "",
                       "ctx._promises.push(",
                       "    new Promise((resolve, reject) => {",
-                      "        const futureDate = new Date(Date.now() + 21 * 60 * 1000);",
+                      "        const futureDate = new Date(Date.now() + 55 * 60 * 1000);",
                       "",
                       "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                       "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
@@ -3036,7 +3036,7 @@
               "response": []
             },
             {
-              "name": "[Cash + Business] Deferred Copy",
+              "name": "[Cash + Business] in 6 hours",
               "event": [
                 {
                   "listen": "prerequest",
@@ -3273,6 +3273,266 @@
                 "body": {
                   "mode": "raw",
                   "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{riderGatewayHost}}/api/v1/orders",
+                  "host": [
+                    "{{riderGatewayHost}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[Cash + Business] Deferred Tomorrow",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
+                      "",
+                      "ctx._promises.push(",
+                      "    new Promise((resolve, reject) => {",
+                      "        const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000 + 21 * 60 * 1000);",
+                      "",
+                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
+                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                      "",
+                      "        console.log('📅 pickup_time (завтра):', new Date(payload.pickup_time * 1000).toISOString());",
+                      "",
+                      "        fareEstimate(payload, () => {",
+                      "            resolve();",
+                      "        }, reject);",
+                      "    })",
+                      ");",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{riderAuthToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Host",
+                    "value": "{{orderHost}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "user-agent",
+                    "value": "UklonAndroid/78200",
+                    "type": "text"
+                  },
+                  {
+                    "key": "x-fp",
+                    "value": "E164",
+                    "type": "text"
+                  },
+                  {
+                    "key": "app_uid",
+                    "value": "{{appUid}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "client_id",
+                    "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "device_name",
+                    "value": "Xiaomi/Redmi Note 9 Pro",
+                    "type": "text"
+                  },
+                  {
+                    "key": "app_version",
+                    "value": "7.82.0.697812",
+                    "type": "text"
+                  },
+                  {
+                    "key": "locale",
+                    "value": "ru",
+                    "type": "text"
+                  },
+                  {
+                    "key": "city",
+                    "value": "kyiv",
+                    "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{riderGatewayHost}}/api/v1/orders",
+                  "host": [
+                    "{{riderGatewayHost}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "[Cash + Premium] Deferred soon",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
+                      "",
+                      "ctx._promises.push(",
+                      "    new Promise((resolve, reject) => {",
+                      "        const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000 + 21 * 60 * 1000);",
+                      "",
+                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
+                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                      "",
+                      "        console.log('📅 pickup_time (завтра):', new Date(payload.pickup_time * 1000).toISOString());",
+                      "",
+                      "        fareEstimate(payload, () => {",
+                      "            resolve();",
+                      "        }, reject);",
+                      "    })",
+                      ");",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{riderAuthToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Host",
+                    "value": "{{orderHost}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "user-agent",
+                    "value": "UklonAndroid/78200",
+                    "type": "text"
+                  },
+                  {
+                    "key": "x-fp",
+                    "value": "E164",
+                    "type": "text"
+                  },
+                  {
+                    "key": "app_uid",
+                    "value": "{{appUid}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "client_id",
+                    "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "device_name",
+                    "value": "Xiaomi/Redmi Note 9 Pro",
+                    "type": "text"
+                  },
+                  {
+                    "key": "app_version",
+                    "value": "7.82.0.697812",
+                    "type": "text"
+                  },
+                  {
+                    "key": "locale",
+                    "value": "ru",
+                    "type": "text"
+                  },
+                  {
+                    "key": "city",
+                    "value": "kyiv",
+                    "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Premium\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
                   "options": {
                     "raw": {
                       "language": "json"
