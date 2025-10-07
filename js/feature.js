@@ -436,13 +436,12 @@ export function openRequest(item, forceDefaults = false) {
         { value: 'application/octet-stream', label: 'Binary' }
     ];
 
-    const ctWrap = el('div', { class: 'ctDropdown', dataset: { value: 'auto' } });
-
+    const ctWrap = el('div', { class: 'ctDropdown', dataset: { value: 'application/json' } });
 // selected value + arrow
     const ctCurrent = el('div', { class: 'ctCurrent' },
-        'Auto detect ',
-        el('span', { class: 'ctArrow' }, '▼')
-    );
+               'JSON ',
+               el('span', { class: 'ctArrow' }, '▼')
+           );
     ctWrap.append(ctCurrent);
 
 // list of options

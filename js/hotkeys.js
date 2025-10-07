@@ -5,6 +5,7 @@ import { renderTree } from './sidebar.js';
 import { openRequest } from './feature.js';
 import { highlightMissingVars, showAlert } from './ui.js';
 import { state, loadJson } from './state.js';
+import {forceSave} from "./config.js";
 
 export const HOTKEYS = [
     {
@@ -146,6 +147,7 @@ export function initHotkeys({ btnFolders, btnHistory, btnSearch, searchWrap, fil
         // requests
         if (isMod(e) && (key === 'Enter' || code === 'Enter')) {
             e.preventDefault();
+            //forceSave();
             sendBtn?.click();
             return;
         }

@@ -1,5 +1,5 @@
 // js/config.js
-import {$, highlightMissingVars, showAlert} from "./ui.js";
+import {$, highlightMissingVars, showAlert, tableToSimpleArray} from "./ui.js";
 import {state} from "./state.js";
 import {buildVarMap, buildVarsTableBody, getEnvVarsOnly, updateVarsBtnCounter} from "./vars.js";
 import {renderTree} from "./sidebar.js";
@@ -198,5 +198,20 @@ export function initEnvDropdown() {
             envList.style.display = 'none';
             envCurrent.querySelector('.arrow').textContent = '▼';
         }
+    });
+}
+// delete (doesnt work hotkey send req)
+export function forceSave() {
+    const params = tableToSimpleArray(document.querySelector('#paneParams table')?.tBodies[0] || []);
+    const headers = tableToSimpleArray(document.querySelector('#paneHeaders table')?.tBodies[0] || []);
+    const body = document.querySelector('#bodyRawArea')?.textContent || '';
+    const authToken = document.querySelector('#authTokenInp')?.textContent.trim() || '';
+
+    saveReqState(state.CURRENT_REQ_ID, {
+        method: getSelectedMethod(),
+        url: document.querySelector('#urlInp')?.value.trim(),
+        params, headers,
+        body,
+        auth: { type: 'bearer', token: authToken }
     });
 }
