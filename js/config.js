@@ -1,4 +1,10 @@
 // js/config.js
+import {$, highlightMissingVars, showAlert, tableToSimpleArray} from "./ui.js";
+import {state} from "./state.js";
+import {buildVarMap, buildVarsTableBody, getEnvVarsOnly, updateVarsBtnCounter} from "./vars.js";
+import {renderTree} from "./sidebar.js";
+import {openRequest} from "./feature.js";
+
 const urlParams = new URLSearchParams(location.search);
 
 export const DEFAULT_COLLECTION_PATH = urlParams.get('collection') || './data/smoke_collection.json';
@@ -102,4 +108,110 @@ export function getSelectedCollection() {
 }
 export function setSelectedCollection(path) {
     localStorage.setItem('selected_collection', path);
+}
+export function initEnvDropdown() {
+    const envDropdown = $('#envDropdown');
+    if (!envDropdown) return;
+
+    const envCurrent = envDropdown.querySelector('.envCurrent');
+    const envList = envDropdown.querySelector('.envList');
+
+    // derive env from LS
+    let currentEnv = localStorage.getItem('selected_env') || 'dev';
+    document.documentElement.setAttribute('data-env', currentEnv);
+    envCurrent.innerHTML = currentEnv.toUpperCase() + ' <span class="arrow">▼</span>';
+    envCurrent.className = 'envCurrent ' + currentEnv;
+
+    // open dropdown on click
+    envCurrent.onclick = () => {
+        const isOpen = envList.style.display === 'block';
+        envList.style.display = isOpen ? 'none' : 'block';
+        envCurrent.querySelector('.arrow').textContent = isOpen ? '▼' : '▲';
+    };
+
+    // reset  .envOption
+    envList.querySelectorAll('.envOption').forEach(opt => {
+        const newOpt = opt.cloneNode(true);
+        opt.parentNode.replaceChild(newOpt, opt);
+    });
+
+    // new env options
+    envList.querySelectorAll('.envOption').forEach(opt => {
+        opt.addEventListener('click', async () => {
+            const envKey = opt.dataset.value; // dev / staging / prod
+            let newPath;
+            if (envKey === 'dev') newPath = './data/dev_environment.json';
+            if (envKey === 'staging') newPath = './data/staging_enviroment.json';
+            if (envKey === 'prod') newPath = './data/prod_environment.json';
+
+            // try load from LocalStorage
+            let savedEnv = null;
+            try {
+                const raw = localStorage.getItem(`pm_env_${envKey}`);
+                if (raw) savedEnv = JSON.parse(raw);
+            } catch {}
+
+            // if LS empty read from file
+            if (savedEnv && Array.isArray(savedEnv.values)) {
+                state.ENV = savedEnv;
+            } else {
+                try {
+                    const newEnv = await loadJson(newPath);
+                    state.ENV = newEnv;
+                    localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(newEnv));
+                } catch (err) {
+                    showAlert(`Failed to load environment: ${envKey}`, 'error');
+                    state.ENV = { values: [] };
+                    localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(state.ENV));
+                }
+            }
+
+            // update LS and UI
+            localStorage.setItem('selected_env', envKey);
+
+            buildVarMap();
+            renderTree('', { onRequestClick: openRequest });
+            highlightMissingVars(document, getEnvVarsOnly());
+            updateVarsBtnCounter();
+
+            const varsModal = $('#varsModal');
+            if (varsModal && !varsModal.hidden) buildVarsTableBody();
+
+            envCurrent.innerHTML = opt.textContent + ' <span class="arrow">▼</span>';
+            envCurrent.className = 'envCurrent ' + envKey;
+
+            envList.style.display = 'none';
+            document.documentElement.setAttribute('data-env', envKey);
+            showAlert(`Environment switched: ${envKey.toUpperCase()}`, 'success');
+
+            // open current request if exists
+            if (state.CURRENT_REQ_ID) {
+                const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
+                if (item) openRequest(item, true);
+            }
+        });
+    });
+
+    // close dropdown on Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            envList.style.display = 'none';
+            envCurrent.querySelector('.arrow').textContent = '▼';
+        }
+    });
+}
+// delete (doesnt work hotkey send req)
+export function forceSave() {
+    const params = tableToSimpleArray(document.querySelector('#paneParams table')?.tBodies[0] || []);
+    const headers = tableToSimpleArray(document.querySelector('#paneHeaders table')?.tBodies[0] || []);
+    const body = document.querySelector('#bodyRawArea')?.textContent || '';
+    const authToken = document.querySelector('#authTokenInp')?.textContent.trim() || '';
+
+    saveReqState(state.CURRENT_REQ_ID, {
+        method: getSelectedMethod(),
+        url: document.querySelector('#urlInp')?.value.trim(),
+        params, headers,
+        body,
+        auth: { type: 'bearer', token: authToken }
+    });
 }

@@ -17,28 +17,6 @@
     flex-wrap: nowrap;
     width: 100%;
 }
-
-[data-theme="light"] .respTools input:focus,
-[data-theme="light"] .respTools input:hover {
-    background-color: #fff;
-    border-color: #b6b6b6;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-[data-theme="dark"] .respTools input {
-    background-color: #2a2a2d;
-    color: #e5e7eb;
-}
-[data-theme="dark"] .respTools input::placeholder {
-    color: #9ca3af;
-}
-[data-theme="dark"] .respTools input:focus,
-[data-theme="dark"] .respTools input:hover {
-    background-color: #3a3a3d;
-    border-color: #4b5563;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-}
-
 .respToolsWrap .searchIcon {
     position: absolute;
     top: 50%;
@@ -218,7 +196,8 @@
 }
 
 .respTools input {
-    width: 100%;
+    flex: 1;
+    min-width: 200px;
     height: 40px;
     padding-left: 36px;
     padding-right: 12px;
