@@ -21,7 +21,7 @@ pages:
   dependencies:
     - build
   script:
-    - echo "Deploying to GitLab Pages..."
+    - echo "Deploying page..."
   artifacts:
     paths:
       - public
