@@ -66,8 +66,12 @@ export function clearLocalStorage(prefixes = [], exactKeys = []) {
 export function getVal(v) {
     return v?.currentValue ?? v?.value ?? v?.initialValue ?? '';
 }
-/* without proxy
-// request timeout helpers
+// Detect if the app is running on localhost (any port)
+const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+// Proxy URL for local development
+const LOCAL_PROXY_URL = 'http://localhost:8080/';
+
 const REQUEST_TIMEOUT_MS = 15000;
 
 export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
@@ -75,19 +79,9 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     const timer = setTimeout(() => controller.abort(), ms);
     const options = { ...opts, signal: controller.signal };
 
-    return fetch(url, options)
-        .finally(() => clearTimeout(timer));
-}
-*/
-/* proxy fetch */
-// proxy config
-export const PROXY_URL = "http://localhost:8080/";
-const REQUEST_TIMEOUT_MS = 15000;
-export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), ms);
-    const options = { ...opts, signal: controller.signal };
-    const finalUrl = PROXY_URL? PROXY_URL + url: url;
+    // If running locally → prepend proxy
+    // If not → keep the original URL untouched
+    const finalUrl = isLocalhost ? LOCAL_PROXY_URL + url : url;
 
     return fetch(finalUrl, options)
         .finally(() => clearTimeout(timer));

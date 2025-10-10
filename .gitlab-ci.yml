@@ -1,0 +1,29 @@
+stages:
+  - build
+  - deploy
+
+# The build step copies static files into the artifacts folder
+build:
+  stage: build
+  image: alpine:latest
+  script:
+    - echo "Building static app..."
+    - mkdir -p public
+    - cp -r index.html css js data icons public/
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+
+# Deploy to GitLab Pages
+pages:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - echo "Deploying to GitLab Pages..."
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
