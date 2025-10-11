@@ -424,4 +424,29 @@ html:has(#authModal:not([hidden])){ overflow: hidden; }
 .btnCurl:hover {
     filter: brightness(1.05);
 }
+#urlInpDisplay.url-error {
+    outline: 1px solid #ff6b6b;
+    outline-offset: 0;
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.4);
+    transition: outline 0.2s, box-shadow 0.2s;
+    position: relative; /* чтобы ::after позиционировался правильно */
+}
+
+#urlInpDisplay.url-error::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+
+    /* SVG в виде data URI */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="%23ff6b6b" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/></svg>');
+}
+
 
