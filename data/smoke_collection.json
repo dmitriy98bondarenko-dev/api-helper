@@ -1134,7 +1134,7 @@
                       "                let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadOptional\"));",
                       "                payload.fare_id = fareId;",
                       "                payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
-                      "                payload.payment_method.type = \"card\";",
+                      "                payload.payment_method.type = \"cash\";",
                       "",
                       "                fareEstimate(payload, () => {",
                       "                    console.log(\"fareEstimate завершён\");",
@@ -3276,19 +3276,28 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                       "",
-                      "ctx._promises.push(",
-                      "    new Promise((resolve, reject) => {",
-                      "        const futureDate = new Date(Date.now() + 2 + 55 * 60 * 1000);",
+                      "const futureDate = new Date(Date.now() + 2 + 55 * 60 * 1000);",
                       "",
-                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
-                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
                       "",
-                      "        fareEstimate(payload, () => {",
-                      "            resolve();",
-                      "        }, reject);",
-                      "    })",
-                      ");",
+                      "const promise = new Promise((resolve, reject) => {",
+                      "    fareEstimate(payload, resolve, reject);",
+                      "});",
+                      "",
+                      "// promise for browser runner",
+                      "if (typeof ctx !== 'undefined' && ctx._promises && Array.isArray(ctx._promises)) {",
+                      "    ctx._promises.push(promise);",
+                      "} else {",
+                      "    promise",
+                      "        .then(() => {",
+                      "            console.log(\"fareEstimate completed\");",
+                      "        })",
+                      "        .catch((err) => {",
+                      "            console.error(\"fareEstimate failed\", err);",
+                      "        });",
+                      "}",
                       ""
                     ],
                     "type": "text/javascript",
@@ -4155,6 +4164,57 @@
                 "api",
                 "v1",
                 "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete order",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAuthToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{driverGatewayHost}}/api/v1/orders/{{orderId}}/complete?force_complete=true",
+              "host": [
+                "{{driverGatewayHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "{{orderId}}",
+                "complete"
+              ],
+              "query": [
+                {
+                  "key": "force_complete",
+                  "value": "false",
+                  "disabled": true
+                },
+                {
+                  "key": "force_complete",
+                  "value": "true"
+                }
               ]
             }
           },
