@@ -9,7 +9,7 @@ import {
 import {
     getGlobalBearer, loadReqState, saveReqState,
     clearReqState, loadScriptsLegacy,
-    fetchWithTimeout, clampStr, getVal
+    fetchWithTimeout, clampStr, getVal, getSelectedCollection, setSelectedCollection, initEnvDropdown
 } from './config.js';
 import {
     flattenItems, renderTree,
@@ -35,8 +35,31 @@ import {
     makePreCtx,
     makePostCtx
 } from './scriptEngine.js';
+import {initSettingsSidebar} from "./settings.js";
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, getEnvVarsOnly());
 
+// helpers needAuth
+function getNeedAuthFromEnvOrCollection() {
+    const row = (state.ENV?.values || []).find(v => v.key === 'needAuth' && v.enabled !== false);
+    if (row) return String(row.value);
+    return String(state.COLLECTION_VARS?.needAuth ?? '');
+}
+
+function setNeedAuthInEnv(value) {
+    if (!state.ENV) state.ENV = { values: [] };
+    if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
+    let row = state.ENV.values.find(v => v.key === 'needAuth');
+    if (row) {
+        row.value = String(value);
+        row.enabled = true;
+    } else {
+        state.ENV.values.push({ key: 'needAuth', value: String(value), enabled: true });
+    }
+    try {
+        const currentEnv = localStorage.getItem('selected_env') || 'dev';
+        localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+    } catch {}
+}
 
 
 function getInitialStateForItem(item, forceDefaults = false) {
@@ -117,7 +140,7 @@ function getInitialStateForItem(item, forceDefaults = false) {
     const extraScripts = { pre: '', post: '' };
 
 // adding collection / folder to extraScripts
-    if (state.COLLECTION_SCRIPTS?.pre)  extraScripts.pre += state.COLLECTION_SCRIPTS.pre.trim() + '\n';
+    //if (state.COLLECTION_SCRIPTS?.pre)  extraScripts.pre += state.COLLECTION_SCRIPTS.pre.trim() + '\n';
     if (state.COLLECTION_SCRIPTS?.post) extraScripts.post += state.COLLECTION_SCRIPTS.post.trim() + '\n';
 
     if (item.folderEvents && item.folderEvents.length) {
@@ -254,6 +277,30 @@ export function openRequest(item, forceDefaults = false) {
             }, 'Import cURL')*/
         )
     );
+
+    const sendBtn = sendGroup.querySelector('#sendBtn');
+
+    function validateUrlInput() {
+        const urlVal = ($('#urlInp').value || '').trim();
+
+    }
+
+// listening changes in URL
+    urlDisp.addEventListener('input', validateUrlInput);
+    function showUrlError() {
+        const disp = $('#urlInpDisplay');
+        if (!disp) return;
+
+        disp.classList.add('url-error');
+        disp.setAttribute('title', 'URL cannot be empty');
+
+        // delay to show error
+        setTimeout(() => {
+            disp.classList.remove('url-error');
+            disp.removeAttribute('title');
+        }, 3000);
+    }
+
 
 // header method + URL +button send
 
@@ -413,13 +460,12 @@ export function openRequest(item, forceDefaults = false) {
         { value: 'application/octet-stream', label: 'Binary' }
     ];
 
-    const ctWrap = el('div', { class: 'ctDropdown', dataset: { value: 'auto' } });
-
+    const ctWrap = el('div', { class: 'ctDropdown', dataset: { value: 'application/json' } });
 // selected value + arrow
     const ctCurrent = el('div', { class: 'ctCurrent' },
-        'Auto detect ',
-        el('span', { class: 'ctArrow' }, '▼')
-    );
+               'JSON ',
+               el('span', { class: 'ctArrow' }, '▼')
+           );
     ctWrap.append(ctCurrent);
 
 // list of options
@@ -491,7 +537,6 @@ export function openRequest(item, forceDefaults = false) {
 
         debSave();
     });
-
 
 // actions
     const actions = el('div', {class:'actions'});
@@ -575,6 +620,12 @@ export function openRequest(item, forceDefaults = false) {
 
 // send request
     $('#sendBtn').onclick = async ()=>{
+        const currentUrl = ($('#urlInp').value || '').trim();
+        if (!currentUrl) {
+            showAlert('URL cannot be empty', 'error');
+            showUrlError();
+            return;
+        }
         debSave();
         state.LOGS = [];
         renderLogs();
@@ -621,13 +672,18 @@ export function openRequest(item, forceDefaults = false) {
             if (!ct) ct = 'application/json';   // application/jso by default
             headers['Content-Type'] = ct;
         }
-
         // check if needAuth true, run auth
-        if (state.COLLECTION_VARS.needAuth === "true") {
+        if (String(getNeedAuthFromEnvOrCollection()).toLowerCase() === "true") {
             showScriptLoader(true, 'Running auth script...');
             await runCollectionAuth();
             showScriptLoader(false);
+
+            // погасить флаг только через helper
+            setNeedAuthInEnv('false');
+            buildVarMap();
+            updateVarsBtnCounter();
         }
+
 
         // PRE scripts
         const preCodeAll = [
@@ -719,6 +775,9 @@ export function openRequest(item, forceDefaults = false) {
                 renderResponse(null, 'PRE error: ' + e.message, 0, finalUrl);
                 return;
             }
+             finally {
+                             showScriptLoader(false);
+                         }
         }
         // final auth enforce
         (() => {
@@ -759,12 +818,16 @@ export function openRequest(item, forceDefaults = false) {
             });
             let text = await res.text();
             if (res.status === 401) {
-                console.warn("Got 401 need resetting needAuth");
-                pm.collectionVariables.set("needAuth", "true");
+                console.warn("Got 401 on main request, resetting needAuth");
+                setNeedAuthInEnv('true');
                 state.COLLECTION_VARS.needAuth = "true";
                 buildVarMap();
                 updateVarsBtnCounter();
+
+                showAlert('Authorization expired — re-run auth and resend request', 'error');
             }
+
+
 
 
             // POST scripts
@@ -864,7 +927,7 @@ export function openRequest(item, forceDefaults = false) {
                 });
 
                 showAlert('Request failed (CORS/network)', 'error');
-                return;
+                throw e;
             }
 
             showAlert('Request failed', 'error');
@@ -908,9 +971,10 @@ export function openRequest(item, forceDefaults = false) {
                     timeMs: ms
                 }
             });
-            return;
+            throw e;
         } finally {
             cleanup();
+            showScriptLoader(false);
         }
     };
 
@@ -950,6 +1014,10 @@ export function openRequest(item, forceDefaults = false) {
         }
     }
     highlightMissingVars(document, getEnvVarsOnly());
+    requestAnimationFrame(() => {
+        validateUrlInput();
+        urlDisp.addEventListener('input', validateUrlInput);
+    });
 }
 function toggleWelcomeCard(show) {
     const card = document.getElementById('welcomeCard');
@@ -980,19 +1048,25 @@ async function runCollectionAuth() {
 }
 
 
+
 export async function bootApp({ collectionPath, autoOpenFirst }) {
     let collection = null;
+    const path = collectionPath || getSelectedCollection();
 
     try {
-        collection = await loadJson(collectionPath);
+        collection = await loadJson(path);
+
+        if (path) {
+            setSelectedCollection(path);
+        }
     } catch (err) {
         showAlert('Error loading collection: ' + err.message, 'error');
-        toggleWelcomeCard(true);   // показать welcome
+        toggleWelcomeCard(true);
         return;
     }
 
     if (!collection || !Array.isArray(collection.item) || !collection.item.length) {
-        toggleWelcomeCard(true);   // коллекция пустая → показать welcome
+        toggleWelcomeCard(true);   // if collection empty also show welcome card
         return;
     }
 
@@ -1039,7 +1113,21 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     state.ENV = env;
     state.VARS = {};
     Object.assign(state.VARS, state.COLLECTION_VARS);
-
+    // ensure needAuth is in ENV (sync from collection only once)
+     if (state.COLLECTION_VARS.needAuth !== undefined) {
+             const row = state.ENV.values.find(v => v.key === "needAuth");
+             if (!row) {
+                     state.ENV.values.push({
+                             key: "needAuth",
+                             value: state.COLLECTION_VARS.needAuth,
+                             enabled: true
+                     });
+                     try {
+                             const currentEnv = localStorage.getItem('selected_env') || 'dev';
+                             localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+                         } catch {}
+                      }
+         }
     state.ITEMS_FLAT = [];
     flattenItems(collection, []);
     buildVarMap();
@@ -1073,12 +1161,22 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
    /* if (state.COLLECTION_VARS.needAuth === "true") {
         await runCollectionAuth();
     } */
-
+    const needAuthInit = getNeedAuthFromEnvOrCollection();
+    if (String(needAuthInit).toLowerCase() === 'true') {
+        await runCollectionAuth();
+        setNeedAuthInEnv('false');
+        buildVarMap();
+    }
 
 // sync env vars and ui
     buildVarMap();
     updateVarsBtnCounter();
     renderTree('', { onRequestClick: openRequest });
+    import('./sidebar.js').then(({ initCollectionDropdown }) => {
+        initCollectionDropdown();
+    });
+    initEnvDropdown();
+
 
     initVarsModal();
     initResetModal();
@@ -1115,90 +1213,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
 
     //  env dropdown
-    const envDropdown = $('#envDropdown');
-    if (envDropdown) {
-        const envCurrent = envDropdown.querySelector('.envCurrent');
-        const envList = envDropdown.querySelector('.envList');
-        // derive env from LS
-        let currentEnv = localStorage.getItem('selected_env') || 'dev';
-        document.documentElement.setAttribute('data-env', currentEnv);
-        envCurrent.innerHTML = currentEnv.toUpperCase() + ' <span class="arrow">▼</span>';
-        envCurrent.className = 'envCurrent ' + currentEnv;
-
-
-        // opens env dropdown
-        envCurrent.addEventListener('click', () => {
-            const isOpen = envList.style.display === 'block';
-            envList.style.display = isOpen ? 'none' : 'block';
-            envCurrent.querySelector('.arrow').textContent = isOpen ? '▼' : '▲';
-        });
-
-        // select env
-        envList.querySelectorAll('.envOption').forEach(opt => {
-            opt.addEventListener('click', async () => {
-                const envKey = opt.dataset.value; // dev / staging / prod
-                let newPath;
-                if (envKey === 'dev') newPath = './data/dev_environment.json';
-                if (envKey === 'staging') newPath = './data/staging_enviroment.json';
-                if (envKey === 'prod') newPath = './data/prod_environment.json';
-
-                //  try LS
-                let savedEnv = null;
-                try {
-                    const raw = localStorage.getItem(`pm_env_${envKey}`);
-                    if (raw) savedEnv = JSON.parse(raw);
-                } catch {}
-
-                if (savedEnv && Array.isArray(savedEnv.values)) {
-                    // if env
-                    state.ENV = savedEnv;
-                } else {
-                    // if not try load from file
-                    try {
-                        const newEnv = await loadJson(newPath);
-                        state.ENV = newEnv;
-                        localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(newEnv));
-                    } catch (err) {
-                        showAlert(`Failed to load environment: ${envKey}`, 'error');
-                        state.ENV = { values: [] };
-                        localStorage.setItem(`pm_env_${envKey}`, JSON.stringify(state.ENV));
-                    }
-                }
-
-                // update ls and ui
-                localStorage.setItem('selected_env', envKey);
-
-                buildVarMap();
-                renderTree('', { onRequestClick: openRequest });
-                highlightMissingVars(document, getEnvVarsOnly());
-                updateVarsBtnCounter();
-
-                const varsModal = $('#varsModal');
-                if (varsModal && !varsModal.hidden) buildVarsTableBody();
-
-                envCurrent.innerHTML = opt.textContent + ' <span class="arrow">▼</span>';
-                envCurrent.className = 'envCurrent ' + envKey;
-
-                envList.style.display = 'none';
-                document.documentElement.setAttribute('data-env', envKey);
-                showAlert(`Environment switched: ${envKey.toUpperCase()}`, 'success');
-                if (state.CURRENT_REQ_ID) {
-                    const item = state.ITEMS_FLAT.find(x => x.id === state.CURRENT_REQ_ID);
-                    if (item) openRequest(item, true);
-                }
-            });
-        });
-
-
-        // close env dropdown
-        document.addEventListener('keydown', (e)=>{
-            if (e.key==='Escape') {
-                envList.style.display = 'none';
-                envCurrent.querySelector('.arrow').textContent = '▼';
-            }
-        });
-    }
-
+    initEnvDropdown();
 
     if (autoOpenFirst && state.ITEMS_FLAT[0]) {
         // open first request
@@ -1217,6 +1232,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         }
     });
     initSidebarNav();
+    initSettingsSidebar();
 // close all dropdowns on tap
     document.addEventListener('click', (e) => {
         document.querySelectorAll('.methodDropdown, .envDropdown, .ctDropdown, .dropdown').forEach(drop => {

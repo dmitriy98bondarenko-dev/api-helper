@@ -1,0 +1,1064 @@
+{
+  "info": {
+    "_postman_id": "5a8ff0b7-a830-4130-9e9a-3241cf6df4a3",
+    "name": "Restrictions",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "11930149",
+    "_collection_link": "https://driver-api-testing.postman.co/workspace/Uklon.DriverWorkspace.Team2~d4a3ef1c-d46a-4494-9732-e2002ffa66df/collection/11930149-5a8ff0b7-a830-4130-9e9a-3241cf6df4a3?action=share&source=collection_link&creator=11930149"
+  },
+  "item": [
+    {
+      "name": "PutRestriction",
+      "item": [
+        {
+          "name": "PutFilterOfferRestriction",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAuthToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"FilterOffer\",\n  \"fleet_id\": \"{{fleetId}}\",\n  \"actual_from\": {{actual_from}},\n  \"actual_till\": {{actual_till}},\n  \"linked_entity\": {\n    \"type\": \"string\",\n    \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\n  },\n  \"detailed_reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+              "host": [
+                "{{partnersHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "drivers",
+                "{{driverId}}",
+                "restrictions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PutFastSearchRestriction",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAuthToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Fastsearch\",\n  \"fleet_id\": \"{{fleetId}}\",\n  \"actual_from\": {{actual_from}},\n  \"actual_till\": {{actual_till}},\n  \"linked_entity\": {\n    \"type\": \"string\",\n    \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\n  },\n  \"detailed_reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+              "host": [
+                "{{partnersHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "drivers",
+                "{{driverId}}",
+                "restrictions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PutBroadcastRestriction",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAuthToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Broadcast\",\n  \"fleet_id\": \"{{fleetId}}\",\n  \"actual_from\": {{actual_from}},\n  \"actual_till\": {{actual_till}},\n  \"linked_entity\": {\n    \"type\": \"string\",\n    \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\n  },\n  \"detailed_reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+              "host": [
+                "{{partnersHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "drivers",
+                "{{driverId}}",
+                "restrictions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PutSectorqueueRestriction",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAuthToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Sectorqueue\",\n  \"fleet_id\": \"{{fleetId}}\",\n  \"actual_from\": {{actual_from}},\n  \"actual_till\": {{actual_till}},\n  \"linked_entity\": {\n    \"type\": \"string\",\n    \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\n  },\n  \"detailed_reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+              "host": [
+                "{{partnersHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "drivers",
+                "{{driverId}}",
+                "restrictions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PutCashRestriction",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAuthToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Cash\",\n  \"fleet_id\": \"{{fleetId}}\",\n  \"actual_from\": {{actual_from}},\n  \"actual_till\": {{actual_till}},\n  \"linked_entity\": {\n    \"type\": \"string\",\n    \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\n  },\n  \"detailed_reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+              "host": [
+                "{{partnersHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "drivers",
+                "{{driverId}}",
+                "restrictions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PutCashlessRestriction",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAuthToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Cashless\",\n  \"fleet_id\": \"{{fleetId}}\",\n  \"actual_from\": {{actual_from}},\n  \"actual_till\": {{actual_till}},\n  \"linked_entity\": {\n    \"type\": \"string\",\n    \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\n  },\n  \"detailed_reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+              "host": [
+                "{{partnersHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "drivers",
+                "{{driverId}}",
+                "restrictions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PutDeferredRestriction",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAuthToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Deferred\",\n  \"fleet_id\": \"{{fleetId}}\",\n  \"actual_from\": {{actual_from}},\n  \"actual_till\": {{actual_till}},\n  \"linked_entity\": {\n    \"type\": \"string\",\n    \"id\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\n  },\n  \"detailed_reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+              "host": [
+                "{{partnersHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "drivers",
+                "{{driverId}}",
+                "restrictions"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminAuthToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              "ctx._promises.push(",
+              "    new Promise((resolve, reject) => {",
+              "        try {",
+              "            // Поточний час у секундах",
+              "            const now = Math.floor(Date.now() / 1000);",
+              "",
+              "            // Додати 7 днів (7 * 24 * 60 * 60 секунд)",
+              "            const weekLater = now + (7 * 24 * 60 * 60);",
+              "",
+              "            // Зберігаємо у змінні колекції",
+              "            pm.collectionVariables.set(\"actual_from\", now);",
+              "            pm.collectionVariables.set(\"actual_till\", weekLater);",
+              "",
+              "            console.log(",
+              "                \"This script for folder\\n\\tActual_from:\",",
+              "                now,",
+              "                \" actual_till:\",",
+              "                weekLater",
+              "            );",
+              "",
+              "            resolve(); // завершили проміс",
+              "        } catch (err) {",
+              "            reject(err);",
+              "        }",
+              "    })",
+              ");",
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GetRestrictions",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminAuthToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+          "host": [
+            "{{partnersHost}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "drivers",
+            "{{driverId}}",
+            "restrictions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetAndDeleteAllRestrictions",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "ctx._promises.push(\r",
+              "    new Promise((resolve, reject) => {\r",
+              "        try {\r",
+              "            const response = pm.response.json();\r",
+              "            console.log(\"response is\", response);\r",
+              "\r",
+              "            const requests = response.items.map(item => {\r",
+              "                return new Promise((res, rej) => {\r",
+              "                    pm.sendRequest({\r",
+              "                        method: \"DELETE\",\r",
+              "                        url: pm.environment.get(\"partnersHost\")\r",
+              "                            + \"/api/v1/fleets/\"\r",
+              "                            + pm.environment.get(\"fleetId\")\r",
+              "                            + \"/drivers/\"\r",
+              "                            + pm.environment.get(\"driverId\")\r",
+              "                            + \"/restrictions\",\r",
+              "                        header: {\r",
+              "                            \"Authorization\": \"Bearer \" + pm.environment.get(\"adminAuthToken\"),\r",
+              "                            \"Content-Type\": \"application/json\"\r",
+              "                        },\r",
+              "                        body: {\r",
+              "                            mode: 'raw',\r",
+              "                            raw: JSON.stringify({\r",
+              "                                \"type\": item.type,\r",
+              "                            })\r",
+              "                        }\r",
+              "                    }, function (error, res) {\r",
+              "                        if (error) {\r",
+              "                            console.error(\"Error deleting restriction:\", item.type, error);\r",
+              "                            rej(error);\r",
+              "                        } else {\r",
+              "                            console.log(\"Deleted restriction:\", item.type, \"→ status:\", res.code);\r",
+              "                            res(); \r",
+              "                        }\r",
+              "                    });\r",
+              "                });\r",
+              "            });\r",
+              "\r",
+              "            Promise.all(requests).then(() => {\r",
+              "                resolve();\r",
+              "            }).catch(reject);\r",
+              "\r",
+              "        } catch (err) {\r",
+              "            reject(err);\r",
+              "        }\r",
+              "    })\r",
+              ");\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAuthToken}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+          "host": [
+            "{{partnersHost}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "drivers",
+            "{{driverId}}",
+            "restrictions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DeleteRestriction",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAuthToken}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"Cashless\",\n  \"fleet_id\": \"{{fleetId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{partnersHost}}/api/v1/drivers/{{driverId}}/restrictions",
+          "host": [
+            "{{partnersHost}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "drivers",
+            "{{driverId}}",
+            "restrictions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetAndChargeBalance",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "ctx._promises.push(\r",
+              "    new Promise((resolve, reject) => {\r",
+              "        try {\r",
+              "            const walletId = pm.environment.get(\"walletId\");\r",
+              "            const driverAuthToken = pm.environment.get(\"driverAuthToken\");\r",
+              "            const adminAuthToken = pm.environment.get(\"adminAuthToken\");\r",
+              "\r",
+              "            const getUrl = pm.environment.get(\"driverGatewayHost\") \r",
+              "                + \"/api/v1/wallets/\" + walletId + \"/balances\";\r",
+              "\r",
+              "            \r",
+              "            pm.sendRequest({\r",
+              "                method: 'GET',\r",
+              "                url: getUrl,\r",
+              "                header: {\r",
+              "                    \"Authorization\": \"Bearer \" + driverAuthToken,\r",
+              "                    \"Content-Type\": \"application/json\"\r",
+              "                }\r",
+              "            }, function (error, res) {\r",
+              "                if (error) {\r",
+              "                    console.error(\"Error fetching wallet balance:\", error);\r",
+              "                    return reject(error);\r",
+              "                }\r",
+              "\r",
+              "                try {\r",
+              "                    const responseJson = res.json();\r",
+              "                    console.log(\"Parsed response JSON:\", responseJson);\r",
+              "\r",
+              "                    let currentBalance = responseJson.amount;\r",
+              "                    console.log(\"Current wallet amount:\", currentBalance);\r",
+              "\r",
+              "                    \r",
+              "                    let chargeAmount = currentBalance + 100;\r",
+              "\r",
+              "                \r",
+              "                    if (chargeAmount <= 0) {\r",
+              "                        console.log(\"Charge amount <= 0, виставляємо мінімальний чардж 100\");\r",
+              "                        chargeAmount = 100;\r",
+              "                    }\r",
+              "\r",
+              "                    console.log(\"Charge amount:\", chargeAmount);\r",
+              "\r",
+              "                    const postUrl = pm.environment.get(\"adminGatewayHost\") \r",
+              "                        + \"/api/v2/admin/finance/wallets/\" \r",
+              "                        + walletId \r",
+              "                        + \"/partner-payments/charge\";\r",
+              "\r",
+              "                \r",
+              "                    pm.sendRequest({\r",
+              "                        method: 'POST',\r",
+              "                        url: postUrl,\r",
+              "                        header: {\r",
+              "                            \"Authorization\": \"Bearer \" + adminAuthToken,\r",
+              "                            \"Content-Type\": \"application/json\"\r",
+              "                        },\r",
+              "                        body: {\r",
+              "                            mode: 'raw',\r",
+              "                            raw: JSON.stringify({\r",
+              "                                \"amount\": chargeAmount,\r",
+              "                                \"description\": \"Test\",\r",
+              "                                \"initiated_by_user_id\": \"f05a3650d531497eadd1c3badd0c4370\",\r",
+              "                                \"profit_loss_type\": \"driver_penalty_order_other\",\r",
+              "                                \"region_id\": 1,\r",
+              "                                \"vb_type\": \"cash_order_fee\"\r",
+              "                            })\r",
+              "                        }\r",
+              "                    }, function (error, res) {\r",
+              "                        if (error) {\r",
+              "                            console.error(\"Error while charging:\", error);\r",
+              "                            return reject(error);\r",
+              "                        }\r",
+              "\r",
+              "                        console.log(\"Charge response status:\", res.code);\r",
+              "                        console.log(\"Charge response body:\", res.body);\r",
+              "\r",
+              "                        resolve(); \r",
+              "                    });\r",
+              "\r",
+              "                } catch (err) {\r",
+              "                    console.error(\"Failed to parse response:\", err);\r",
+              "                    reject(err);\r",
+              "                }\r",
+              "            });\r",
+              "\r",
+              "        } catch (err) {\r",
+              "            reject(err);\r",
+              "        }\r",
+              "    })\r",
+              ");\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driverAuthToken}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{driverGatewayHost}}/api/v1/wallets/{{walletId}}/balances",
+          "host": [
+            "{{driverGatewayHost}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "wallets",
+            "{{walletId}}",
+            "balances"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetAndRechargeBalance",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "ctx._promises.push(\r",
+              "    new Promise((resolve, reject) => {\r",
+              "        try {\r",
+              "            const walletId = pm.environment.get(\"walletId\");\r",
+              "            const driverAuthToken = pm.environment.get(\"driverAuthToken\");\r",
+              "            const adminAuthToken = pm.environment.get(\"adminAuthToken\");\r",
+              "\r",
+              "            const getUrl = pm.environment.get(\"driverGatewayHost\") \r",
+              "                + \"/api/v1/wallets/\" + walletId + \"/balances\";\r",
+              "\r",
+              "            // GET balance\r",
+              "            pm.sendRequest({\r",
+              "                method: 'GET',\r",
+              "                url: getUrl,\r",
+              "                header: {\r",
+              "                    \"Authorization\": \"Bearer \" + driverAuthToken,\r",
+              "                    \"Content-Type\": \"application/json\"\r",
+              "                }\r",
+              "            }, function (error, res) {\r",
+              "                if (error) {\r",
+              "                    console.error(\"Error fetching wallet balance:\", error);\r",
+              "                    return reject(error);\r",
+              "                }\r",
+              "\r",
+              "                try {\r",
+              "                    const responseJson = res.json();\r",
+              "                    console.log(\"Parsed response JSON:\", responseJson);\r",
+              "\r",
+              "                    const currentBalance = responseJson.amount;\r",
+              "                    console.log(\"Current wallet amount:\", currentBalance);\r",
+              "\r",
+              "                    // rechargeAmount = abs(balance) + 100\r",
+              "                    let rechargeAmount = Math.abs(currentBalance) + 100;\r",
+              "                    console.log(\"Calculated recharge amount:\", rechargeAmount);\r",
+              "\r",
+              "                    const postUrl = pm.environment.get(\"adminGatewayHost\") \r",
+              "                        + \"/api/v2/admin/finance/wallets/\" + walletId + \"/partner-payments/recharge\";\r",
+              "\r",
+              "                    // POST recharge\r",
+              "                    pm.sendRequest({\r",
+              "                        method: 'POST',\r",
+              "                        url: postUrl,\r",
+              "                        header: {\r",
+              "                            \"Authorization\": \"Bearer \" + adminAuthToken,\r",
+              "                            \"Content-Type\": \"application/json\"\r",
+              "                        },\r",
+              "                        body: {\r",
+              "                            mode: 'raw',\r",
+              "                            raw: JSON.stringify({\r",
+              "                                \"amount\": rechargeAmount,\r",
+              "                                \"description\": \"Recharge to positive balance\",\r",
+              "                                \"initiated_by_user_id\": \"f05a3650-d531-497e-add1-c3badd0c4370\",\r",
+              "                                \"profit_loss_type\": \"driver_app_fee\",\r",
+              "                                \"region_id\": 1,\r",
+              "                                \"vb_type\": \"bonus_order\"\r",
+              "                            })\r",
+              "                        }\r",
+              "                    }, function (error, res) {\r",
+              "                        if (error) {\r",
+              "                            console.error(\"Error while recharging:\", error);\r",
+              "                            return reject(error);\r",
+              "                        }\r",
+              "\r",
+              "                        console.log(\"Recharge response status:\", res.code);\r",
+              "                        console.log(\"Recharge response body:\", res.body);\r",
+              "\r",
+              "                        resolve(); \r",
+              "                    });\r",
+              "\r",
+              "                } catch (err) {\r",
+              "                    console.error(\"Failed to parse GET response:\", err);\r",
+              "                    reject(err);\r",
+              "                }\r",
+              "            });\r",
+              "\r",
+              "        } catch (err) {\r",
+              "            reject(err);\r",
+              "        }\r",
+              "    })\r",
+              ");\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driverAuthToken}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{driverGatewayHost}}/api/v1/wallets/{{walletId}}/balances",
+          "host": [
+            "{{driverGatewayHost}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "wallets",
+            "{{walletId}}",
+            "balances"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          "eval(pm.globals.get(\"fetchAuthTokensFn\"));",
+          "eval(pm.globals.get(\"decodeTockenAndSaveUserIdFn\"));",
+          "",
+          "let now = Math.floor(Date.now() / 1000);",
+          "",
+          "function needsRefresh(token, uidName) {",
+          "    if (!token) {",
+          "        console.warn(`Token ${uidName} is missing`);",
+          "        return true;",
+          "    }",
+          "    try {",
+          "        const decoded = decodeTockenAndSaveUserId({ token, uidName });",
+          "        return decoded.exp < (now + 900); ",
+          "    } catch (e) {",
+          "        console.error(`Failed to decode token ${uidName}`, e);",
+          "        return true;",
+          "    }",
+          "}",
+          "",
+          "const refreshList = [];",
+          "",
+          "if (needsRefresh(pm.collectionVariables.get(\"driverAuthToken\"), \"driverId\")) {",
+          "    refreshList.push(fetchAuthTokens({",
+          "        host: \"partnersIdentityHost\",",
+          "        username: \"driverPhone\",",
+          "        password: \"driverPassword\",",
+          "        tokenName: \"driverAuthToken\"",
+          "    }));",
+          "}",
+          "",
+          "if (needsRefresh(pm.collectionVariables.get(\"adminAuthToken\"), \"adminId\")) {",
+          "    refreshList.push(fetchAuthTokens({",
+          "        host: \"internalIdentityHost\",",
+          "        username: \"adminUsername\",",
+          "        password: \"adminPassword\",",
+          "        tokenName: \"adminAuthToken\"",
+          "    }));",
+          "}",
+          "",
+          "const p = Promise.all(refreshList)",
+          "    .then(() => {",
+          "        if (refreshList.length > 0) {",
+          "            console.log(\"Tokens refreshed successfully\");",
+          "        } else {",
+          "            console.log(\"All tokens are still valid, refresh not needed\");",
+          "        }",
+          "        pm.collectionVariables.set(\"needAuth\", \"false\");",
+          "    })",
+          "    .catch(error => console.error(\"Error refreshing tokens\", error));",
+          "",
+          "ctx._promises.push(p);",
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          "if (pm.response.code === 401){",
+          "    pm.collectionVariables.set(\"needAuth\", \"true\")",
+          "    console.log(\"needAuth set to true\")",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "needAuth",
+      "value": ""
+    },
+    {
+      "key": "adminAuthToken",
+      "value": ""
+    },
+    {
+      "key": "riderAuthToken",
+      "value": ""
+    },
+    {
+      "key": "driverAuthToken",
+      "value": ""
+    },
+    {
+      "key": "actual_from",
+      "value": ""
+    },
+    {
+      "key": "actual_till",
+      "value": ""
+    },
+    {
+      "key": "fetchAuthTokensFn",
+      "value": ""
+    }
+  ]
+}

@@ -2,6 +2,8 @@
 import { $, el } from './ui.js';
 import { resolveVars, state } from './state.js';
 import { openRequest } from './feature.js';
+import {COLLECTIONS, getSelectedCollection, setSelectedCollection} from "./config.js";
+import { bootApp } from './feature.js';
 let onRequestOpen = null;
 export function setOnRequestOpen(fn) { onRequestOpen = fn; }
 
@@ -46,25 +48,35 @@ export function togglePinCurrent() {
     const id = current.dataset.reqId;
     if (!id) return;
 
+    const scrollY = $('#tree').scrollTop;
+    const prevReqId = state.CURRENT_REQ_ID;
+    const prevOpEl = state.CURRENT_OP_EL;
+
     let ids = getPinnedIds();
     ids = ids.includes(id) ? ids.filter(p => p !== id) : ids.concat(id);
     setPinnedIds(ids);
 
-    renderTree('', { onRequestClick: onRequestOpen });
+    //  temporarily reset the active request
+    state.CURRENT_REQ_ID = null;
+    state.CURRENT_OP_EL = null;
 
-    const row = document.querySelector(`.op[data-req-id="${id}"]`);
-    if (row) setActiveRow(row);
+    renderTree('', { onRequestClick: onRequestOpen, restoreFocus: false });
+
+    // return the scroll
+    $('#tree').scrollTop = scrollY;
+
+    // return the state without scrolling
+    state.CURRENT_REQ_ID = prevReqId;
+    state.CURRENT_OP_EL = prevOpEl;
 }
 
-
-
 // sidebar
-export function setActiveRow(elm){
+export function setActiveRow(elm, { scroll = true } = {}) {
     if (state.CURRENT_OP_EL) state.CURRENT_OP_EL.classList.remove('active');
     state.CURRENT_OP_EL = elm;
     if (state.CURRENT_OP_EL) {
         state.CURRENT_OP_EL.classList.add('active');
-        state.CURRENT_OP_EL.scrollIntoView({ block: 'nearest' });
+        if (scroll) state.CURRENT_OP_EL.scrollIntoView({ block: 'nearest' });
     }
 }
 
@@ -93,7 +105,8 @@ export function flattenItems(node, path = []) {
         const urlRaw = normalizeUrl(node.request.url);
 
         // stable id
-        const stableId = `${path.join('/')}_${method}_${urlRaw}`;
+        const namePart = (node.name || '').replace(/\s+/g, '_');
+        const stableId = `${path.join('/')}_${method}_${urlRaw}_${namePart}`;
 
         state.ITEMS_FLAT.push({
             id: stableId,
@@ -125,7 +138,7 @@ function makeFolderHeader({ title, controls, nodeEl }) {
     return header;
 }
 
-export function renderTree(filter = '', { onRequestClick } = {}) {
+export function renderTree(filter = '', { onRequestClick, restoreFocus } = {}) {
     onRequestClick = onRequestClick || onRequestOpen;
     const tree = $('#tree');
     tree.innerHTML = '';
@@ -278,11 +291,10 @@ export function renderTree(filter = '', { onRequestClick } = {}) {
         tree.append(emptyWrap);
     }
     // restore active highlight after re-render
-    if (state.CURRENT_REQ_ID) {
+    if (restoreFocus && state.CURRENT_REQ_ID) {
         const row = document.querySelector(`.op[data-req-id="${state.CURRENT_REQ_ID}"]`);
         if (row) setActiveRow(row);
     }
-
 }
 
 // ==== Helpers ====
@@ -293,7 +305,7 @@ const ARROW_CHEVRON = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidd
 
   <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
-const PIN_ICON    = `<svg width="14" height="14" viewBox="0 0 24 24"><path d="M14 2v2h1v5l4 4v2h-6v7l-2-1-2 1v-7H3v-2l4-4V4h1V2h6z"/></svg>`;
+const PIN_ICON    = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2v2h1v5l4 4v2h-6v7l-2-1-2 1v-7H3v-2l4-4V4h1V2h6z"/></svg>`;
 
 // pins utils
 function getPinnedIds() {
@@ -331,7 +343,7 @@ function makeArrow() {
 
 function makePinBtn(onClick, active = false) {
     const btn = el('button', {
-        class: 'pinBtn' + (active ? ' active' : ''),
+        class: 'pinBtn ' + (active ? 'pinBtn-remove active' : 'pinBtn-add'),
         onclick: (e) => { e.stopPropagation(); onClick(); }
     });
 
@@ -376,5 +388,65 @@ export function updateEnvDropdown(envKey) {
     }
     import('./vars.js').then(({ updateVarsBtnCounter }) => {
         updateVarsBtnCounter();
+    });
+}
+function normalizePath(p) {
+    if (!p) return '';
+    return p.split('/').pop(); // имя файла
+}
+
+export function initCollectionDropdown() {
+    const dropdown = document.querySelector('#collectionDropdown');
+    if (!dropdown) return;
+
+    const current = dropdown.querySelector('.collectionCurrent');
+    const list = dropdown.querySelector('.collectionList');
+
+    list.innerHTML = '';
+    COLLECTIONS.forEach(col => {
+        const opt = document.createElement('div');
+        opt.className = 'collectionOption';
+        opt.textContent = col.name;
+        opt.dataset.value = col.path;
+        list.appendChild(opt);
+    });
+    const sel = getSelectedCollection();  // ← вот этого не хватало
+
+    const selNorm = normalizePath(sel);
+    const activeOpt = [...list.querySelectorAll('.collectionOption')]
+        .find(opt => normalizePath(opt.dataset.value) === selNorm);
+
+    if (activeOpt) {
+        current.innerHTML = activeOpt.textContent + ' <span class="arrow">▼</span>';
+    } else {
+        current.innerHTML = COLLECTIONS[0].name + ' <span class="arrow">▼</span>';
+    }
+
+    current.onclick = () => {
+        const open = list.style.display === 'block';
+        list.style.display = open ? 'none' : 'block';
+        current.querySelector('.arrow').textContent = open ? '▼' : '▲';
+    };
+
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target)) {
+            list.style.display = 'none';
+            const arrow = current.querySelector('.arrow');
+            if (arrow) arrow.textContent = '▼';
+        }
+    });
+    list.querySelectorAll('.collectionOption').forEach(opt => {
+        opt.onclick = async () => {
+            const newPath = opt.dataset.value;
+            setSelectedCollection(newPath);
+            await bootApp({ collectionPath: newPath, autoOpenFirst: true });
+
+            import('./history.js').then(({ renderHistory }) => renderHistory());
+            import('./history.js').then(({ initSidebarNav }) => initSidebarNav());
+            import('./settings.js').then(({ initSettingsSidebar }) => initSettingsSidebar());
+
+            list.style.display = 'none';
+            current.innerHTML = opt.textContent + ' <span class="arrow">▼</span>';
+        };
     });
 }

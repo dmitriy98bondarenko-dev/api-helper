@@ -33,6 +33,4 @@
 
 [data-theme="dark"] .reqHeader,
 [data-theme="dark"] .respHeader { background:#212121; }
-[data-theme="dark"] .reqBodyWrap,
-[data-theme="dark"] .respTools { background:#212121; }
 [data-theme="dark"] .respBody { background:#212121; color:#f3f4f6; }

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
-    <base href="/api-helper/">
+    <base href="./">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" href="./icons/favicon.ico" sizes="any">
@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="./css/layout.css">
     <link rel="stylesheet" href="./css/components.css">
     <link rel="stylesheet" href="./css/alert.css">
-    <link rel="stylesheet" href="./css/responce.css">
+    <link rel="stylesheet" href="./css/response.css">
     <link rel="stylesheet" href="./css/sidebar.css">
     <link rel="stylesheet" href="./css/modals.css">
     <link rel="stylesheet" href="./css/requestBody.css">
@@ -194,6 +194,13 @@
                   <div class="theme-toggle">
                       <input type="checkbox" id="themeToggleSwitch" class="theme-toggle-input" />
                       <label for="themeToggleSwitch" class="theme-toggle-label"></label>
+                  </div>
+              </div>
+              <div class="settingsRow">
+                  <span class="settingsLabel">Collection:</span>
+                  <div id="collectionDropdown" class="dropdown">
+                      <div class="collectionCurrent">Select Collection <span class="arrow">▼</span></div>
+                      <div class="collectionList"></div>
                   </div>
               </div>
               <h4>General:</h4>
