@@ -1,10 +1,29 @@
-# The Docker image that will be used to build your app
-image: node:lts
-create-pages:
-  pages:
-    # The folder that contains the files to be exposed at the Page URL
-    publish: public
+stages:
+  - build
+  - deploy
+
+variables:
+  PUBLIC_DIR: "public"
+
+build:
+  stage: build
+  image: node:lts
+  script:
+    - echo "🚧 Building API Helper static site..."
+    - mkdir -p $PUBLIC_DIR
+    #  copy all files to deplot folder
+    - cp -r index.html css js icons data $PUBLIC_DIR/
+  artifacts:
+    paths:
+      - $PUBLIC_DIR
+    expire_in: 1 week
+
+pages:
+  stage: deploy
+  script:
+    - echo "Deploying API Helper to GitLab Pages..."
+  artifacts:
+    paths:
+      - $PUBLIC_DIR
   rules:
-    # This ensures that only pushes to the default branch will trigger
-    # a pages deploy
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
