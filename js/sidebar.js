@@ -450,4 +450,12 @@ export function initCollectionDropdown() {
         };
     });
 }
-// test commit
+/* delete when tool will be ready on work domain */
+export function initDocsButton() {
+    const docsBtn = document.querySelector('#navDocs');
+    if (!docsBtn) return;
+    docsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open('https://uklonua.atlassian.net/wiki/spaces/UD/pages/5286592941/CORS', '_blank', 'noopener,noreferrer');
+    });
+}
