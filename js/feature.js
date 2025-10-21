@@ -278,6 +278,30 @@ export function openRequest(item, forceDefaults = false) {
         )
     );
 
+    const sendBtn = sendGroup.querySelector('#sendBtn');
+
+    function validateUrlInput() {
+        const urlVal = ($('#urlInp').value || '').trim();
+
+    }
+
+// listening changes in URL
+    urlDisp.addEventListener('input', validateUrlInput);
+    function showUrlError() {
+        const disp = $('#urlInpDisplay');
+        if (!disp) return;
+
+        disp.classList.add('url-error');
+        disp.setAttribute('title', 'URL cannot be empty');
+
+        // delay to show error
+        setTimeout(() => {
+            disp.classList.remove('url-error');
+            disp.removeAttribute('title');
+        }, 3000);
+    }
+
+
 // header method + URL +button send
 
     const header = el('div', { class: 'reqHeader' },
@@ -514,7 +538,6 @@ export function openRequest(item, forceDefaults = false) {
         debSave();
     });
 
-
 // actions
     const actions = el('div', {class:'actions'});
     const resetBtn= el('button', {
@@ -597,6 +620,12 @@ export function openRequest(item, forceDefaults = false) {
 
 // send request
     $('#sendBtn').onclick = async ()=>{
+        const currentUrl = ($('#urlInp').value || '').trim();
+        if (!currentUrl) {
+            showAlert('URL cannot be empty', 'error');
+            showUrlError();
+            return;
+        }
         debSave();
         state.LOGS = [];
         renderLogs();
@@ -985,6 +1014,10 @@ export function openRequest(item, forceDefaults = false) {
         }
     }
     highlightMissingVars(document, getEnvVarsOnly());
+    requestAnimationFrame(() => {
+        validateUrlInput();
+        urlDisp.addEventListener('input', validateUrlInput);
+    });
 }
 function toggleWelcomeCard(show) {
     const card = document.getElementById('welcomeCard');
@@ -1181,8 +1214,6 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
 
     //  env dropdown
     initEnvDropdown();
-
-
 
     if (autoOpenFirst && state.ITEMS_FLAT[0]) {
         // open first request

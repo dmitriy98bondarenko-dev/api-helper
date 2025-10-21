@@ -48,25 +48,35 @@ export function togglePinCurrent() {
     const id = current.dataset.reqId;
     if (!id) return;
 
+    const scrollY = $('#tree').scrollTop;
+    const prevReqId = state.CURRENT_REQ_ID;
+    const prevOpEl = state.CURRENT_OP_EL;
+
     let ids = getPinnedIds();
     ids = ids.includes(id) ? ids.filter(p => p !== id) : ids.concat(id);
     setPinnedIds(ids);
 
-    renderTree('', { onRequestClick: onRequestOpen });
+    //  temporarily reset the active request
+    state.CURRENT_REQ_ID = null;
+    state.CURRENT_OP_EL = null;
 
-    const row = document.querySelector(`.op[data-req-id="${id}"]`);
-    if (row) setActiveRow(row);
+    renderTree('', { onRequestClick: onRequestOpen, restoreFocus: false });
+
+    // return the scroll
+    $('#tree').scrollTop = scrollY;
+
+    // return the state without scrolling
+    state.CURRENT_REQ_ID = prevReqId;
+    state.CURRENT_OP_EL = prevOpEl;
 }
 
-
-
 // sidebar
-export function setActiveRow(elm){
+export function setActiveRow(elm, { scroll = true } = {}) {
     if (state.CURRENT_OP_EL) state.CURRENT_OP_EL.classList.remove('active');
     state.CURRENT_OP_EL = elm;
     if (state.CURRENT_OP_EL) {
         state.CURRENT_OP_EL.classList.add('active');
-        state.CURRENT_OP_EL.scrollIntoView({ block: 'nearest' });
+        if (scroll) state.CURRENT_OP_EL.scrollIntoView({ block: 'nearest' });
     }
 }
 
@@ -128,7 +138,7 @@ function makeFolderHeader({ title, controls, nodeEl }) {
     return header;
 }
 
-export function renderTree(filter = '', { onRequestClick } = {}) {
+export function renderTree(filter = '', { onRequestClick, restoreFocus } = {}) {
     onRequestClick = onRequestClick || onRequestOpen;
     const tree = $('#tree');
     tree.innerHTML = '';
@@ -281,11 +291,10 @@ export function renderTree(filter = '', { onRequestClick } = {}) {
         tree.append(emptyWrap);
     }
     // restore active highlight after re-render
-    if (state.CURRENT_REQ_ID) {
+    if (restoreFocus && state.CURRENT_REQ_ID) {
         const row = document.querySelector(`.op[data-req-id="${state.CURRENT_REQ_ID}"]`);
         if (row) setActiveRow(row);
     }
-
 }
 
 // ==== Helpers ====
@@ -439,5 +448,14 @@ export function initCollectionDropdown() {
             list.style.display = 'none';
             current.innerHTML = opt.textContent + ' <span class="arrow">▼</span>';
         };
+    });
+}
+/* delete when tool will be ready on work domain */
+export function initDocsButton() {
+    const docsBtn = document.querySelector('#navDocs');
+    if (!docsBtn) return;
+    docsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open('https://uklonua.atlassian.net/wiki/spaces/UD/pages/5286592941/CORS', '_blank', 'noopener,noreferrer');
     });
 }
