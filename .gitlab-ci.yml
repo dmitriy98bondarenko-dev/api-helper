@@ -2,28 +2,28 @@ stages:
   - build
   - deploy
 
-variables:
-  PUBLIC_DIR: "public"
-
+# copies static files into the artifacts folder
 build:
   stage: build
-  image: node:lts
+  image: alpine:latest
   script:
-    - echo "🚧 Building API Helper static site..."
-    - mkdir -p $PUBLIC_DIR
-    #  copy all files to deplot folder
-    - cp -r index.html css js icons data $PUBLIC_DIR/
+    - echo "Building static app..."
+    - mkdir -p public
+    - cp -r index.html css js data icons public/
   artifacts:
     paths:
-      - $PUBLIC_DIR
+      - public
     expire_in: 1 week
 
+# Deploy to GitLab Pages
 pages:
   stage: deploy
+  dependencies:
+    - build
   script:
-    - echo "Deploying API Helper to GitLab Pages..."
+    - echo "Deploying page..."
   artifacts:
     paths:
-      - $PUBLIC_DIR
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      - public
+  only:
+    - main

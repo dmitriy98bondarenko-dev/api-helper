@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "6aeb5470-c0fd-4e84-9e50-58c900f4debc",
+    "_postman_id": "09c01dba-16ec-449f-9240-586d2d88c80c",
     "name": "SmokeOrders Defered",
     "description": "Для використання колекції необхідно змінити значення змінних колекції, таких як:\n\n- `UserName` - використати свій логін від райдер аккаунта\n- `Password` - використати свій пароль від райдер аккаунта\n- `WalletId` - змінити на гаманець тестового драйвера\n- `AdminLogin` - використати свій логін в адмінку\n- `AdminPassword` - використати свій пароль до адмінки\n    \n\nВ змінну `PromoCode` додано мультикод промо `DRIVER`, який буде дійсний до 01.11.25, після експайру, потрібно перестворити.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "11930149",
-    "_collection_link": "https://driver-api-testing.postman.co/workspace/Uklon.DriverWorkspace.Team2~d4a3ef1c-d46a-4494-9732-e2002ffa66df/collection/11930149-6aeb5470-c0fd-4e84-9e50-58c900f4debc?action=share&source=collection_link&creator=11930149"
+    "_exporter_id": "49265802",
+    "_collection_link": "https://uklon-driver.postman.co/workspace/Uklon.Driver-Workspace~7cc8acde-599b-4062-8a90-2f810c7ff50f/collection/49265802-09c01dba-16ec-449f-9240-586d2d88c80c?action=share&source=collection_link&creator=49265802"
   },
   "item": [
     {
@@ -1134,7 +1134,7 @@
                       "                let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadOptional\"));",
                       "                payload.fare_id = fareId;",
                       "                payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
-                      "                payload.payment_method.type = \"card\";",
+                      "                payload.payment_method.type = \"cash\";",
                       "",
                       "                fareEstimate(payload, () => {",
                       "                    console.log(\"fareEstimate завершён\");",
@@ -3276,19 +3276,28 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                       "",
-                      "ctx._promises.push(",
-                      "    new Promise((resolve, reject) => {",
-                      "        const futureDate = new Date(Date.now() + 2 + 55 * 60 * 1000);",
+                      "const futureDate = new Date(Date.now() + 2 + 55 * 60 * 1000);",
                       "",
-                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
-                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
                       "",
-                      "        fareEstimate(payload, () => {",
-                      "            resolve();",
-                      "        }, reject);",
-                      "    })",
-                      ");",
+                      "const promise = new Promise((resolve, reject) => {",
+                      "    fareEstimate(payload, resolve, reject);",
+                      "});",
+                      "",
+                      "// promise for browser runner",
+                      "if (typeof ctx !== 'undefined' && ctx._promises && Array.isArray(ctx._promises)) {",
+                      "    ctx._promises.push(promise);",
+                      "} else {",
+                      "    promise",
+                      "        .then(() => {",
+                      "            console.log(\"fareEstimate completed\");",
+                      "        })",
+                      "        .catch((err) => {",
+                      "            console.error(\"fareEstimate failed\", err);",
+                      "        });",
+                      "}",
                       ""
                     ],
                     "type": "text/javascript",
@@ -3656,6 +3665,136 @@
               "response": []
             },
             {
+              "name": "[Cash + Standart] Tomorrow",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
+                      "",
+                      "ctx._promises.push(",
+                      "    new Promise((resolve, reject) => {",
+                      "        const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000 + 41 * 60 * 1000);",
+                      "",
+                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadDude\"));",
+                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                      "",
+                      "        console.log('📅 pickup_time (завтра):', new Date(payload.pickup_time * 1000).toISOString());",
+                      "",
+                      "        fareEstimate(payload, () => {",
+                      "            resolve();",
+                      "        }, reject);",
+                      "    })",
+                      ");",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{riderAuthToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Host",
+                    "value": "{{orderHost}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "user-agent",
+                    "value": "UklonAndroid/78200",
+                    "type": "text"
+                  },
+                  {
+                    "key": "x-fp",
+                    "value": "E164",
+                    "type": "text"
+                  },
+                  {
+                    "key": "app_uid",
+                    "value": "{{appUid}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "client_id",
+                    "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "device_name",
+                    "value": "Xiaomi/Redmi Note 9 Pro",
+                    "type": "text"
+                  },
+                  {
+                    "key": "app_version",
+                    "value": "7.82.0.697812",
+                    "type": "text"
+                  },
+                  {
+                    "key": "locale",
+                    "value": "ru",
+                    "type": "text"
+                  },
+                  {
+                    "key": "city",
+                    "value": "kyiv",
+                    "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{riderGatewayHost}}/api/v1/orders",
+                  "host": [
+                    "{{riderGatewayHost}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
               "name": "[Cash + Business] Deferred Tomorrow",
               "event": [
                 {
@@ -3666,7 +3805,7 @@
                       "",
                       "ctx._promises.push(",
                       "    new Promise((resolve, reject) => {",
-                      "        const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000 + 21 * 60 * 1000);",
+                      "        const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000 + 35 * 60 * 1000);",
                       "",
                       "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadOptional\"));",
                       "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
@@ -4159,6 +4298,57 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Complete order",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminAuthToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{driverGatewayHost}}/api/v1/orders/{{orderId}}/complete?force_complete=true",
+              "host": [
+                "{{driverGatewayHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "{{orderId}}",
+                "complete"
+              ],
+              "query": [
+                {
+                  "key": "force_complete",
+                  "value": "false",
+                  "disabled": true
+                },
+                {
+                  "key": "force_complete",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
@@ -4355,6 +4545,10 @@
     {
       "key": "fareEstimatePayloadOptional",
       "value": "{\n  \"fare_id\": \"c62b3b19-5461-4032-b3a3-2bc0b08927ff\",\n  \"include_route_info\": true,\n  \"route\": {\n    \"points\": [\n      {\n       \"lat\": 50.47197,\n\t\t\"lng\": 30.51984,\n\t\t\"name\": \"Низький уклін тим хто робить деферед\"\n      },\n      {\n       \"lat\": 50.40691,\n\t\t\t\"lng\": 30.62797,\n\t\t\t\"name\": \"Вулиця кочегарів 24п7\"\n      }\n    ]\n  },\n  \"low_quality_network\": false,\n  \"pedestrian_path_enabled\": false,\n  \"ride_conditions\": [\n    { \"name\": \"silence\" }\n  ],\n  \"payment_method\": {\n    \"id\": \"6a81c070bcdc4aa6814317a50b022e97\",\n    \"type\": \"cash\"\n  }\n}"
+    },
+    {
+      "key": "fareEstimatePayloadDude",
+      "value": "{\n  \"fare_id\": \"c62b3b19-5461-4032-b3a3-2bc0b08927ff\",\n  \"include_route_info\": true,\n  \"route\": {\n    \"points\": [\n      {\n        \"lat\": 50.44351,\n        \"lng\": 30.52088,\n        \"name\": \"hi, dude\"\n      },\n      {\n        \"lat\": 50.47233,\n        \"lng\": 30.51883,\n        \"name\": \"Bye Bye\"\n      }\n    ]\n  },\n  \"low_quality_network\": false,\n  \"pedestrian_path_enabled\": false,\n  \"ride_conditions\": [\n    { \"name\": \"silence\" }\n  ],\n  \"payment_method\": {\n    \"id\": \"6a81c070bcdc4aa6814317a50b022e97\",\n    \"type\": \"cash\"\n  }\n}"
     }
   ]
 }
