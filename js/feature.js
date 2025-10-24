@@ -1172,7 +1172,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     buildVarMap();
     updateVarsBtnCounter();
     renderTree('', { onRequestClick: openRequest });
-    import('./sidebar.js').then(({ initCollectionDropdown }) => {
+    import('./settings.js').then(({ initCollectionDropdown }) => {
         initCollectionDropdown();
     });
     initEnvDropdown();
