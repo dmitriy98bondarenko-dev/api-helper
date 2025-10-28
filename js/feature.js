@@ -1058,7 +1058,7 @@ function toggleWelcomeCard(show) {
         card.hidden = !show;
     }
 }
-//one time run auth script
+// one time run auth script
 async function runCollectionAuth() {
     try {
         const code = (state.COLLECTION?.event || [])
@@ -1242,6 +1242,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
             if (filterInp.value) applyFilter();
         }
     }
+
     //  env dropdown
     initEnvDropdown();
 
