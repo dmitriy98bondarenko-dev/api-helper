@@ -1,6 +1,6 @@
 // scriptEngine.js (postman)
 import { state, resolveVars } from './state.js';
-import { buildVarMap } from './vars.js';
+import {buildVarMap, updateVarsBtnCounter} from './vars.js';
 import { fetchWithTimeout } from './config.js';
 
 // detection content type
@@ -14,63 +14,157 @@ export function detectContentType(body){
 }
 
 // postman scripts
-export async function runUserScript(code, ctx){
+export async function runUserScript(code, ctx) {
     const pm = makePmAdapter(ctx);
 
-    // global functions
+    // get functions from global env
     const globalFns = Object.entries(state.GLOBALS || {})
         .filter(([k]) => k.endsWith("Fn"))
         .map(([k, v]) => v)
         .join("\n");
 
-    // try to load collection functionsFN
     const collectionFns = Object.entries(state.COLLECTION_VARS || {})
         .filter(([k, v]) => k.endsWith("Fn") && typeof v === "string" && v.trim())
-        .map(([k, v]) => {
-            return v;
-        })
+        .map(([k, v]) => v)
         .join("\n");
 
     try {
-        const fn = new Function('ctx','pm','state', `
-    "use strict";
-    const console = { 
-        log: (...a) => {
-            const msg = a.map(x => 
-                typeof x === 'object' ? JSON.stringify(x) : String(x)
-            ).join(' ');
-            ctx._logs.push(msg);                      
-            state.LOGS.push("Postman script: " + msg); 
-        },
-        warn: (...a) => {
-            const msg = a.map(x => 
-                typeof x === 'object' ? JSON.stringify(x) : String(x)
-            ).join(' ');
-            ctx._logs.push("[WARN] " + msg);
-            state.LOGS.push("Postman script: [WARN] " + msg);
-        },
-        error: (...a) => {
-            const msg = a.map(x => 
-                typeof x === 'object' ? JSON.stringify(x) : String(x)
-            ).join(' ');
-            ctx._logs.push("[ERROR] " + msg);
-            state.LOGS.push("Postman script: [ERROR] " + msg);
-        }
-    };
-    ${globalFns}
-    ${collectionFns}
-    ${code}
-`);
+        //console.log("[runUserScript] START");
 
-        fn(ctx, pm, state);
-        await Promise.all(ctx._promises || []);
-        if (ctx._logs.length) {
-            console.log("Script logs:", ctx._logs);
+        // async api interception (Monkey-Patching)
+        // creating wrapper functions for automatic Promise registration
+
+
+        // wrapper for setTimeout/setInterval
+        const wrappedSetTimeout = (fn, delay, ...args) => {
+            const p = new Promise(resolve => {
+                globalThis.setTimeout(() => {
+                    try {
+                        if (typeof fn === 'function') fn(...args);
+                    } catch(e) {
+                        // log error, but do not reject the Promise
+                        ctx._logs.push("[ERROR] Async task error: " + (e?.message || String(e)));
+                    }
+                    resolve();
+                }, delay);
+            });
+
+            // register promise for stabilization/cleanup
+            ctx._promises.push(p);
+            p.finally(() => {
+                const idx = ctx._promises.indexOf(p);
+                if (idx >= 0) ctx._promises.splice(idx, 1);
+            });
+
+            // return a mock ID compatible with native setTimeout
+            return 1;
+        };
+        const wrappedSetInterval = (fn, delay, ...args) => {
+            // same for setInterval (stubbed for simplicity, as it's rarely used in Postman context)
+            return globalThis.setInterval(fn, delay, ...args);
+        };
+
+        // wrapper for fetch (if fareEstimateFn utilizes the native API).
+        const wrappedFetch = (url, options) => {
+            // use native fetch if available
+            const p = fetchWithTimeout(url, options)
+                .catch(err => {
+                    ctx._logs.push(`[ERROR] fetch error: ${err.message}`);
+                    throw err; // promise rejection if fetch fails
+                });
+
+            // register promise in context for stabilization cycle
+            ctx._promises.push(p);
+            p.finally(() => {
+                const idx = ctx._promises.indexOf(p);
+                if (idx >= 0) ctx._promises.splice(idx, 1);
+            });
+
+            return p;
+        };
+
+
+        // initializing sandbox with function overrides
+        // pass wrappers as arguments to override global functions
+        const asyncFn = new Function('ctx', 'pm', 'state', 'setTimeout', 'setInterval', 'fetch', `
+            "use strict";
+            
+            // change console.log to ctx._logs
+            const console = { 
+                log: (...a) => {
+                    const msg = a.map(x => typeof x === 'object' ? JSON.stringify(x) : String(x)).join(' ');
+                    ctx._logs.push(msg);
+                },
+                warn: (...a) => ctx._logs.push("[WARN] " + a.join(" ")),
+                error: (...a) => ctx._logs.push("[ERROR] " + a.join(" "))
+            };
+            
+            // injecting postman defined functions
+            ${globalFns}
+            ${collectionFns}
+            
+            // execute scripts, which may contain await
+            return (async () => { ${code} })();
+        `);
+
+        // execution and stabilisation
+        // passing the patched wrappers for execution
+
+        // wait for the main script Promise to complete
+        const scriptExecutionPromise = asyncFn(
+            ctx,
+            pm,
+            state,
+            wrappedSetTimeout,
+            wrappedSetInterval,
+            wrappedFetch // passing the wrappers
+        );
+        await scriptExecutionPromise;
+
+        // stabilization process
+        let round = 0;
+        const MAX_ROUNDS = 20;
+        let activePromisesExist = true;
+        const STABILIZATION_WAIT_MS = 10;
+
+        while (activePromisesExist && round < MAX_ROUNDS) {
+            round++;
+            const pendingCount = ctx._promises.length;
+
+            if (pendingCount > 0) {
+                // if activity found waiting for all active promises
+                const current = [...ctx._promises];
+                ctx._promises.length = 0;
+
+                // wait completion of all active Promises
+                await Promise.allSettled(current);
+
+                // continue loop immediately to check if resolved Promises spawned new tasks
+            } else {
+                // short pause to allow the event Loop to process microtasks
+                await new Promise(r => globalThis.setTimeout(r, STABILIZATION_WAIT_MS));
+
+                // check if any new Promises were created during the short pause
+                activePromisesExist = ctx._promises.length > 0;
+                if (!activePromisesExist) {
+                    break; // no more active promises, break the loop
+                }
+            }
         }
+
+        if (round >= MAX_ROUNDS) {
+            console.warn("Breaking due to maximum stabilization rounds reached");
+        }
+
+        //if (ctx._logs.length) console.log("Script logs:", ctx._logs);
+
+        ctx._allDone = true;
 
     } catch (err) {
-        console.error("Script execution error:", err);}
+        ctx._logs.push("Script execution error: " + (err?.message || String(err)));
+    }
 }
+// fix script engine without promises
 
 
 //  contexts
@@ -189,7 +283,7 @@ export function makePmAdapter(ctx) {
                     const val = getEnv(name) || state.COLLECTION_VARS[name] || state.GLOBALS[name];
                     if (val) return val;
 
-                    // generator UUID
+                    // generator guid
                     if (name === "$randomUUID") {
                         return (crypto.randomUUID ? crypto.randomUUID() :
                             'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -197,7 +291,7 @@ export function makePmAdapter(ctx) {
                                 return v.toString(16);
                             }));
                     }
-                    return `"${uuid}"`;
+                    return m;
                 });
             }
         },
@@ -208,47 +302,57 @@ export function makePmAdapter(ctx) {
         },
         collectionVariables: {
             get: (key) => state.COLLECTION_VARS[key],
+
+            // sync wrapper, returning/registering promise
             set: (key, value) => {
-                // write collectionVariables
-                state.COLLECTION_VARS[key] = value;
-                state.VARS[key] = value;
-                buildVarMap();
+                const p = (async () => {
+                    try {
+                        state.COLLECTION_VARS[key] = value;
+                        state.VARS[key] = value;
+                        buildVarMap();
 
-                // copy in environment (ls to pm_env_dev / staging / prod)
-                if (!state.ENV) state.ENV = { values: [] };
-                if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
-                const row = state.ENV.values.find(v => v.key === key);
-                if (row) {
-                    row.value = value;
-                    row.enabled = true;
-                } else {
-                    state.ENV.values.push({ key, value, enabled: true });
-                }
+                        if (!state.ENV) state.ENV = { values: [] };
+                        if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
+                        const row = state.ENV.values.find(v => v.key === key);
+                        if (row) {
+                            row.value = value;
+                            row.enabled = true;
+                        } else {
+                            state.ENV.values.push({ key, value, enabled: true });
+                        }
 
-                try {
-                    const currentEnv = localStorage.getItem('selected_env') || 'dev';
-                    localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
-                } catch (e) {
-                    console.warn("Failed to persist env var", e);
-                }
+                        const currentEnv = localStorage.getItem('selected_env') || 'dev';
+                        localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+
+                        // short pause for stabilization ls/ui
+                        await new Promise(r => setTimeout(r, 25));
+                    } catch (err) {
+                        console.warn("collectionVariables.set error:", err);
+                    }
+                })();
+
+                // register promise and runUserScript will wait for it to complete
+                if (ctx && Array.isArray(ctx._promises)) ctx._promises.push(p);
+                return p;
             },
+
             unset: (key) => {
-                delete state.COLLECTION_VARS[key];
-                delete state.VARS[key];
-
-                if (Array.isArray(state.ENV?.values)) {
-                    const idx = state.ENV.values.findIndex(v => v.key === key);
-                    if (idx >= 0) state.ENV.values.splice(idx, 1);
-                }
-
-                buildVarMap();
-
                 try {
+                    delete state.COLLECTION_VARS[key];
+                    delete state.VARS[key];
+                    if (Array.isArray(state.ENV?.values)) {
+                        const idx = state.ENV.values.findIndex(v => v.key === key);
+                        if (idx >= 0) state.ENV.values.splice(idx, 1);
+                    }
+                    buildVarMap();
                     const currentEnv = localStorage.getItem('selected_env') || 'dev';
                     localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
-                } catch {}
+                } catch (err) {
+                    console.warn("collectionVariables.unset error:", err);
+                }
             }
         },
+
 
         request: {
             get method(){ return ctx.request.method; },
@@ -264,103 +368,110 @@ export function makePmAdapter(ctx) {
 
         response,
 
-        // pm.sendRequest:
+        // pm.sendRequest (awaitable, adds promise to ctx)
         sendRequest: async (req, cb) => {
-            let url = req.url;
-            let method = req.method || 'GET';
-            let headers = {};
-            if (Array.isArray(req.header)) {
-                // array of postman objects
-                headers = Object.fromEntries(req.header.map(h => [h.key, h.value]));
-            } else if (req.header && typeof req.header === "object") {
-                // if passed as an object in the script { "Content-Type": "application/json" }
-                headers = req.header;
-            }
-            let body;
-            const normalized = {};
-            Object.entries(headers).forEach(([k, v]) => {
-                if (!k) return;
-                const keyLower = String(k).toLowerCase();
-                // normalized "content-type" to "Content-Type"
-                if (keyLower === "content-type") {
-                    normalized["Content-Type"] = v;
-                } else if (keyLower === "authorization") {
-                    normalized["Authorization"] = v;
-                } else {
-                    normalized[k] = v;
-                }
-            });
-            headers = normalized;
-
-            if (req.body) {
-                if (req.body.mode === 'raw' && typeof req.body.raw !== 'undefined') {
-                    body = req.body.raw;
-                } else if (typeof req.body === 'string') {
-                    body = req.body;
-                } else if (typeof req.body === 'object' && !req.body.mode) {
-                    body = JSON.stringify(req.body);
-                    if (!headers['Content-Type'] && !headers['content-type']) {
-                        headers['Content-Type'] = 'application/json';
-                    }
-                }
-            }
-
-            if (typeof url === 'string') url = resolveVars(url);
-
-            try {
-                const res = await fetchWithTimeout(url, { method, headers, body });
-                const text = await res.text();
-
-                //reset needAuth if got 401
-                if (res.status === 401) {
-                    console.warn("pm.sendRequest detected 401, resetting needAuth");
-                    try {
-                        const currentEnv = localStorage.getItem('selected_env') || 'dev';
-                        if (!state.ENV) state.ENV = { values: [] };
-                        if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
-                        let row = state.ENV.values.find(v => v.key === 'needAuth');
-                        if (row) {
-                            row.value = 'true';
-                            row.enabled = true;
-                        } else {
-                            state.ENV.values.push({ key: 'needAuth', value: 'true', enabled: true });
-                        }
-                        localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
-                        state.COLLECTION_VARS.needAuth = "true";
-                        buildVarMap();
-                        updateVarsBtnCounter();
-                    } catch (e) {
-                        console.error("Failed to reset needAuth on 401:", e);
-                    }
+            // wrap each sendRequest call in a Promise and add it to the context
+            const outerPromise = (async () => {
+                let url = req.url;
+                let method = req.method || 'GET';
+                let headers = {};
+                if (Array.isArray(req.header)) {
+                    headers = Object.fromEntries(req.header.map(h => [h.key, h.value]));
+                } else if (req.header && typeof req.header === "object") {
+                    headers = req.header;
                 }
 
-                // json response
-                const resObj = {
-                    code: res.status,
-                    status: res.statusText || String(res.status),
-                    headers: Object.fromEntries(res.headers.entries()),
-                    text: () => text,
-                    json: () => {
-                        try { return JSON.parse(text); }
-                        catch (e) {
-                            console.warn("pm.sendRequest JSON parse error:", e.message, text);
-                            return { raw: text };
+                // normalize headers
+                const normalized = {};
+                Object.entries(headers).forEach(([k, v]) => {
+                    if (!k) return;
+                    const keyLower = String(k).toLowerCase();
+                    if (keyLower === "content-type") normalized["Content-Type"] = v;
+                    else if (keyLower === "authorization") normalized["Authorization"] = v;
+                    else normalized[k] = v;
+                });
+                headers = normalized;
+
+                let body;
+                if (req.body) {
+                    if (req.body.mode === 'raw' && typeof req.body.raw !== 'undefined') {
+                        body = req.body.raw;
+                    } else if (typeof req.body === 'string') {
+                        body = req.body;
+                    } else if (typeof req.body === 'object' && !req.body.mode) {
+                        body = JSON.stringify(req.body);
+                        if (!headers['Content-Type'] && !headers['content-type']) {
+                            headers['Content-Type'] = 'application/json';
                         }
                     }
-                };
+                }
 
+                if (typeof url === 'string') url = resolveVars(url);
 
-                ctx._logs.push(`pm.sendRequest → ${method} ${url} [${res.status}]`);
-                if (typeof cb === 'function') cb(null, resObj);
-                return resObj;
-            } catch (err) {
-                console.error("pm.sendRequest error:", err);
-                ctx._logs.push(`pm.sendRequest error: ${err.message}`);
-                if (typeof cb === 'function') cb(err);
-                throw err;
+                try {
+                    const res = await fetchWithTimeout(url, { method, headers, body });
+                    const text = await res.text();
+
+                    // reset needAuth if got 401
+                    if (res.status === 401) {
+                        console.warn("pm.sendRequest detected 401, resetting needAuth");
+                        try {
+                            const currentEnv = localStorage.getItem('selected_env') || 'dev';
+                            if (!state.ENV) state.ENV = { values: [] };
+                            if (!Array.isArray(state.ENV.values)) state.ENV.values = [];
+                            let row = state.ENV.values.find(v => v.key === 'needAuth');
+                            if (row) {
+                                row.value = 'true';
+                                row.enabled = true;
+                            } else {
+                                state.ENV.values.push({ key: 'needAuth', value: 'true', enabled: true });
+                            }
+                            localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(state.ENV));
+                            state.COLLECTION_VARS.needAuth = "true";
+                            buildVarMap();
+                            updateVarsBtnCounter();
+                        } catch (e) {
+                            console.error("Failed to reset needAuth on 401:", e);
+                        }
+                    }
+
+                    // build response object
+                    const resObj = {
+                        code: res.status,
+                        status: res.statusText || String(res.status),
+                        headers: Object.fromEntries(res.headers.entries()),
+                        text: () => text,
+                        json: () => {
+                            try { return JSON.parse(text); }
+                            catch (e) {
+                                console.warn("pm.sendRequest JSON parse error:", e.message, text);
+                                return { raw: text };
+                            }
+                        }
+                    };
+
+                    ctx._logs.push(`pm.sendRequest → ${method} ${url} [${res.status}]`);
+                    if (typeof cb === 'function') cb(null, resObj);
+                    return resObj;
+                } catch (err) {
+                    console.error("pm.sendRequest error:", err);
+                    ctx._logs.push(`pm.sendRequest error: ${err.message}`);
+                    if (typeof cb === 'function') cb(err);
+                    throw err;
+                }
+            })();
+
+            // add to the context's active Promises list
+            if (ctx && Array.isArray(ctx._promises)) {
+                ctx._promises.push(outerPromise);
+                outerPromise.finally(() => {
+                    const idx = ctx._promises.indexOf(outerPromise);
+                    if (idx >= 0) ctx._promises.splice(idx, 1);
+                });
             }
+
+            return outerPromise;
         },
-
 
         // test helpers
         test: (name, fn) => {
