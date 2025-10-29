@@ -14,6 +14,8 @@ build:
     paths:
       - public
     expire_in: 1 week
+  tags:
+    - aws-docker-arm
 
 # Deploy to GitLab Pages
 pages:
@@ -25,5 +27,9 @@ pages:
   artifacts:
     paths:
       - public
+  needs:
+    - job: build
   only:
     - main
+  tags:
+    - aws-docker-arm
