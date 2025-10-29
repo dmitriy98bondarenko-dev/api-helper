@@ -118,10 +118,9 @@ function getInitialStateForItem(item, forceDefaults = false) {
             : '';
     }
 // build scripts only for request level
-    let preArr = [];
-    let postArr = [];
+    let preArr = [], postArr = [];
 
-// request only
+// default collection scripts
     if (Array.isArray(item.event)) {
         item.event.forEach(ev => {
             const code = (ev.script?.exec || []).join('\n');
@@ -129,12 +128,19 @@ function getInitialStateForItem(item, forceDefaults = false) {
             if (ev.listen === 'test'       && code) postArr.push(code);
         });
     }
-// + legacy
-    const savedScripts = saved?.scripts ?? loadScriptsLegacy(id);
-    if (savedScripts?.pre) preArr.push(savedScripts.pre);
-    if (savedScripts?.post) postArr.push(savedScripts.post);
 
-    let scripts = { pre: preArr.join('\n'), post: postArr.join('\n') };
+    const requestDefaults = {
+        pre:  preArr.join('\n'),
+        post: postArr.join('\n')
+    };
+
+// if has saved або legacy use saved if exists, else use defaults
+    const savedScripts = saved?.scripts ?? loadScriptsLegacy(id);
+    const scripts = {
+        pre:  (savedScripts && typeof savedScripts.pre  === 'string') ? savedScripts.pre  : requestDefaults.pre,
+        post: (savedScripts && typeof savedScripts.post === 'string') ? savedScripts.post : requestDefaults.post
+    };
+
 
 
     const extraScripts = { pre: '', post: '' };
@@ -203,19 +209,26 @@ export function openRequest(item, forceDefaults = false) {
         const headers= tableToSimpleArray(headersTable.tBodies[0]);
         const scriptsNew = { pre: preTA.value, post: postTA.value };
         const authNew = {
-               type: $('#authType').value,
-               token: ($('#authTokenInp')?.textContent || '').trim()
-         };
+            type: $('#authType').value,
+            token: ($('#authTokenInp')?.textContent || '').trim()
+        };
+
+        // do not save if scripts are default
+        const isScriptsDefault =
+            (scriptsNew.pre  || '').trim() === (scripts.pre  || '').trim() &&
+            (scriptsNew.post || '').trim() === (scripts.post || '').trim();
+
         const patch = {
             method: getSelectedMethod(),
             url: $('#urlInp').value,
             params, headers,
             body: $('#bodyRawArea').textContent,
-            scripts: scriptsNew,
+            scripts: isScriptsDefault ? undefined : scriptsNew,
             auth: authNew
         };
         saveReqState(state.CURRENT_REQ_ID, patch);
     }, 180);
+
 // URL editable input
     const urlHidden = el('input', {
         id: 'urlInp',
@@ -678,7 +691,7 @@ export function openRequest(item, forceDefaults = false) {
             await runCollectionAuth();
             showScriptLoader(false);
 
-            // погасить флаг только через helper
+            // turn off the flag if auth is valid
             setNeedAuthInEnv('false');
             buildVarMap();
             updateVarsBtnCounter();
@@ -691,24 +704,39 @@ export function openRequest(item, forceDefaults = false) {
             (preTA.value.trim() || scripts.pre || '') // request-level
         ].filter(Boolean).join('\n');
 
+// if to run the collection level pre script
+        let skipCollectionPre = false;
 
-        if (preCodeAll.trim()) {
+// check the needAuth variable
+        const needAuthValue = String(getNeedAuthFromEnvOrCollection()).toLowerCase();
+
+// if needAuth false authorization is  valid
+        if (needAuthValue === 'false') {
+            skipCollectionPre = true;
+        }
+
+// if a request has its own pre script
+        const hasRequestPre = Boolean(preTA.value.trim() || scripts.pre.trim());
+
+// skip the collection pre
+        if (skipCollectionPre && !hasRequestPre) {
+            //console.log('Skipping collection pre-script (auth not required)');
+        } else if (preCodeAll.trim()) {
             try {
                 const ctx = makePreCtx({ method, url: finalUrl, params, headers, body });
 
                 showScriptLoader(true, 'Running pre-request script...');
                 await runUserScript(preCodeAll, ctx);
-                // wait for all promises to resolve variables
-                await Promise.all(ctx._promises || []);
+                // all promises waiting from runUserScript
                 showScriptLoader(false);
-
                 // update vars
                 buildVarMap();
                 updateVarsBtnCounter();
-                // highligh vars on the auth tab
                 highlightMissingVars(document, getEnvVarsOnly());
-
-                // rebuilding the body editor ui
+                while (!ctx._allDone) {
+                    await new Promise(r => setTimeout(r, 10));
+                }
+                // rebuilding body UI
                 const bodyEditor = document.getElementById('bodyRawArea');
                 if (bodyEditor) {
                     const offset = saveSelection(bodyEditor);
@@ -718,8 +746,6 @@ export function openRequest(item, forceDefaults = false) {
                     restoreSelection(bodyEditor, offset);
                 }
 
-
-
                 await new Promise(r => setTimeout(r, 50));
                 buildVarMap();
                 ({ method } = ctx.request);
@@ -728,7 +754,6 @@ export function openRequest(item, forceDefaults = false) {
                 body     = ctx.request.body;
 
                 let hdrsAfterArr = tableToSimpleArray(headersTable.tBodies[0]);
-
                 const fromCtx = Array.isArray(ctx.request.headers)
                     ? ctx.request.headers
                     : Object.entries(ctx.request.headers || {}).map(([k, v]) => ({
@@ -748,17 +773,14 @@ export function openRequest(item, forceDefaults = false) {
                     }
                 });
 
-                // rebuilding the table ui
                 headersTable = buildKVTable(hdrsAfterArr, { onChange: debSave });
                 headersBox.replaceChildren(headersTable);
 
-                // rebuilding headers
                 headers = Object.fromEntries(
                     hdrsAfterArr.filter(h => h.enabled !== false && h.key)
                         .map(h => [h.key, resolveVars(h.value)])
                 );
 
-                // rebuilding url and body
                 const paramsAfter = tableToSimpleArray(paramsTable.tBodies[0]);
                 finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), paramsAfter));
                 body = resolveVars($('#bodyRawArea').textContent || '');
@@ -768,17 +790,16 @@ export function openRequest(item, forceDefaults = false) {
                     if (ct) headers['Content-Type'] = ct;
                 }
 
-                if (ctx._logs.length) {
-                }
             }
             catch (e) {
                 renderResponse(null, 'PRE error: ' + e.message, 0, finalUrl);
                 return;
             }
-             finally {
-                             showScriptLoader(false);
-                         }
+            finally {
+                showScriptLoader(false);
+            }
         }
+
         // final auth enforce
         (() => {
             const { type: aType, token: rawTok } = getAuthData();
@@ -803,13 +824,6 @@ export function openRequest(item, forceDefaults = false) {
         showLoader(true); $('#sendBtn').disabled = true;
         const started = performance.now();
 
-        /*console.log('FINAL REQUEST →', JSON.stringify({
-            method,
-            url: finalUrl,
-            headers,
-            hasAuth: !!Object.keys(headers).find(h=>h.toLowerCase()==='authorization')
-        }, null, 2)); */
-
         try {
             let res = await fetchWithTimeout(finalUrl, {
                 method,
@@ -817,6 +831,7 @@ export function openRequest(item, forceDefaults = false) {
                 body: (method==='GET'||method==='HEAD') ? undefined : body
             });
             let text = await res.text();
+            let handledAlert = false;
             if (res.status === 401) {
                 console.warn("Got 401 on main request, resetting needAuth");
                 setNeedAuthInEnv('true');
@@ -825,9 +840,8 @@ export function openRequest(item, forceDefaults = false) {
                 updateVarsBtnCounter();
 
                 showAlert('Authorization expired — re-run auth and resend request', 'error');
+                handledAlert = true;
             }
-
-
 
 
             // POST scripts
@@ -836,28 +850,47 @@ export function openRequest(item, forceDefaults = false) {
                 (postTA.value.trim() || scripts.post || '') // request-level
             ].filter(Boolean).join('\n');
 
-            if (postCodeAll.trim()) {
+// check if there are scripts
+            const hasAnyPostScript =
+                (Array.isArray(item.event) && item.event.some(ev => ev.listen === 'test')) ||
+                (Array.isArray(item.folderEvents) && item.folderEvents.some(ev => ev.listen === 'test')) ||
+                (Array.isArray(state.COLLECTION?.event) && state.COLLECTION.event.some(ev => ev.listen === 'test'));
+
+// skip if there are no scripts
+            if (hasAnyPostScript && postCodeAll.trim()) {
                 try {
                     const ctxPost = makePostCtx({
                         request: { method, url: finalUrl, headers, body },
-                        response: { status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
+                        response: {
+                            status: res.status,
+                            statusText: res.statusText,
+                            headers: Object.fromEntries(res.headers.entries()),
+                            bodyText: text
+                        }
                     });
+
+                    showScriptLoader(true, 'Running test script...');
                     await runUserScript(postCodeAll, ctxPost);
-                    await Promise.all(ctxPost._promises || []);
+                    showScriptLoader(false);
+
                     buildVarMap();
                     updateVarsBtnCounter();
+
                     if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') {
                         text = ctxPost.response.bodyText;
                     }
                     if (ctxPost._logs.length) {
-                        console.log("POST script logs:", ctxPost._logs);
                     }
-                } catch(_) {}
+                } catch (e) {
+                    console.error("POST script error:", e);
+                } finally {
+                    showScriptLoader(false);
+                }
             }
 
             const ms = performance.now() - started;
             // if response code is 503
-            if (!res.ok) {
+            if (!res.ok && !handledAlert) {
                 showAlert('Request failed', 'error');
 
                 if (!text.trim()) {
@@ -1209,9 +1242,6 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
             if (filterInp.value) applyFilter();
         }
     }
-
-
-
     //  env dropdown
     initEnvDropdown();
 
@@ -1265,5 +1295,4 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
             renderLogs();
         };
     });
-
 }

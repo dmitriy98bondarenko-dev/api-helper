@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "09c01dba-16ec-449f-9240-586d2d88c80c",
-    "name": "SmokeOrders Defered",
+    "_postman_id": "109e7cf0-e7e0-4002-9a25-c5c5e0d33ddd",
+    "name": "SmokeOrders old auth",
     "description": "Для використання колекції необхідно змінити значення змінних колекції, таких як:\n\n- `UserName` - використати свій логін від райдер аккаунта\n- `Password` - використати свій пароль від райдер аккаунта\n- `WalletId` - змінити на гаманець тестового драйвера\n- `AdminLogin` - використати свій логін в адмінку\n- `AdminPassword` - використати свій пароль до адмінки\n    \n\nВ змінну `PromoCode` додано мультикод промо `DRIVER`, який буде дійсний до 01.11.25, після експайру, потрібно перестворити.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "49265802",
-    "_collection_link": "https://uklon-driver.postman.co/workspace/Uklon.Driver-Workspace~7cc8acde-599b-4062-8a90-2f810c7ff50f/collection/49265802-09c01dba-16ec-449f-9240-586d2d88c80c?action=share&source=collection_link&creator=49265802"
+    "_collection_link": "https://uklon-driver.postman.co/workspace/Uklon.Driver-Workspace~7cc8acde-599b-4062-8a90-2f810c7ff50f/collection/49265802-109e7cf0-e7e0-4002-9a25-c5c5e0d33ddd?action=share&source=collection_link&creator=49265802"
   },
   "item": [
     {
@@ -101,8 +101,7 @@
                       ""
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 },
                 {
@@ -112,8 +111,7 @@
                       ""
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 }
               ],
@@ -132,7 +130,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"amount\": 1000,\n    \"description\": \"Test\",\n    \"initiated_by_user_id\": \"f05a3650-d531-497e-add1-c3badd0c4370\",\n    \"profit_loss_type\": \"driver_app_fee\",\n    \"region_id\": 1,\n    \"vb_type\": \"bonus_order\"\n}",
+                  "raw": "{\n    \"amount\": 1000,\n    \"description\": \"Test\",\n    \"initiated_by_user_id\": \"{{adminId}}\",\n    \"profit_loss_type\": \"driver_app_fee\",\n    \"region_id\": 1,\n    \"vb_type\": \"bonus_order\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -186,14 +184,7 @@
               ],
               "request": {
                 "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{adminAuthToken}}",
-                      "type": "string"
-                    }
-                  ]
+                  "type": "noauth"
                 },
                 "method": "POST",
                 "header": [],
@@ -613,7 +604,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n\t\"promo_code\": \"{{promoCodeName}}\"\n}",
+                  "raw": "{\n\t\"promo_code\": {{promoCodeName}}\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -871,6 +862,91 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Send tips",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{riderAuthToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Host",
+                "value": "rider.dev.uklon.com.ua"
+              },
+              {
+                "key": "user-agent",
+                "value": "UklonAndroid/711300"
+              },
+              {
+                "key": "x-fp",
+                "value": "E164"
+              },
+              {
+                "key": "app_uid",
+                "value": "6147310c-5440-311b-b92e-c3c9e4624255"
+              },
+              {
+                "key": "client_id",
+                "value": "8b7b4c21cb5b43d68ac8fd7dafb96bc7"
+              },
+              {
+                "key": "device_name",
+                "value": "Xiaomi/2209116AG"
+              },
+              {
+                "key": "app_version",
+                "value": "7.113.0.874949"
+              },
+              {
+                "key": "locale",
+                "value": "uk"
+              },
+              {
+                "key": "city",
+                "value": "kiev"
+              },
+              {
+                "key": "authorization",
+                "value": "Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNyc2Etc2hhMzg0IiwidHlwIjoiSldUIn0.eyJqdGkiOiI3Y2U3ZDNiZjQ2Zjk0YjJjYjQ5NGVhZWY1NGI5NGIxZiIsIm5hbWVpZCI6IjMzMTc4NzU0LTZiYWItNDY0NC05NWJiLWM4NzBiNTRkZmNiYiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyIjoiMzMxNzg3NTQtNmJhYi00NjQ0LTk1YmItYzg3MGI1NGRmY2JiIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjpbIk1vZGVyYXRvciIsIlF1YWxpdHlBZ2VudCIsIkFkbWluaXN0cmF0b3IiXSwibmJmIjoxNzU5OTM0NjE1LCJleHAiOjE3NTk5MzgyMTUsImlhdCI6MTc1OTkzNDYxNSwiaXNzIjoiaHR0cHM6Ly9ub25wcm9kLnVrbG9uLmNvbS51YS8iLCJhdWQiOiJodHRwczovL25vbnByb2QudWtsb24uY29tLnVhLyIsInByb3BlcnRpZXMiOnsiYXBwX3VpZCI6IjYxNDczMTBjLTU0NDAtMzExYi1iOTJlLWMzYzllNDYyNDI1NSJ9fQ.f3Y7gUdDZ_fwsjWqvIbSPibom8dKzO2VaGFrQoS71Qo9V1-8GHQGxMrtv4nuDpCqU_s7FR4nMN6KZNcUG1UuRuCaKo15iUxCXbaccfce5cu7sMzrBjhHsyTZGK651-J8KuEikcfBWHqm1qaJfM6AUocpdhCC2OeY2g-S58z3JY24qREwy1zxfS9gVlNN6u1_2Q5R7DZXaUN5x0vdJHxZjO0JzecfRCxRr2aBq8c5gdmYHcaoO5JgPElCF-4xs28hBkt8Eft6QmWxeXTrce98H7UFc5iMOpqDbT9gzIEsJjfI25N5DuFcSZiwBbbqrL_JBXYXX1R4X4OgQZJsxKrVTA"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json; charset=UTF-8"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tips_amount\":20.0,\"payment_method_id\":\"{{paymentMethodId}}\"}",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{riderGatewayHost}}/api/v1/orders/{{orderId}}/tips",
+              "host": [
+                "{{riderGatewayHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "{{orderId}}",
+                "tips"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -887,36 +963,15 @@
                   "listen": "prerequest",
                   "script": {
                     "exec": [
-                      "eval(pm.collectionVariables.get(\"savePaymentMethodsFn\"));",
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                       "",
-                      "const p = (async () => {",
-                      "    try {",
-                      "        await new Promise((resolve, reject) => {",
-                      "            savePaymentMethods(() => {",
-                      "                const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                      "                pm.collectionVariables.set(\"fareId\", fareId);",
-                      "                console.log(\"Сгенерированный fare_id:\", fareId);",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                       "",
-                      "                let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                      "                payload.fare_id = fareId;",
-                      "                payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
-                      "                payload.payment_method.type = \"card\";",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
+                      "payload.payment_method.type = \"card\";",
                       "",
-                      "                fareEstimate(payload, () => {",
-                      "                    console.log(\"fareEstimate завершён\");",
-                      "                    resolve();",
-                      "                }, reject);",
-                      "            }, reject);",
-                      "        });",
-                      "    } catch (err) {",
-                      "        console.error(\"Ошибка в pre-script:\", err);",
-                      "        throw err;",
-                      "    }",
-                      "})();",
-                      "",
-                      "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                      "ctx._promises.push(p);"
+                      "await fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
                     "packages": {},
@@ -961,367 +1016,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{paymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{riderGatewayHost}}/api/v1/orders",
-                  "host": [
-                    "{{riderGatewayHost}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "orders"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "[Cash + Standart]",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
-                      "",
-                      "ctx._promises.push(",
-                      "    new Promise((resolve, reject) => {",
-                      "",
-                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadAdditional\"));",
-                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
-                      "",
-                      "        fareEstimate(payload, () => {",
-                      "            resolve();",
-                      "        }, reject);",
-                      "    })",
-                      ");",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                },
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{riderAuthToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Host",
-                    "value": "{{orderHost}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "user-agent",
-                    "value": "UklonAndroid/78200",
-                    "type": "text"
-                  },
-                  {
-                    "key": "x-fp",
-                    "value": "E164",
-                    "type": "text"
-                  },
-                  {
-                    "key": "app_uid",
-                    "value": "{{appUid}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "client_id",
-                    "value": "{{clientId}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "device_name",
-                    "value": "Xiaomi/Redmi Note 9 Pro",
-                    "type": "text"
-                  },
-                  {
-                    "key": "app_version",
-                    "value": "7.82.0.697812",
-                    "type": "text"
-                  },
-                  {
-                    "key": "locale",
-                    "value": "ru",
-                    "type": "text"
-                  },
-                  {
-                    "key": "city",
-                    "value": "kyiv",
-                    "type": "text"
-                  },
-                  {
-                    "key": "content-type",
-                    "value": "application/json; charset=UTF-8",
-                    "type": "text"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{riderGatewayHost}}/api/v1/orders",
-                  "host": [
-                    "{{riderGatewayHost}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "orders"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ],
-          "description": "https://app.qase.io/case/DRV-77"
-        },
-        {
-          "name": "Order.Business",
-          "item": [
-            {
-              "name": "[Business] Create Order",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      "eval(pm.collectionVariables.get(\"savePaymentMethodsFn\"));",
-                      "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
-                      "",
-                      "const p = (async () => {",
-                      "    try {",
-                      "        await new Promise((resolve, reject) => {",
-                      "            savePaymentMethods(() => {",
-                      "                const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                      "                pm.collectionVariables.set(\"fareId\", fareId);",
-                      "",
-                      "                let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadOptional\"));",
-                      "                payload.fare_id = fareId;",
-                      "                payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
-                      "                payload.payment_method.type = \"cash\";",
-                      "",
-                      "                fareEstimate(payload, () => {",
-                      "                    console.log(\"fareEstimate завершён\");",
-                      "                    resolve();",
-                      "                }, reject);",
-                      "            }, reject);",
-                      "        });",
-                      "    } catch (err) {",
-                      "        console.error(\"Ошибка в pre-script:\", err);",
-                      "        throw err;",
-                      "    }",
-                      "})();",
-                      "",
-                      "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                      "ctx._promises.push(p);"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                },
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{riderAuthToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "app_uid",
-                    "value": "{{appUid}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "client_id",
-                    "value": "{{clientId}}",
-                    "type": "text"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Business\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{riderGatewayHost}}/api/v1/orders",
-                  "host": [
-                    "{{riderGatewayHost}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "orders"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "[Cash + Business]",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
-                      "",
-                      "ctx._promises.push(",
-                      "    new Promise((resolve, reject) => {",
-                      "",
-                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadAdditional\"));",
-                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
-                      "",
-                      "",
-                      "        fareEstimate(payload, () => {",
-                      "            resolve();",
-                      "        }, reject);",
-                      "    })",
-                      ");",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                },
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{riderAuthToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Host",
-                    "value": "{{orderHost}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "user-agent",
-                    "value": "UklonAndroid/78200",
-                    "type": "text"
-                  },
-                  {
-                    "key": "x-fp",
-                    "value": "E164",
-                    "type": "text"
-                  },
-                  {
-                    "key": "app_uid",
-                    "value": "{{appUid}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "client_id",
-                    "value": "{{clientId}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "device_name",
-                    "value": "Xiaomi/Redmi Note 9 Pro",
-                    "type": "text"
-                  },
-                  {
-                    "key": "app_version",
-                    "value": "7.82.0.697812",
-                    "type": "text"
-                  },
-                  {
-                    "key": "locale",
-                    "value": "ru",
-                    "type": "text"
-                  },
-                  {
-                    "key": "city",
-                    "value": "kyiv",
-                    "type": "text"
-                  },
-                  {
-                    "key": "content-type",
-                    "value": "application/json; charset=UTF-8",
-                    "type": "text"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Business\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
+                  "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{paymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1357,60 +1052,19 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"promoCodeApplyFn\"));",
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
+                      "promoCodeApply()",
                       "",
-                      "const p = (async () => {",
-                      "    try {",
-                      "        await new Promise((resolve, reject) => {",
-                      "            try {",
-                      "                const maybe = promoCodeApply((err) => {",
-                      "                    if (err) return reject(err);",
-                      "                    resolve();",
-                      "                });",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                       "",
-                      "                if (maybe && typeof maybe.then === 'function') {",
-                      "                    maybe.then(resolve).catch(reject);",
-                      "                }",
-                      "            } catch (e) {",
-                      "                reject(e);",
-                      "            }",
-                      "        });",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
+                      "payload.payment_method.type = \"card\";",
+                      "payload.selected_options = {",
+                      "    product_type: \"Kids\",",
+                      "    extra_cost: 100.0",
+                      "};",
                       "",
-                      "        console.log(\"PromoCodeApply success\");",
-                      "",
-                      "        await new Promise((resolve, reject) => {",
-                      "            const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                      "            pm.collectionVariables.set(\"fareId\", fareId);",
-                      "            console.log(\"Сгенерированный fare_id:\", fareId);",
-                      "",
-                      "            let payload;",
-                      "            try {",
-                      "                payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                      "            } catch (e) {",
-                      "                return reject(new Error(\"Invalid JSON in fareEstimatePayloadBase\"));",
-                      "            }",
-                      "",
-                      "            payload.fare_id = fareId;",
-                      "            payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
-                      "            payload.payment_method.type = \"card\";",
-                      "            payload.selected_options = {",
-                      "                product_type: \"Kids\",",
-                      "                extra_cost: 100.0",
-                      "            };",
-                      "",
-                      "            fareEstimate(payload, () => {",
-                      "                resolve();",
-                      "            }, reject);",
-                      "        });",
-                      "",
-                      "    } catch (err) {",
-                      "        console.error(\"Помилка в pre-script:\", err);",
-                      "        throw err;",
-                      "    }",
-                      "})();",
-                      "",
-                      "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                      "ctx._promises.push(p);",
-                      ""
+                      "fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
                     "packages": {},
@@ -1455,7 +1109,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Kids\",\n\t\"product_conditions\": [\n         {\n            \"name\": \"car_seat_type\",\n            \"data\": \"forward_facing\"\n        }\n    ],\n\t\"payment_method_id\": \"{{paymentMethodId}}\",\n\t\"comment\": \"\",\n\t\"use_pedestrian_path\": false\n}",
+                  "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Kids\",\n\t\"product_conditions\": [\n         {\n            \"name\": \"car_seat_type\",\n            \"data\": \"forward_facing\"\n        }\n    ],\n\t\"payment_method_id\": \"{{paymentMethodId}}\",\n\t\"comment\": \"\",\n\t\"use_pedestrian_path\": false\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1485,74 +1139,29 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"promoCodeApplyFn\"));",
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
+                      "promoCodeApply()",
                       "",
-                      "const p = (async () => {",
-                      "    try {",
-                      "        await new Promise((resolve, reject) => {",
-                      "            try {",
-                      "                const maybe = promoCodeApply((err) => {",
-                      "                    if (err) return reject(err);",
-                      "                    resolve();",
-                      "                });",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                       "",
-                      "                if (maybe && typeof maybe.then === 'function') {",
-                      "                    maybe.then(resolve).catch(reject);",
-                      "                }",
-                      "            } catch (e) {",
-                      "                reject(e);",
-                      "            }",
-                      "        });",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
+                      "payload.payment_method.type = \"card\";",
+                      "payload.selected_options = {",
+                      "    product_type: \"Kids\",",
+                      "    extra_cost: 100.0",
+                      "};",
                       "",
-                      "        console.log(\"PromoCodeApply success\");",
-                      "",
-                      "        await new Promise((resolve, reject) => {",
-                      "            const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                      "            pm.collectionVariables.set(\"fareId\", fareId);",
-                      "",
-                      "            let payload;",
-                      "            try {",
-                      "                payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                      "            } catch (e) {",
-                      "                return reject(new Error(\"Invalid JSON in fareEstimatePayloadBase\"));",
-                      "            }",
-                      "",
-                      "            payload.fare_id = fareId;",
-                      "            payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
-                      "            payload.payment_method.type = \"card\";",
-                      "            payload.selected_options = {",
-                      "                product_type: \"Kids\",",
-                      "                extra_cost: 100.0",
-                      "            };",
-                      "",
-                      "            fareEstimate(payload, () => {",
-                      "                resolve();",
-                      "            }, reject);",
-                      "        });",
-                      "",
-                      "    } catch (err) {",
-                      "        console.error(\"Помилка в pre-script:\", err);",
-                      "        throw err;",
-                      "    }",
-                      "})();",
-                      "",
-                      "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                      "ctx._promises.push(p);",
-                      ""
+                      "fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 },
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "exec": [],
+                    "type": "text/javascript"
                   }
                 }
               ],
@@ -1582,7 +1191,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Kids\",\n\t\"product_conditions\": [\n         {\n            \"name\": \"car_seat_type\",\n            \"data\": \"booster\"\n        }\n    ],\n\t\"payment_method_id\": \"{{paymentMethodId}}\",\n\t\"comment\": \"\",\n\t\"use_pedestrian_path\": false\n}",
+                  "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Kids\",\n\t\"product_conditions\": [\n         {\n            \"name\": \"car_seat_type\",\n            \"data\": \"booster\"\n        }\n    ],\n\t\"payment_method_id\": \"{{paymentMethodId}}\",\n\t\"comment\": \"\",\n\t\"use_pedestrian_path\": false\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1619,8 +1228,7 @@
                       ""
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 },
                 {
@@ -1629,54 +1237,19 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                       "",
-                      "const p = (async () => {",
-                      "    try {",
-                      "        await new Promise((resolve, reject) => {",
-                      "            const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                      "            pm.collectionVariables.set(\"fareId\", fareId);",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                       "",
-                      "            let payload;",
-                      "            try {",
-                      "                payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                      "            } catch (e) {",
-                      "                return reject(new Error(\"Invalid JSON in fareEstimatePayloadBase\"));",
-                      "            }",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
+                      "payload.payment_method.type = \"cash\";",
                       "",
-                      "            payload.fare_id = fareId;",
-                      "            payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
-                      "            payload.payment_method.type = \"cash\";",
-                      "",
-                      "            fareEstimate(payload, () => {",
-                      "                resolve();",
-                      "            }, reject);",
-                      "        });",
-                      "    } catch (err) {",
-                      "        console.error(\"Помилка в pre-script:\", err);",
-                      "        throw err;",
-                      "    }",
-                      "})();",
-                      "",
-                      "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                      "ctx._promises.push(p);",
-                      ""
+                      "fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 }
               ],
-              "protocolProfileBehavior": {
-                "disabledSystemHeaders": {
-                  "connection": true,
-                  "accept-encoding": true,
-                  "accept": true,
-                  "user-agent": true,
-                  "host": true,
-                  "content-length": true,
-                  "content-type": true
-                }
-              },
               "request": {
                 "auth": {
                   "type": "bearer",
@@ -1703,7 +1276,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Driver\",\n\t\"product_conditions\": [{\n\t\t\"name\": \"transmission_type\",\n\t\t\"data\": \"auto\"\n\t}],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"\",\n\t\"use_pedestrian_path\": false\n}",
+                  "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Driver\",\n\t\"product_conditions\": [{\n\t\t\"name\": \"transmission_type\",\n\t\t\"data\": \"auto\"\n\t}],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"\",\n\t\"use_pedestrian_path\": false\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1739,50 +1312,23 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                       "",
-                      "const p = (async () => {",
-                      "    try {",
-                      "        await new Promise((resolve, reject) => {",
-                      "            const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                      "            pm.collectionVariables.set(\"fareId\", fareId);",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                       "",
-                      "            let payload;",
-                      "            try {",
-                      "                payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                      "            } catch (e) {",
-                      "                return reject(new Error(\"Invalid JSON in fareEstimatePayloadBase\"));",
-                      "            }",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
+                      "payload.payment_method.type = \"cash\";",
                       "",
-                      "            payload.fare_id = fareId;",
-                      "            payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
-                      "            payload.payment_method.type = \"cash\";",
-                      "",
-                      "            fareEstimate(payload, () => {",
-                      "                resolve();",
-                      "            }, reject);",
-                      "        });",
-                      "    } catch (err) {",
-                      "        console.error(\"Помилка в pre-script:\", err);",
-                      "        throw err;",
-                      "    }",
-                      "})();",
-                      "",
-                      "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                      "ctx._promises.push(p);"
+                      "fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 },
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "exec": [],
+                    "type": "text/javascript"
                   }
                 }
               ],
@@ -1812,7 +1358,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Wagon\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"\",\n\t\"use_pedestrian_path\": false\n}",
+                  "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Wagon\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"\",\n\t\"use_pedestrian_path\": false\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1851,39 +1397,16 @@
                         "exec": [
                           "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                           "",
-                          "const p = (async () => {",
-                          "    try {",
-                          "        await new Promise((resolve, reject) => {",
-                          "            const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                          "            pm.collectionVariables.set(\"fareId\", fareId);",
+                          "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                           "",
-                          "            let payload;",
-                          "            try {",
-                          "                payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                          "            } catch (e) {",
-                          "                return reject(new Error(\"Invalid JSON in fareEstimatePayloadBase\"));",
-                          "            }",
+                          "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                          "payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
+                          "payload.payment_method.type = \"cash\";",
                           "",
-                          "            payload.fare_id = fareId;",
-                          "            payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
-                          "            payload.payment_method.type = \"cash\";",
-                          "",
-                          "            fareEstimate(payload, () => {",
-                          "                resolve();",
-                          "            }, reject);",
-                          "        });",
-                          "    } catch (err) {",
-                          "        console.error(\"Помилка в pre-script:\", err);",
-                          "        throw err;",
-                          "    }",
-                          "})();",
-                          "",
-                          "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                          "ctx._promises.push(p);"
+                          "fareEstimate(payload);"
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     },
                     {
@@ -1893,8 +1416,7 @@
                           ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     }
                   ],
@@ -1996,73 +1518,20 @@
                           "eval(pm.collectionVariables.get(\"riderDebtApplyFn\"));",
                           "eval(pm.collectionVariables.get(\"promoCodeApplyFn\"));",
                           "",
-                          "const p = (async () => {",
-                          "    try {",
-                          "        await new Promise((resolve, reject) => {",
-                          "            try {",
-                          "                const maybe = riderDebtApply(50, (err) => {",
-                          "                    if (err) return reject(err);",
-                          "                    resolve();",
-                          "                });",
                           "",
-                          "                if (maybe && typeof maybe.then === 'function') {",
-                          "                    maybe.then(resolve).catch(reject);",
-                          "                }",
-                          "            } catch (e) {",
-                          "                reject(e);",
-                          "            }",
-                          "        });",
+                          "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                           "",
+                          "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                          "payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
+                          "payload.payment_method.type = \"cash\";",
                           "",
-                          "        await new Promise((resolve, reject) => {",
-                          "            try {",
-                          "                const maybe = promoCodeApply((err) => {",
-                          "                    if (err) return reject(err);",
-                          "                    resolve();",
-                          "                });",
-                          "",
-                          "                if (maybe && typeof maybe.then === 'function') {",
-                          "                    maybe.then(resolve).catch(reject);",
-                          "                }",
-                          "            } catch (e) {",
-                          "                reject(e);",
-                          "            }",
-                          "        });",
-                          "",
-                          "        console.log(\"promoCodeApply success\");",
-                          "",
-                          "        await new Promise((resolve, reject) => {",
-                          "            const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                          "            pm.collectionVariables.set(\"fareId\", fareId);",
-                          "",
-                          "            let payload;",
-                          "            try {",
-                          "                payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                          "            } catch (e) {",
-                          "                return reject(new Error(\"Invalid JSON in fareEstimatePayloadBase\"));",
-                          "            }",
-                          "",
-                          "            payload.fare_id = fareId;",
-                          "            payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
-                          "            payload.payment_method.type = \"cash\";",
-                          "",
-                          "            fareEstimate(payload, () => {",
-                          "                resolve();",
-                          "            }, reject);",
-                          "        });",
-                          "",
-                          "    } catch (err) {",
-                          "        console.error(\"Помилка в pre-script:\", err);",
-                          "        throw err;",
-                          "    }",
-                          "})();",
-                          "",
-                          "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                          "ctx._promises.push(p);"
+                          "riderDebtApply(50);",
+                          "promoCodeApply();",
+                          "fareEstimate(payload);",
+                          ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     },
                     {
@@ -2072,8 +1541,7 @@
                           ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     }
                   ],
@@ -2148,7 +1616,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
+                      "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -2179,56 +1647,18 @@
                           "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                           "eval(pm.collectionVariables.get(\"promoCodeApplyFn\"));",
                           "",
-                          "const p = (async () => {",
-                          "    try {",
-                          "        await new Promise((resolve, reject) => {",
-                          "            try {",
-                          "                const maybe = promoCodeApply((err) => {",
-                          "                    if (err) return reject(err);",
-                          "                    resolve();",
-                          "                });",
                           "",
-                          "                if (maybe && typeof maybe.then === 'function') {",
-                          "                    maybe.then(resolve).catch(reject);",
-                          "                }",
-                          "            } catch (e) {",
-                          "                reject(e);",
-                          "            }",
-                          "        });",
+                          "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                           "",
-                          "        await new Promise((resolve, reject) => {",
-                          "            const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                          "            pm.collectionVariables.set(\"fareId\", fareId);",
+                          "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                          "payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
+                          "payload.payment_method.type = \"cash\";",
                           "",
-                          "            let payload;",
-                          "            try {",
-                          "                payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                          "            } catch (e) {",
-                          "                return reject(new Error(\"Invalid JSON in fareEstimatePayloadBase\"));",
-                          "            }",
-                          "",
-                          "            payload.fare_id = fareId;",
-                          "            payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
-                          "            payload.payment_method.type = \"cash\";",
-                          "",
-                          "            fareEstimate(payload, () => {",
-                          "                console.log(\"fareEstimate завершён\");",
-                          "                resolve();",
-                          "            }, reject);",
-                          "        });",
-                          "",
-                          "    } catch (err) {",
-                          "        console.error(\"Помилка в pre-script:\", err);",
-                          "        throw err;",
-                          "    }",
-                          "})();",
-                          "",
-                          "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                          "ctx._promises.push(p);"
+                          "promoCodeApply();",
+                          "fareEstimate(payload);"
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     },
                     {
@@ -2238,8 +1668,7 @@
                           ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     }
                   ],
@@ -2314,7 +1743,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
+                      "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -2345,56 +1774,18 @@
                           "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                           "eval(pm.collectionVariables.get(\"riderDebtApplyFn\"));",
                           "",
-                          "const p = (async () => {",
-                          "    try {",
-                          "        await new Promise((resolve, reject) => {",
-                          "            try {",
-                          "                const maybe = riderDebtApply(50, (err) => {",
-                          "                    if (err) return reject(err);",
-                          "                    resolve();",
-                          "                });",
                           "",
-                          "                if (maybe && typeof maybe.then === 'function') {",
-                          "                    maybe.then(resolve).catch(reject);",
-                          "                }",
-                          "            } catch (e) {",
-                          "                reject(e);",
-                          "            }",
-                          "        });",
+                          "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                           "",
-                          "        await new Promise((resolve, reject) => {",
-                          "            const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                          "            pm.collectionVariables.set(\"fareId\", fareId);",
+                          "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                          "payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
+                          "payload.payment_method.type = \"cash\";",
                           "",
-                          "            let payload;",
-                          "            try {",
-                          "                payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                          "            } catch (e) {",
-                          "                return reject(new Error(\"Invalid JSON in fareEstimatePayloadBase\"));",
-                          "            }",
-                          "",
-                          "            payload.fare_id = fareId;",
-                          "            payload.payment_method.id = pm.collectionVariables.get(\"cashPaymentMethodId\");",
-                          "            payload.payment_method.type = \"cash\";",
-                          "",
-                          "            fareEstimate(payload, () => {",
-                          "                resolve();",
-                          "            }, reject);",
-                          "        });",
-                          "",
-                          "    } catch (err) {",
-                          "        console.error(\"Помилка в pre-script:\", err);",
-                          "        throw err;",
-                          "    }",
-                          "})();",
-                          "",
-                          "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                          "ctx._promises.push(p);",
-                          ""
+                          "riderDebtApply(50);",
+                          "fareEstimate(payload);"
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     },
                     {
@@ -2404,8 +1795,7 @@
                           ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     }
                   ],
@@ -2505,39 +1895,16 @@
                         "exec": [
                           "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                           "",
-                          "const p = (async () => {",
-                          "    try {",
-                          "        await new Promise((resolve, reject) => {",
-                          "            const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                          "            pm.collectionVariables.set(\"fareId\", fareId);",
+                          "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                           "",
-                          "            let payload;",
-                          "            try {",
-                          "                payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                          "            } catch (e) {",
-                          "                return reject(new Error(\"Invalid JSON in fareEstimatePayloadBase\"));",
-                          "            }",
+                          "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                          "payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
+                          "payload.payment_method.type = \"card\";",
                           "",
-                          "            payload.fare_id = fareId;",
-                          "            payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
-                          "            payload.payment_method.type = \"card\";",
-                          "",
-                          "            fareEstimate(payload, () => {",
-                          "                resolve();",
-                          "            }, reject);",
-                          "        });",
-                          "    } catch (err) {",
-                          "        console.error(\"Помилка в pre-script:\", err);",
-                          "        throw err;",
-                          "    }",
-                          "})();",
-                          "",
-                          "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                          "ctx._promises.push(p);"
+                          "fareEstimate(payload);"
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     },
                     {
@@ -2547,8 +1914,7 @@
                           ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     }
                   ],
@@ -2623,7 +1989,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
+                      "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -2655,46 +2021,20 @@
                           "eval(pm.collectionVariables.get(\"riderDebtApplyFn\"));",
                           "eval(pm.collectionVariables.get(\"promoCodeApplyFn\"));",
                           "",
-                          "const p = (async () => {",
-                          "    try {",
-                          "        await riderDebtApply(50);",
-                          "        console.log(\"riderDebtApply успішно виконано\");",
                           "",
-                          "        await promoCodeApply();",
-                          "        console.log(\"promoCodeApply успішно виконано\");",
+                          "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                           "",
-                          "        const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                          "        pm.collectionVariables.set(\"fareId\", fareId);",
+                          "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                          "payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
+                          "payload.payment_method.type = \"card\";",
                           "",
-                          "        let payload;",
-                          "        try {",
-                          "            payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                          "        } catch (e) {",
-                          "            throw new Error(\"Invalid JSON in fareEstimatePayloadBase\");",
-                          "        }",
-                          "",
-                          "        payload.fare_id = fareId;",
-                          "        payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
-                          "        payload.payment_method.type = \"card\";",
-                          "",
-                          "        await new Promise((resolve, reject) => {",
-                          "            fareEstimate(payload, () => {",
-                          "                resolve();",
-                          "            }, reject);",
-                          "        });",
-                          "",
-                          "    } catch (err) {",
-                          "        console.error(\"Помилка в pre-script:\", err);",
-                          "        throw err;",
-                          "    }",
-                          "})();",
-                          "",
-                          "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                          "ctx._promises.push(p);"
+                          "riderDebtApply(50);",
+                          "promoCodeApply();",
+                          "fareEstimate(payload);",
+                          ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     },
                     {
@@ -2704,8 +2044,7 @@
                           ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     }
                   ],
@@ -2780,7 +2119,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
+                      "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -2811,43 +2150,19 @@
                           "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                           "eval(pm.collectionVariables.get(\"riderDebtApplyFn\"));",
                           "",
-                          "const p = (async () => {",
-                          "    try {",
-                          "        await riderDebtApply(50);",
-                          "        console.log(\"riderDebtApply успішно виконано\");",
                           "",
-                          "        const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                          "        pm.collectionVariables.set(\"fareId\", fareId);",
+                          "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                           "",
-                          "        let payload;",
-                          "        try {",
-                          "            payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                          "        } catch (e) {",
-                          "            throw new Error(\"Invalid JSON in fareEstimatePayloadBase\");",
-                          "        }",
+                          "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                          "payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
+                          "payload.payment_method.type = \"card\";",
                           "",
-                          "        payload.fare_id = fareId;",
-                          "        payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
-                          "        payload.payment_method.type = \"card\";",
-                          "",
-                          "        await new Promise((resolve, reject) => {",
-                          "            fareEstimate(payload, () => {",
-                          "                resolve();",
-                          "            }, reject);",
-                          "        });",
-                          "",
-                          "    } catch (err) {",
-                          "        console.error(\"Помилка в pre-script:\", err);",
-                          "        throw err;",
-                          "    }",
-                          "})();",
-                          "",
-                          "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                          "ctx._promises.push(p);"
+                          "riderDebtApply(50);",
+                          "fareEstimate(payload);",
+                          ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     },
                     {
@@ -2857,8 +2172,7 @@
                           ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     }
                   ],
@@ -2933,7 +2247,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Іван привіт\",\n\t\"use_pedestrian_path\": false\n}",
+                      "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Іван привіт\",\n\t\"use_pedestrian_path\": false\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -2964,43 +2278,19 @@
                           "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                           "eval(pm.collectionVariables.get(\"promoCodeApplyFn\"));",
                           "",
-                          "const p = (async () => {",
-                          "    try {",
-                          "        await promoCodeApply();",
-                          "        console.log(\"promoCodeApply успішно виконано\");",
                           "",
-                          "        const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                          "        pm.collectionVariables.set(\"fareId\", fareId);",
+                          "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
                           "",
-                          "        let payload;",
-                          "        try {",
-                          "            payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
-                          "        } catch (e) {",
-                          "            throw new Error(\"Invalid JSON in fareEstimatePayloadBase\");",
-                          "        }",
+                          "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                          "payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
+                          "payload.payment_method.type = \"card\";",
                           "",
-                          "        payload.fare_id = fareId;",
-                          "        payload.payment_method.id = pm.collectionVariables.get(\"paymentMethodId\");",
-                          "        payload.payment_method.type = \"card\";",
-                          "",
-                          "        await new Promise((resolve, reject) => {",
-                          "            fareEstimate(payload, () => {",
-                          "                resolve();",
-                          "            }, reject);",
-                          "        });",
-                          "",
-                          "    } catch (err) {",
-                          "        console.error(\"Помилка в pre-script:\", err);",
-                          "        throw err;",
-                          "    }",
-                          "})();",
-                          "",
-                          "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                          "ctx._promises.push(p);"
+                          "promoCodeApply();",
+                          "fareEstimate(payload);",
+                          ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     },
                     {
@@ -3010,8 +2300,7 @@
                           ""
                         ],
                         "type": "text/javascript",
-                        "packages": {},
-                        "requests": {}
+                        "packages": {}
                       }
                     }
                   ],
@@ -3086,7 +2375,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
+                      "raw": "{\n\t\"fare_id\": {{fareId}},\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -3121,31 +2410,19 @@
                   "listen": "prerequest",
                   "script": {
                     "exec": [
-                      "const p = (async () => {",
-                      "    try {",
-                      "        const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
-                      "        pm.collectionVariables.set(\"changeRequestFareId\", fareId);",
-                      "    } catch (err) {",
-                      "        throw err;",
-                      "    }",
-                      "})();",
-                      "if (!Array.isArray(ctx._promises)) ctx._promises = [];",
-                      "ctx._promises.push(p);"
+                      "const fareId = pm.variables.replaceIn(\"{{$randomUUID}}\");",
+                      "pm.collectionVariables.set(\"changeRequestFareId\", fareId);",
+                      ""
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 },
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "exec": [],
+                    "type": "text/javascript"
                   }
                 }
               ],
@@ -3175,7 +2452,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n\t\"fare_id\": \"{{changeRequestFareId}}\",\n\t\"order_route\": {\n\t\t\"points\": [{\n\t\t\t\"lat\": 50.35162,\n\t\t\t\"lng\": 30.895992,\n\t\t\t\"name\": \"Аеропорт Бориспіль, Термінал Д Термінал Д\"\n\t\t}, {\n\t\t\t\"lat\": 50.44067,\n\t\t\t\"lng\": 30.48988,\n\t\t\t\"name\": \"Вокзальна площа, 1\"\n\t\t},\n        {\n\t\t\t\"lat\": 50.35162,\n\t\t\t\"lng\": 30.895992,\n\t\t\t\"name\": \"Аеропорт Бориспіль, Термінал Д Термінал Д\"\n\t\t}]\n\t},\n\t\"ride_conditions\": [],\n\t\"payment_method\": {\n\t\t\"id\": \"{{paymentMethodId}}\",\n\t\t\"payment_type\": \"card\"\n\t}\n}",
+                  "raw": "{\n\t\"fare_id\": {{changeRequestFareId}},\n\t\"order_route\": {\n\t\t\"points\": [{\n\t\t\t\"lat\": 50.35162,\n\t\t\t\"lng\": 30.895992,\n\t\t\t\"name\": \"Аеропорт Бориспіль, Термінал Д Термінал Д\"\n\t\t}, {\n\t\t\t\"lat\": 50.44067,\n\t\t\t\"lng\": 30.48988,\n\t\t\t\"name\": \"Вокзальна площа, 1\"\n\t\t},\n        {\n\t\t\t\"lat\": 50.35162,\n\t\t\t\"lng\": 30.895992,\n\t\t\t\"name\": \"Аеропорт Бориспіль, Термінал Д Термінал Д\"\n\t\t}]\n\t},\n\t\"ride_conditions\": [],\n\t\"payment_method\": {\n\t\t\"id\": \"{{paymentMethodId}}\",\n\t\t\"payment_type\": \"card\"\n\t}\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3208,8 +2485,7 @@
                       ""
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 }
               ],
@@ -3239,7 +2515,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"fare_id\": \"{{changeRequestFareId}}\",\n  \"payment_method\": {\n    \"id\": \"{{paymentMethodId}}\",\n    \"payment_type\": \"card\"\n  }\n}",
+                  "raw": "{\n  \"fare_id\": {{changeRequestFareId}},\n  \"payment_method\": {\n    \"id\": \"{{paymentMethodId}}\",\n    \"payment_type\": \"card\"\n  }\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3282,22 +2558,9 @@
                       "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
                       "payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
                       "",
-                      "const promise = new Promise((resolve, reject) => {",
-                      "    fareEstimate(payload, resolve, reject);",
-                      "});",
+                      "await fareEstimate(payload);",
                       "",
-                      "// promise for browser runner",
-                      "if (typeof ctx !== 'undefined' && ctx._promises && Array.isArray(ctx._promises)) {",
-                      "    ctx._promises.push(promise);",
-                      "} else {",
-                      "    promise",
-                      "        .then(() => {",
-                      "            console.log(\"fareEstimate completed\");",
-                      "        })",
-                      "        .catch((err) => {",
-                      "            console.error(\"fareEstimate failed\", err);",
-                      "        });",
-                      "}",
+                      "console.log(\"fareEstimate completed\");",
                       ""
                     ],
                     "type": "text/javascript",
@@ -3413,21 +2676,17 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                       "",
-                      "ctx._promises.push(",
-                      "    new Promise((resolve, reject) => {",
-                      "        const futureDate = new Date(Date.now() + 6 * 60 * 60 * 1000);",
+                      "const futureDate = new Date(Date.now() + 6 * 60 * 60 * 1000);",
                       "",
-                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadAdditional\"));",
-                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
-                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadAdditional\"));",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
                       "",
-                      "        console.log('📅 pickup_time (через 6 часов):', new Date(payload.pickup_time * 1000).toISOString());",
+                      "console.log('pickup_time (через 6 часов):', new Date(payload.pickup_time * 1000).toISOString());",
                       "",
-                      "        fareEstimate(payload, () => {",
-                      "            resolve();",
-                      "        }, reject);",
-                      "    })",
-                      ");",
+                      "await fareEstimate(payload);",
+                      "",
+                      "console.log(\"fareEstimate completed\");",
                       ""
                     ],
                     "type": "text/javascript",
@@ -3514,136 +2773,6 @@
                 "body": {
                   "mode": "raw",
                   "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Business\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{riderGatewayHost}}/api/v1/orders",
-                  "host": [
-                    "{{riderGatewayHost}}"
-                  ],
-                  "path": [
-                    "api",
-                    "v1",
-                    "orders"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "[Cash + Standart] Deferred Tomorrow",
-              "event": [
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
-                      "",
-                      "ctx._promises.push(",
-                      "    new Promise((resolve, reject) => {",
-                      "        const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000 + 21 * 60 * 1000);",
-                      "",
-                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadAdditional\"));",
-                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
-                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
-                      "",
-                      "        console.log('📅 pickup_time (завтра):', new Date(payload.pickup_time * 1000).toISOString());",
-                      "",
-                      "        fareEstimate(payload, () => {",
-                      "            resolve();",
-                      "        }, reject);",
-                      "    })",
-                      ");",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                },
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{riderAuthToken}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Host",
-                    "value": "{{orderHost}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "user-agent",
-                    "value": "UklonAndroid/78200",
-                    "type": "text"
-                  },
-                  {
-                    "key": "x-fp",
-                    "value": "E164",
-                    "type": "text"
-                  },
-                  {
-                    "key": "app_uid",
-                    "value": "{{appUid}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "client_id",
-                    "value": "{{clientId}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "device_name",
-                    "value": "Xiaomi/Redmi Note 9 Pro",
-                    "type": "text"
-                  },
-                  {
-                    "key": "app_version",
-                    "value": "7.82.0.697812",
-                    "type": "text"
-                  },
-                  {
-                    "key": "locale",
-                    "value": "ru",
-                    "type": "text"
-                  },
-                  {
-                    "key": "city",
-                    "value": "kyiv",
-                    "type": "text"
-                  },
-                  {
-                    "key": "content-type",
-                    "value": "application/json; charset=UTF-8",
-                    "type": "text"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Standard\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3673,21 +2802,17 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                       "",
-                      "ctx._promises.push(",
-                      "    new Promise((resolve, reject) => {",
-                      "        const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000 + 41 * 60 * 1000);",
+                      "const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000 + 21 * 60 * 1000);",
                       "",
-                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadDude\"));",
-                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
-                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadAdditional\"));",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
                       "",
-                      "        console.log('📅 pickup_time (завтра):', new Date(payload.pickup_time * 1000).toISOString());",
+                      "console.log('pickup_time (завтра):', new Date(payload.pickup_time * 1000).toISOString());",
                       "",
-                      "        fareEstimate(payload, () => {",
-                      "            resolve();",
-                      "        }, reject);",
-                      "    })",
-                      ");",
+                      "await fareEstimate(payload);",
+                      "",
+                      "console.log(\"fareEstimate completed\");",
                       ""
                     ],
                     "type": "text/javascript",
@@ -3795,7 +2920,7 @@
               "response": []
             },
             {
-              "name": "[Cash + Business] Deferred Tomorrow",
+              "name": "[Cash + Business] Tomorrow",
               "event": [
                 {
                   "listen": "prerequest",
@@ -3803,21 +2928,17 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                       "",
-                      "ctx._promises.push(",
-                      "    new Promise((resolve, reject) => {",
-                      "        const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000 + 35 * 60 * 1000);",
+                      "const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000 + 35 * 60 * 1000);",
                       "",
-                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadOptional\"));",
-                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
-                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadOptional\"));",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
                       "",
-                      "        console.log('📅 pickup_time (завтра):', new Date(payload.pickup_time * 1000).toISOString());",
+                      "console.log(' pickup_time (завтра):', new Date(payload.pickup_time * 1000).toISOString());",
                       "",
-                      "        fareEstimate(payload, () => {",
-                      "            resolve();",
-                      "        }, reject);",
-                      "    })",
-                      ");",
+                      "await fareEstimate(payload);",
+                      "",
+                      "console.log(\"fareEstimate completed\");",
                       ""
                     ],
                     "type": "text/javascript",
@@ -3925,7 +3046,7 @@
               "response": []
             },
             {
-              "name": "[Cash + Premium] Deferred soon",
+              "name": "[Cash + Premium] Soon",
               "event": [
                 {
                   "listen": "prerequest",
@@ -3933,21 +3054,17 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                       "",
-                      "ctx._promises.push(",
-                      "    new Promise((resolve, reject) => {",
-                      "        const futureDate = new Date(Date.now() + 48 * 60 * 60 * 1000 + 21 * 60 * 1000);",
+                      "const futureDate = new Date(Date.now() + 48 * 60 * 60 * 1000 + 21 * 60 * 1000);",
                       "",
-                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadAdditional\"));",
-                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
-                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadAdditional\"));",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
                       "",
-                      "        console.log('📅 pickup_time (завтра):', new Date(payload.pickup_time * 1000).toISOString());",
+                      "console.log('pickup_time (через 2 дня):', new Date(payload.pickup_time * 1000).toISOString());",
                       "",
-                      "        fareEstimate(payload, () => {",
-                      "            resolve();",
-                      "        }, reject);",
-                      "    })",
-                      ");",
+                      "await fareEstimate(payload);",
+                      "",
+                      "console.log(\"fareEstimate completed\");",
                       ""
                     ],
                     "type": "text/javascript",
@@ -4055,7 +3172,7 @@
               "response": []
             },
             {
-              "name": "[Cash + Standart] Deferred soon",
+              "name": "[Cash + Standart] Soon",
               "event": [
                 {
                   "listen": "prerequest",
@@ -4063,21 +3180,17 @@
                     "exec": [
                       "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
                       "",
-                      "ctx._promises.push(",
-                      "    new Promise((resolve, reject) => {",
-                      "        const futureDate = new Date(Date.now() + 48 * 60 * 60 * 1000 + 21 * 60 * 1000);",
+                      "const futureDate = new Date(Date.now() + 48 * 60 * 60 * 1000 + 21 * 60 * 1000);",
                       "",
-                      "        let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadOptional\"));",
-                      "        payload.fare_id = pm.collectionVariables.get(\"fareId\");",
-                      "        payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                      "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadOptional\"));",
+                      "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                      "payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
                       "",
-                      "        console.log('📅 pickup_time (завтра):', new Date(payload.pickup_time * 1000).toISOString());",
+                      "console.log('pickup_time (через 2 дня):', new Date(payload.pickup_time * 1000).toISOString());",
                       "",
-                      "        fareEstimate(payload, () => {",
-                      "            resolve();",
-                      "        }, reject);",
-                      "    })",
-                      ");",
+                      "await fareEstimate(payload);",
+                      "",
+                      "console.log(\"fareEstimate completed\");",
                       ""
                     ],
                     "type": "text/javascript",
@@ -4185,6 +3298,318 @@
               "response": []
             }
           ]
+        },
+        {
+          "name": "ActiveOrders",
+          "item": [
+            {
+              "name": "Get Active Orders",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "    const json = pm.response.json();",
+                      "    let orderId = \"\";",
+                      "",
+                      "    if (Array.isArray(json) && json.length > 0 && json[0].id) {",
+                      "        orderId = json[0].id;",
+                      "    }",
+                      "",
+                      "    pm.collectionVariables.set(\"orderId\", orderId);",
+                      "} catch (e) {",
+                      "    ",
+                      "}",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disabledSystemHeaders": {}
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{riderAuthToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "client_id",
+                    "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "app_uid",
+                    "value": "{{appUid}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "city",
+                    "value": "Kyiv",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{riderGatewayHost}}/api/v1/orders",
+                  "host": [
+                    "{{riderGatewayHost}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Complete order",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{adminAuthToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{driverGatewayHost}}/api/v1/orders/{{orderId}}/complete?force_complete=true",
+                  "host": [
+                    "{{driverGatewayHost}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    "{{orderId}}",
+                    "complete"
+                  ],
+                  "query": [
+                    {
+                      "key": "force_complete",
+                      "value": "false",
+                      "disabled": true
+                    },
+                    {
+                      "key": "force_complete",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Cancel Order by rider",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{riderAuthToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "app_uid",
+                    "value": "{{appUid}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "client_id",
+                    "value": "{{clientId}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"plans_changed\",\n  \"comment\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{riderGatewayHost}}/api/v1/orders/{{orderId}}",
+                  "host": [
+                    "{{riderGatewayHost}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    "{{orderId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "[Cash] Deferred",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "let futureDate = new Date(Date.now() + 6 * 60 * 60 * 1000);",
+                  "",
+                  "let payload = JSON.parse(pm.collectionVariables.get(\"fareEstimatePayloadBase\"));",
+                  "",
+                  "payload.fare_id = pm.collectionVariables.get(\"fareId\");",
+                  "payload.pickup_time = Math.floor(futureDate.getTime() / 1000);",
+                  "",
+                  "eval(pm.collectionVariables.get(\"fareEstimateFn\"));",
+                  "fareEstimate(payload);",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{riderAuthToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Host",
+                "value": "{{orderHost}}",
+                "type": "text"
+              },
+              {
+                "key": "user-agent",
+                "value": "UklonAndroid/78200",
+                "type": "text"
+              },
+              {
+                "key": "x-fp",
+                "value": "E164",
+                "type": "text"
+              },
+              {
+                "key": "app_uid",
+                "value": "{{appUid}}",
+                "type": "text"
+              },
+              {
+                "key": "client_id",
+                "value": "{{clientId}}",
+                "type": "text"
+              },
+              {
+                "key": "device_name",
+                "value": "Xiaomi/Redmi Note 9 Pro",
+                "type": "text"
+              },
+              {
+                "key": "app_version",
+                "value": "7.82.0.697812",
+                "type": "text"
+              },
+              {
+                "key": "locale",
+                "value": "ru",
+                "type": "text"
+              },
+              {
+                "key": "city",
+                "value": "kyiv",
+                "type": "text"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json; charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\t\"fare_id\": \"{{fareId}}\",\n\t\"product_type\": \"Business\",\n\t\"product_conditions\": [],\n\t\"payment_method_id\": \"{{cashPaymentMethodId}}\",\n\t\"comment\": \"Не телефонуйте мені, будь ласка\",\n\t\"use_pedestrian_path\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{riderGatewayHost}}/api/v1/orders",
+              "host": [
+                "{{riderGatewayHost}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            }
+          },
+          "response": []
         }
       ],
       "event": [
@@ -4222,135 +3647,6 @@
           }
         }
       ]
-    },
-    {
-      "name": "ActiveOrders",
-      "item": [
-        {
-          "name": "Get Active Orders",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "try {",
-                  "    const json = pm.response.json();",
-                  "    let orderId = \"\";",
-                  "",
-                  "    if (Array.isArray(json) && json.length > 0 && json[0].id) {",
-                  "        orderId = json[0].id;",
-                  "    }",
-                  "",
-                  "    pm.collectionVariables.set(\"orderId\", orderId);",
-                  "} catch (e) {",
-                  "    ",
-                  "}",
-                  ""
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "protocolProfileBehavior": {
-            "disabledSystemHeaders": {}
-          },
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{riderAuthToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [
-              {
-                "key": "client_id",
-                "value": "{{clientId}}",
-                "type": "text"
-              },
-              {
-                "key": "app_uid",
-                "value": "{{appUid}}",
-                "type": "text"
-              },
-              {
-                "key": "city",
-                "value": "Kyiv",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{riderGatewayHost}}/api/v1/orders",
-              "host": [
-                "{{riderGatewayHost}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "orders"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Complete order",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{adminAuthToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{driverGatewayHost}}/api/v1/orders/{{orderId}}/complete?force_complete=true",
-              "host": [
-                "{{driverGatewayHost}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "orders",
-                "{{orderId}}",
-                "complete"
-              ],
-              "query": [
-                {
-                  "key": "force_complete",
-                  "value": "false",
-                  "disabled": true
-                },
-                {
-                  "key": "force_complete",
-                  "value": "true"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
     }
   ],
   "auth": {
@@ -4371,7 +3667,7 @@
         "requests": {},
         "exec": [
           "eval(pm.globals.get(\"fetchAuthTokensFn\"));",
-          "eval(pm.globals.get(\"decodeTockenAndSaveUserIdFn\"));",
+          "eval(pm.globals.get(\"decodeTockenFn\"));",
           "",
           "let now = Math.floor(Date.now() / 1000);",
           "",
@@ -4381,17 +3677,25 @@
           "        return true;",
           "    }",
           "    try {",
-          "        const decoded = decodeTockenAndSaveUserId({ token, uidName });",
-          "        return decoded.exp < (now + 900); ",
+          "        const decoded = decodeTocken({ token, uidName });",
+          "        const isTokenExpired = decoded.exp < (now + 300);",
+          "        console.info(`[${uidName}] isTokenExpired: ${isTokenExpired}`);",
+          "",
+          "        if(!isTokenExpired){",
+          "            pm.environment.set(uidName, decoded.nameid)",
+          "            console.info(`Id saved in ${uidName}`, decoded.nameid)",
+          "        }",
+          "",
+          "        return isTokenExpired; ",
           "    } catch (e) {",
           "        console.error(`Failed to decode token ${uidName}`, e);",
           "        return true;",
           "    }",
           "}",
           "",
-          "const refreshList = [];",
+          "let refreshList = [];",
           "",
-          "if (needsRefresh(pm.collectionVariables.get(\"driverAuthToken\"), \"driverId\")) {",
+          "if (needsRefresh(pm.environment.get(\"driverAuthToken\"), \"driverId\")) {",
           "    refreshList.push(fetchAuthTokens({",
           "        host: \"partnersIdentityHost\",",
           "        username: \"driverPhone\",",
@@ -4400,7 +3704,7 @@
           "    }));",
           "}",
           "",
-          "if (needsRefresh(pm.collectionVariables.get(\"riderAuthToken\"), \"riderId\")) {",
+          "if (needsRefresh(pm.environment.get(\"riderAuthToken\"), \"riderId\")) {",
           "    refreshList.push(fetchAuthTokens({",
           "        host: \"identityHost\",",
           "        username: \"riderUserName\",",
@@ -4409,7 +3713,7 @@
           "    }));",
           "}",
           "",
-          "if (needsRefresh(pm.collectionVariables.get(\"corporateRiderAuthToken\"), \"corporateId\")) {",
+          "if (needsRefresh(pm.environment.get(\"corporateRiderAuthToken\"), \"corporatId\")) {",
           "    refreshList.push(fetchAuthTokens({",
           "        host: \"identityHost\",",
           "        username: \"corporateRiderUserName\",",
@@ -4418,7 +3722,7 @@
           "    }));",
           "}",
           "",
-          "if (needsRefresh(pm.collectionVariables.get(\"adminAuthToken\"), \"adminId\")) {",
+          "if (needsRefresh(pm.environment.get(\"adminAuthToken\"), \"adminId\")) {",
           "    refreshList.push(fetchAuthTokens({",
           "        host: \"internalIdentityHost\",",
           "        username: \"adminUsername\",",
@@ -4427,19 +3731,43 @@
           "    }));",
           "}",
           "",
-          "const p = Promise.all(refreshList)",
-          "    .then(() => {",
-          "        if (refreshList.length > 0) {",
-          "            console.log(\"Tokens refreshed successfully\");",
-          "        } else {",
-          "            console.log(\"All tokens are still valid, refresh not needed\");",
-          "        }",
-          "        pm.collectionVariables.set(\"needAuth\", \"false\");",
-          "    })",
-          "    .catch(error => console.error(\"Error refreshing tokens\", error));",
+          "if (refreshList.length > 0) {",
+          "    Promise.all(refreshList)",
+          "        .then(() => {",
+          "            if(pm.environment.get(\"driverId\")){",
+          "                fetchDriverMe()",
+          "            }     ",
+          "     })",
+          "        .catch(error => console.error(\"Error refreshing tokens\", error));",
+          "} else {",
+          "    console.debug(\"All tokens are still valid, refresh not needed\");",
+          "}",
           "",
-          "ctx._promises.push(p);",
-          ""
+          "function fetchDriverMe() {",
+          "    pm.sendRequest({",
+          "        url: pm.environment.get(\"driverGatewayHost\") + \"/api/v1/drivers-me\",",
+          "        method: \"GET\",",
+          "        header: {",
+          "            \"Content-Type\": \"application/json\",",
+          "            \"Authorization\": `Bearer ${pm.environment.get(\"driverAuthToken\")}`",
+          "        }",
+          "    }, function (err, res) {",
+          "        if (err) {",
+          "            console.error(\"Помилка запиту /drivers-me:\", err);",
+          "            return;",
+          "        }",
+          "",
+          "        if (res.code === 200) {",
+          "            let json = res.json();",
+          "            const currentFleet = json.fleets.find(x => x.signal === json?.signal);",
+          "            pm.environment.set(\"fleetId\", currentFleet.id);",
+          "            pm.environment.set(\"walletId\", currentFleet.wallet_id);",
+          "            console.log(`Saved fleetId: ${currentFleet.id}, \\nsaved walletId: ${currentFleet.wallet_id}, \\n currentFleet: ${JSON.stringify(currentFleet)}` );",
+          "        } else {",
+          "            console.warn(\"Неочікуваний статус відповіді:\", res.code, res.status);",
+          "        }",
+          "    });",
+          "}"
         ]
       }
     },
@@ -4449,19 +3777,12 @@
         "type": "text/javascript",
         "requests": {},
         "exec": [
-          "if (pm.response.code === 401){",
-          "    pm.collectionVariables.set(\"needAuth\", \"true\")",
-          "    console.log(\"needAuth set to true\")",
-          "}"
+          ""
         ]
       }
     }
   ],
   "variable": [
-    {
-      "key": "needAuth",
-      "value": "true"
-    },
     {
       "key": "orderId",
       "value": ""
@@ -4471,31 +3792,11 @@
       "value": ""
     },
     {
-      "key": "fareId",
-      "value": ""
-    },
-    {
       "key": "changeRequestFareId",
       "value": ""
     },
     {
       "key": "currentFareId",
-      "value": ""
-    },
-    {
-      "key": "driverAuthToken",
-      "value": ""
-    },
-    {
-      "key": "corporateRiderAuthToken",
-      "value": ""
-    },
-    {
-      "key": "adminAuthToken",
-      "value": ""
-    },
-    {
-      "key": "riderAuthToken",
       "value": ""
     },
     {
@@ -4516,26 +3817,26 @@
     },
     {
       "key": "fareEstimatePayloadBase",
-      "value": "{\n  \"fare_id\": \"c62b3b19-5461-4032-b3a3-2bc0b08927ff\",\n  \"include_route_info\": true,\n  \"route\": {\n    \"points\": [\n      {\n        \"lat\": 50.44351,\n        \"lng\": 30.52088,\n        \"name\": \"Салон Xoxo space (Киев, Крещатик улица, 46)\"\n      },\n      {\n        \"lat\": 50.47233,\n        \"lng\": 30.51883,\n        \"name\": \"Astarta business center Block A (Yaroslavska Street, 58)\"\n      }\n    ]\n  },\n  \"low_quality_network\": false,\n  \"pedestrian_path_enabled\": false,\n  \"ride_conditions\": [\n    { \"name\": \"silence\" }\n  ],\n  \"payment_method\": {\n    \"id\": \"6a81c070bcdc4aa6814317a50b022e97\",\n    \"type\": \"cash\"\n  }\n}"
+      "value": "{\n  \"fare_id\": \"c62b3b19-5461-4032-b3a3-2bc0b08927ff\",\n  \"include_route_info\": true,\n  \"route\": {\n    \"points\": [\n      {\n        \"lat\": 50.37567,\n        \"lng\": 30.45273,\n        \"name\": \"Sasha PRIVET :D\"\n      },\n      {\n        \"lat\": 50.47233,\n        \"lng\": 30.51883,\n        \"name\": \"Chuesh?\"\n      }\n    ]\n  },\n  \"low_quality_network\": false,\n  \"pedestrian_path_enabled\": false,\n  \"ride_conditions\": [\n    { \"name\": \"animal\", \"comment\": \"test\" },\n    { \"name\": \"silence\" },\n    { \"name\": \"english_speaker\" },\n    { \"name\": \"baggage\" },\n    { \"name\": \"non_smoker\" }\n  ],\n  \"payment_method\": {\n    \"id\": \"6a81c070bcdc4aa6814317a50b022e97\",\n    \"type\": \"cash\"\n  }\n}"
     },
     {
       "key": "savePaymentMethodsFn",
-      "value": "function savePaymentMethods(resolve, reject) {\n    pm.sendRequest({\n        url: pm.environment.get(\"riderGatewayHost\") + \"/api/v1/payment-methods\",\n        method: 'GET',\n        header: {\n            'Content-Type': 'application/json',\n            'app_uid': pm.globals.get(\"appUid\"),\n            'Authorization': 'Bearer ' + pm.collectionVariables.get(\"riderAuthToken\")\n        }\n    }, function (err, res) {\n        if (err) {\n            console.error(\"Request failed\", err);\n            if (reject) reject(err);\n            return;\n        }\n        const json = res.json();\n        if (json.last_used?.id) {\n            pm.collectionVariables.set(\"lastUsedPaymentId\", json.last_used.id);\n        }\n        if (Array.isArray(json.payment_methods)) {\n            const firstCard = json.payment_methods.find(m => m.payment_type === \"card\");\n            const cashMethod = json.payment_methods.find(m => m.payment_type === \"cash\");\n            if (cashMethod?.id) pm.collectionVariables.set(\"cashPaymentMethodId\", cashMethod.id);\n            if (firstCard?.id) pm.collectionVariables.set(\"paymentMethodId\", firstCard.id);\n        }\n        if (resolve) resolve(res);\n    });\n}"
+      "value": "function savePaymentMethods() {\n    pm.sendRequest({\n        url: pm.environment.get(\"riderGatewayHost\") + \"/api/v1/payment-methods\",\n        method: 'GET',\n        header: {\n            'Content-Type': 'application/json',\n            'app_uid': pm.globals.get(\"appUid\"),\n            'Authorization': 'Bearer ' + pm.collectionVariables.get(\"riderAuthToken\")\n        }\n    }, function (err, res) {\n        if (!err) {\n            const json = res.json();\n            if (json.last_used && json.last_used.id) {\n                pm.collectionVariables.set(\"lastUsedPaymentId\", json.last_used.id);\n            }\n            if (Array.isArray(json.payment_methods)) {\n                const firstCard = json.payment_methods.find(method => method.payment_type === \"card\");\n                const cashMethod = json.payment_methods.find(method => method.payment_type === \"cash\");\n                pm.collectionVariables.set(\"cashPaymentMethodId\", cashMethod.id);\n                if (firstCard && firstCard.id) {\n                    pm.collectionVariables.set(\"paymentMethodId\", firstCard.id);\n                }\n            }\n        } else {\n            console.log(\"Request failed\", err);\n        }\n    });\n}"
     },
     {
       "key": "fareEstimateFn",
-      "value": "function fareEstimate(payload, resolve, reject) {\n    pm.sendRequest({\n        url: pm.environment.get(\"riderGatewayHost\") + \"/api/v1/fare-estimate\",\n        method: \"POST\",\n        header: {\n            \"Content-Type\": \"application/json\",\n            \"app_uid\": pm.globals.get(\"appUid\"),\n            \"Authorization\": pm.collectionVariables.get(\"riderAuthToken\")\n        },\n        body: {\n            mode: \"raw\",\n            raw: JSON.stringify(payload)\n        }\n    }, function (err, res) {\n        if (err) {\n            console.error(\"Error:\", err);\n            if (reject) reject(err);\n            return;\n        }\n        try {\n            pm.collectionVariables.set(\"fareEstimate\", JSON.stringify(res.json()));\n            console.log(\"fareEstimate set:\", pm.collectionVariables.get(\"fareEstimate\"));\n            if (resolve) resolve(res);   \n        } catch (e) {\n            if (reject) reject(e);\n        }\n    });\n}"
+      "value": "function fareEstimate(payload){\n    pm.sendRequest({\n    url: pm.environment.get(\"riderGatewayHost\") + \"/api/v1/fare-estimate\",\n    method: \"POST\",\n    header: {\n        \"Content-Type\": \"application/json\",\n        \"app_uid\": pm.globals.get(\"appUid\"),\n        \"Authorization\": pm.collectionVariables.get(\"riderAuthToken\")\n    },\n    body: {\n        mode: \"raw\",\n        raw: JSON.stringify(payload)\n    }\n    }, function (err, res) {\n    if (err) return console.error(\"Error:\", err);\n    pm.collectionVariables.set(\"fareEstimate\", JSON.stringify(res.json()));\n    });\n}"
     },
     {
       "key": "promoCodeApplyFn",
-      "value": "function promoCodeApply() {\n    return new Promise((resolve, reject) => {\n        pm.sendRequest({\n            url: pm.environment.get(\"riderGatewayHost\") + '/api/v1/promo-codes/apply',\n            method: 'POST',\n            header: {\n                'Content-Type': 'application/json',\n                'app_uid': pm.globals.get(\"appUid\"),\n                'Authorization': `Bearer ${pm.collectionVariables.get(\"riderAuthToken\")}`,\n            },\n            body: {\n                mode: 'raw',\n                raw: JSON.stringify({ \"promo_code\": pm.environment.get(\"promoCodeName\") })\n            }\n        }, function (err, res) {\n            if (err) return reject(err);\n            if (res.code >= 200 && res.code < 300) {\n                console.log(\"Promo success. Код:\", res.code);\n                resolve(res);\n            } else {\n                reject(new Error(\"Promo error \" + res.code));\n            }\n        });\n    });\n}"
-    },
-    {
-      "key": "riderDebtApplyFn",
-      "value": "function riderDebtApply(amount) {\n    return new Promise((resolve, reject) => {\n        pm.sendRequest({\n            url: pm.environment.get(\"paymentProcessorHost\") + '/api/v1/riders/' + pm.environment.get(\"riderId\") + '/wallet-payments/charge',\n            method: 'POST',\n            header: {\n                'Content-Type': 'application/json',\n                'accept': '*/*',\n                'Authorization': `Bearer ${pm.collectionVariables.get(\"adminAuthToken\")}` \n            },\n            body: {\n                mode: 'raw',\n                raw: JSON.stringify({\n                    \"amount\": { \"amount\": amount, \"currency\": \"UAH\" },\n                    \"order_id\": \"589f5b9f-4179-4799-9289-c2ef0c43ccc8\",\n                    \"description\": \"test_charge_from_postman\",\n                    \"initiated_by_user_id\": pm.collectionVariables.get(\"riderId\"),\n                    \"region_id\": pm.collectionVariables.get(\"regionId\"),\n                    \"profit_loss_type\": \"rider_penalty_other\",\n                    \"vb_type\": \"rdr_penalties\"\n                })\n            }\n        }, function (err, res) {\n            if (err) return reject(err);\n            if (res.code == 204) {\n                console.log(\"Debt applied successfully. Код:\", res.code);\n                resolve(res);\n            } else {\n                reject(new Error(\"Debt error \" + res.code));\n            }\n        });\n    });\n}"
+      "value": "function promoCodeApply(){\n    pm.sendRequest({\n        url: pm.environment.get(\"riderGatewayHost\") + '/api/v1/promo-codes/apply',\n        method: 'POST',\n        header: {\n            'Content-Type': 'application/json',\n            'app_uid': pm.globals.get(\"appUid\"),\n            'Authorization': `Bearer ${pm.collectionVariables.get(\"riderAuthToken\")}`,\n        },\n        body: {\n            mode: 'raw',\n            raw: JSON.stringify({\n                \"promo_code\": pm.environment.get(\"promoCodeName\")\n            })\n        }\n    }, function (err, res) {\n        if (err) {\n            console.error(\"Помилка додавання промо:\", err);\n            return;\n        }\n        if (res.code >= 200 && res.code < 300) {\n            console.log(\"success. Код:\", res.code);\n        } else {\n            console.error(\"Помилка додавання промо: Код:\", res.code, res.json());\n            return; \n        }\n    });\n}"
     },
     {
       "key": "fareEstimate",
+      "value": "{\"fare_id\":\"ff97ccc271784491b9e0862aca3526c8\",\"route\":{\"distance_meters\":15386,\"duration_seconds\":2271,\"overview_polyline\":\"i_nrHaxzxDm@sA[O[s@OaA?GDsANIJQHMwCuGoAmCwAaDUa@u@wAGMQm@M]GQc@mACKSg@WcAQ}@QeAI{@Ce@Cu@?m@?a@LoG@u@DmCHsGBc@Ha@Ra@jEqIV]XURQ\\\\M|@YHENGHGDGJYFYB]_DqFq@kAwAcCq@qAa@}@IQuAgDcAmCo@cB_@mAc@uAiAkDGUwCkK]aAK[a@qAu@aCs@_C}CqKEOmAgEoB{GgDmLiDcLcD}Ki@iBUw@Us@qFgRqAmEqBgHSq@cB}Fa@wAaAqD]mA_@sAgCqIa@sASUkAaEw@iC}@iCu@{A[o@MWOWKOU_@U]i@u@c@i@gAqAkAgAgAaAaAo@SMeIcFy@a@yA}@OKCCECkBiB]]eAoAaAuAs@aAm@w@_C_D}B{C_DwDyA_B}A}Ay@q@sA{@k@[s@g@aG{CgBgAcBwAsAoAqBeC}@qAu@iAo@mA]u@i@iAy@mB{AqDOc@_B{Dg@uAUcBEo@@i@Hk@FMBIJYTq@H]J_@F_@@a@?]Cc@Ee@Kc@O_@U]SSYKUIc@Bg@PcA`@mAt@uA|@]RyDpB_@RULg@Zi@VEDUL}@b@GDkB`A_Ab@{At@o@\\\\GBIDe@VKFGBGDqBfAu@`@C@yBhAWLMHmAp@_B|@oAr@y@f@{@d@QJULaBz@{@d@}Az@iB`AGDA@gHzD_Ah@e@TGDaDdBkAn@wC~AULQJ}BjA{C`Bs@^YPgB|@oAp@OLY@_@@S?eB@[?cCB]?_@@sA?]?aBAwB?c@AOEiB?kD@uA?W@i@?mAA}FK[Ac@C{AAoAA}I?QEWMIEGICEUi@_@{@O_@a@mA{@cCAE]cAw@{Bq@oBQSKISIq@Mg@IyDaAmAa@sA[MCaCm@iAWoVsFy@YeAm@}@k@u@m@k@k@g@k@e@o@aCoDQ[oE{GqAuBgDkF]MUFqBXoCr@cALqA?y@Ic@Um@k@g@a@_@KYAa@Dc@Tc@Vw@t@u@v@mDdEmApB_A|Ai@dAQLODSEMQm@gA_CsEKMKGKES?M@aBXiFv@cB^mBl@kCb@yCb@uNfBQD{FbAeAT]NUN[\\\\cAxBCBADmC`FAf@@P^n@f@~@|AnCb@t@P\\\\t@tAHLEFCDsC`FILg@bAINcDtGCDABGIyDwGGKUa@u@sA\",\"legs\":[{\"start\":{\"latitude\":50.37573,\"longitude\":30.45265},\"end\":{\"latitude\":50.47242,\"longitude\":30.51869},\"duration_seconds\":1017,\"distance_meters\":15386,\"overview_polyline\":\"i_nrHaxzxDm@sA[O[s@OaA?GDsANIJQHMwCuGoAmCwAaDUa@u@wAGMQm@M]GQc@mACKSg@WcAQ}@QeAI{@Ce@Cu@?m@?a@LoG@u@DmCHsGBc@Ha@Ra@jEqIV]XURQ\\\\M|@YHENGHGDGJYFYB]_DqFq@kAwAcCq@qAa@}@IQuAgDcAmCo@cB_@mAc@uAiAkDGUwCkK]aAK[a@qAu@aCs@_C}CqKEOmAgEoB{GgDmLiDcLcD}Ki@iBUw@Us@qFgRqAmEqBgHSq@cB}Fa@wAaAqD]mA_@sAgCqIa@sASUkAaEw@iC}@iCu@{A[o@MWOWKOU_@U]i@u@c@i@gAqAkAgAgAaAaAo@SMeIcFy@a@yA}@OKCCECkBiB]]eAoAaAuAs@aAm@w@_C_D}B{C_DwDyA_B}A}Ay@q@sA{@k@[s@g@aG{CgBgAcBwAsAoAqBeC}@qAu@iAo@mA]u@i@iAy@mB{AqDOc@_B{Dg@uAUcBEo@@i@Hk@FMBIJYTq@H]J_@F_@@a@?]Cc@Ee@Kc@O_@U]SSYKUIc@Bg@PcA`@mAt@uA|@]RyDpB_@RULg@Zi@VEDUL}@b@GDkB`A_Ab@{At@o@\\\\GBIDe@VKFGBGDqBfAu@`@C@yBhAWLMHmAp@_B|@oAr@y@f@{@d@QJULaBz@{@d@}Az@iB`AGDA@gHzD_Ah@e@TGDaDdBkAn@wC~AULQJ}BjA{C`Bs@^YPgB|@oAp@OLY@_@@S?eB@[?cCB]?_@@sA?]?aBAwB?c@AOEiB?kD@uA?W@i@?mAA}FK[Ac@C{AAoAA}I?QEWMIEGICEUi@_@{@O_@a@mA{@cCAE]cAw@{Bq@oBQSKISIq@Mg@IyDaAmAa@sA[MCaCm@iAWoVsFy@YeAm@}@k@u@m@k@k@g@k@e@o@aCoDQ[oE{GqAuBgDkF]MUFqBXoCr@cALqA?y@Ic@Um@k@g@a@_@KYAa@Dc@Tc@Vw@t@u@v@mDdEmApB_A|Ai@dAQLODSEMQm@gA_CsEKMKGKES?M@aBXiFv@cB^mBl@kCb@yCb@uNfBQD{FbAeAT]NUN[\\\\cAxBCBADmC`FAf@@P^n@f@~@|AnCb@t@P\\\\t@tAHLEFCDsC`FILg@bAINcDtGCDABGIyDwGGKUa@u@sA\"}]},\"currency\":\"UAH\",\"currency_symbol\":\"₴\",\"rider_debt\":0,\"discounts\":[],\"product_fares\":[{\"availability\":{\"available\":true},\"initial_extra_cost\":0,\"product_type\":\"Standard\",\"low\":400,\"high\":641,\"extra\":0,\"multiplier\":1,\"product_conditions\":[],\"cancellation_fare\":15,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":1},{\"availability\":{\"available\":true},\"initial_extra_cost\":344,\"product_type\":\"Business\",\"low\":912,\"high\":2231,\"extra\":344,\"multiplier\":4,\"product_conditions\":[],\"cancellation_fare\":250,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":2},{\"availability\":{\"available\":true},\"initial_extra_cost\":272,\"product_type\":\"ComfortPlus\",\"low\":1217,\"high\":3909,\"extra\":272,\"multiplier\":4,\"product_conditions\":[],\"cancellation_fare\":0,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":5},{\"availability\":{\"available\":true},\"initial_extra_cost\":0,\"product_type\":\"Premium\",\"low\":1000,\"high\":1000,\"extra\":0,\"multiplier\":4,\"product_conditions\":[],\"cancellation_fare\":0,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":7},{\"availability\":{\"available\":true},\"initial_extra_cost\":41,\"product_type\":\"Econom\",\"low\":785,\"high\":3009,\"extra\":41,\"multiplier\":4,\"product_conditions\":[],\"cancellation_fare\":0,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":9},{\"availability\":{\"available\":true},\"initial_extra_cost\":0,\"product_type\":\"Wagon\",\"low\":968,\"high\":1656,\"extra\":0,\"multiplier\":4,\"product_conditions\":[],\"cancellation_fare\":10,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":28},{\"availability\":{\"available\":true},\"initial_extra_cost\":0,\"product_type\":\"MiniVan\",\"low\":965,\"high\":1651,\"extra\":0,\"multiplier\":4,\"product_conditions\":[{\"available\":true,\"type\":\"seats\",\"value\":\"6\",\"surcharge\":0},{\"available\":true,\"type\":\"seats\",\"value\":\"8\",\"surcharge\":10}],\"cancellation_fare\":0,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":29},{\"availability\":{\"available\":true},\"initial_extra_cost\":243,\"product_type\":\"Kids\",\"low\":685,\"high\":2223,\"extra\":243,\"multiplier\":4,\"product_conditions\":[{\"available\":true,\"type\":\"car_seat_type\",\"value\":\"forward_facing\",\"surcharge\":2},{\"available\":true,\"type\":\"car_seat_type\",\"value\":\"booster\",\"surcharge\":5}],\"cancellation_fare\":0,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":30},{\"availability\":{\"available\":true},\"initial_extra_cost\":887,\"product_type\":\"Delivery\",\"low\":576,\"high\":2646,\"extra\":887,\"multiplier\":4,\"product_conditions\":[{\"available\":true,\"type\":\"delivery_type\",\"value\":\"by_address\",\"surcharge\":0},{\"available\":true,\"type\":\"delivery_type\",\"value\":\"to_door\",\"surcharge\":20},{\"available\":true,\"type\":\"delivery_type\",\"value\":\"deferred_fare\",\"surcharge\":30}],\"cancellation_fare\":0,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":34},{\"availability\":{\"available\":true},\"initial_extra_cost\":1086,\"product_type\":\"Driver\",\"low\":642,\"high\":3176,\"extra\":1086,\"multiplier\":4,\"product_conditions\":[{\"available\":true,\"type\":\"transmission_type\",\"value\":\"auto\",\"surcharge\":10},{\"available\":true,\"type\":\"transmission_type\",\"value\":\"manual\",\"surcharge\":20}],\"cancellation_fare\":0,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":37},{\"availability\":{\"available\":true},\"initial_extra_cost\":717,\"product_type\":\"Green\",\"low\":519,\"high\":2191,\"extra\":717,\"multiplier\":4,\"product_conditions\":[{\"available\":true,\"type\":\"type\",\"value\":\"bolt\",\"surcharge\":0},{\"available\":true,\"type\":\"type\",\"value\":\"tesla\",\"surcharge\":0}],\"cancellation_fare\":0,\"challenges\":[],\"ride_conditions\":[{\"code\":\"english_speaker\",\"surcharge\":30,\"applied\":true},{\"code\":\"animal\",\"surcharge\":100,\"applied\":true},{\"code\":\"silence\",\"surcharge\":0,\"applied\":true},{\"code\":\"baggage\",\"surcharge\":150,\"applied\":true},{\"code\":\"non_smoker\",\"surcharge\":0,\"applied\":true}],\"sort_order\":40}],\"multi_product_fares\":[{\"product_type\":\"Fastest\",\"low\":400,\"high\":1256,\"sort_order\":4,\"contained_products\":[{\"product_type\":\"Standard\",\"cost\":400,\"is_readonly\":false},{\"product_type\":\"Premium\",\"cost\":1000,\"is_readonly\":false},{\"product_type\":\"Business\",\"cost\":1256,\"is_readonly\":false}],\"ride_conditions\":[{\"code\":\"animal\",\"low\":100,\"high\":100,\"applied\":true},{\"code\":\"baggage\",\"low\":150,\"high\":150,\"applied\":true},{\"code\":\"english_speaker\",\"low\":30,\"high\":30,\"applied\":true},{\"code\":\"non_smoker\",\"low\":0,\"high\":0,\"applied\":true},{\"code\":\"silence\",\"low\":0,\"high\":0,\"applied\":true}],\"has_mismatched_ride_conditions\":false,\"extra_cost\":{\"low\":0,\"high\":0,\"value\":0}}]}"
+    },
+    {
+      "key": "fareId",
       "value": ""
     },
     {
@@ -4545,10 +3846,6 @@
     {
       "key": "fareEstimatePayloadOptional",
       "value": "{\n  \"fare_id\": \"c62b3b19-5461-4032-b3a3-2bc0b08927ff\",\n  \"include_route_info\": true,\n  \"route\": {\n    \"points\": [\n      {\n       \"lat\": 50.47197,\n\t\t\"lng\": 30.51984,\n\t\t\"name\": \"Низький уклін тим хто робить деферед\"\n      },\n      {\n       \"lat\": 50.40691,\n\t\t\t\"lng\": 30.62797,\n\t\t\t\"name\": \"Вулиця кочегарів 24п7\"\n      }\n    ]\n  },\n  \"low_quality_network\": false,\n  \"pedestrian_path_enabled\": false,\n  \"ride_conditions\": [\n    { \"name\": \"silence\" }\n  ],\n  \"payment_method\": {\n    \"id\": \"6a81c070bcdc4aa6814317a50b022e97\",\n    \"type\": \"cash\"\n  }\n}"
-    },
-    {
-      "key": "fareEstimatePayloadDude",
-      "value": "{\n  \"fare_id\": \"c62b3b19-5461-4032-b3a3-2bc0b08927ff\",\n  \"include_route_info\": true,\n  \"route\": {\n    \"points\": [\n      {\n        \"lat\": 50.44351,\n        \"lng\": 30.52088,\n        \"name\": \"hi, dude\"\n      },\n      {\n        \"lat\": 50.47233,\n        \"lng\": 30.51883,\n        \"name\": \"Bye Bye\"\n      }\n    ]\n  },\n  \"low_quality_network\": false,\n  \"pedestrian_path_enabled\": false,\n  \"ride_conditions\": [\n    { \"name\": \"silence\" }\n  ],\n  \"payment_method\": {\n    \"id\": \"6a81c070bcdc4aa6814317a50b022e97\",\n    \"type\": \"cash\"\n  }\n}"
     }
   ]
 }

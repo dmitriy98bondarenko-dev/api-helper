@@ -297,7 +297,7 @@ export function renderTree(filter = '', { onRequestClick, restoreFocus } = {}) {
     }
 }
 
-// ==== Helpers ====
+// helpers
 /* const ARROW_RIGHT = `<svg width="12" height="12" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6z"/></svg>`;
 const ARROW_DOWN = `<svg width="12" height="12" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6z"/></svg>`;
 */
@@ -390,9 +390,9 @@ export function updateEnvDropdown(envKey) {
         updateVarsBtnCounter();
     });
 }
-function normalizePath(p) {
+export function normalizePath(p) {
     if (!p) return '';
-    return p.split('/').pop(); // имя файла
+    return p.split('/').pop(); // file name
 }
 
 /* delete when tool will be ready on work domain */
