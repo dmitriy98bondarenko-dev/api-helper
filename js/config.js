@@ -66,7 +66,7 @@ export function clearLocalStorage(prefixes = [], exactKeys = []) {
 export function getVal(v) {
     return v?.currentValue ?? v?.value ?? v?.initialValue ?? '';
 }
-// proxy config
+/* proxy config
 export const PROXY_URL = "http://localhost:8080/";
 const REQUEST_TIMEOUT_MS = 15000;
 export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
@@ -78,7 +78,8 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     return fetch(finalUrl, options)
         .finally(() => clearTimeout(timer));
 }
-/* delete proxy if run on uklon domain
+*/
+/* delete proxy if run on uklon domain */
 // Detect if the app is running on localhost (any port)
 const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
@@ -99,7 +100,7 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     return fetch(finalUrl, options)
         .finally(() => clearTimeout(timer));
 }
-*/
+
 
 const RESPONSE_BODY_MAX = 512 * 1024; // 512 KB
 
