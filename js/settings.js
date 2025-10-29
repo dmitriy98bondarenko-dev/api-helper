@@ -1,7 +1,8 @@
 // settings.js
 import { initHotkeys, HOTKEYS } from "./hotkeys.js";
 import {bootApp} from "./feature.js";
-import {setSelectedCollection} from "./config.js";
+import {COLLECTIONS, getSelectedCollection, setSelectedCollection} from "./config.js";
+import {normalizePath} from "./sidebar.js";
 
 
 export function renderHotkeysList(containerId = "hotkeysList") {
@@ -101,7 +102,7 @@ export function initCollectionDropdown() {
         opt.dataset.value = col.path;
         list.appendChild(opt);
     });
-    const sel = getSelectedCollection();  // ← вот этого не хватало
+    const sel = getSelectedCollection();
 
     const selNorm = normalizePath(sel);
     const activeOpt = [...list.querySelectorAll('.collectionOption')]

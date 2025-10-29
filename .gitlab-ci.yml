@@ -2,7 +2,7 @@ stages:
   - build
   - deploy
 
-# The build step copies static files into the artifacts folder
+# copies static files into the artifacts folder
 build:
   stage: build
   image: alpine:latest
