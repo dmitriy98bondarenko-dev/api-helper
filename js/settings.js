@@ -1,5 +1,8 @@
 // settings.js
 import { initHotkeys, HOTKEYS } from "./hotkeys.js";
+import {bootApp} from "./feature.js";
+import {COLLECTIONS, getSelectedCollection, setSelectedCollection} from "./config.js";
+import {normalizePath} from "./sidebar.js";
 
 
 export function renderHotkeysList(containerId = "hotkeysList") {
@@ -81,5 +84,61 @@ export function initSettingsSidebar() {
             e.preventDefault();
             close();
         }
+    });
+}
+
+export function initCollectionDropdown() {
+    const dropdown = document.querySelector('#collectionDropdown');
+    if (!dropdown) return;
+
+    const current = dropdown.querySelector('.collectionCurrent');
+    const list = dropdown.querySelector('.collectionList');
+
+    list.innerHTML = '';
+    COLLECTIONS.forEach(col => {
+        const opt = document.createElement('div');
+        opt.className = 'collectionOption';
+        opt.textContent = col.name;
+        opt.dataset.value = col.path;
+        list.appendChild(opt);
+    });
+    const sel = getSelectedCollection();
+
+    const selNorm = normalizePath(sel);
+    const activeOpt = [...list.querySelectorAll('.collectionOption')]
+        .find(opt => normalizePath(opt.dataset.value) === selNorm);
+
+    if (activeOpt) {
+        current.innerHTML = activeOpt.textContent + ' <span class="arrow">▼</span>';
+    } else {
+        current.innerHTML = COLLECTIONS[0].name + ' <span class="arrow">▼</span>';
+    }
+
+    current.onclick = () => {
+        const open = list.style.display === 'block';
+        list.style.display = open ? 'none' : 'block';
+        current.querySelector('.arrow').textContent = open ? '▼' : '▲';
+    };
+
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target)) {
+            list.style.display = 'none';
+            const arrow = current.querySelector('.arrow');
+            if (arrow) arrow.textContent = '▼';
+        }
+    });
+    list.querySelectorAll('.collectionOption').forEach(opt => {
+        opt.onclick = async () => {
+            const newPath = opt.dataset.value;
+            setSelectedCollection(newPath);
+            await bootApp({ collectionPath: newPath, autoOpenFirst: true });
+
+            import('./history.js').then(({ renderHistory }) => renderHistory());
+            import('./history.js').then(({ initSidebarNav }) => initSidebarNav());
+            import('./settings.js').then(({ initSettingsSidebar }) => initSettingsSidebar());
+
+            list.style.display = 'none';
+            current.innerHTML = opt.textContent + ' <span class="arrow">▼</span>';
+        };
     });
 }

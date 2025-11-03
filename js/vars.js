@@ -1,11 +1,12 @@
 // vars.js
-import { state } from './state.js';
+import {clearScript, state} from './state.js';
 import { $, el, showAlert, highlightMissingVars, updateVarsBtn, renderUrlWithVars, } from './ui.js';
 import { setGlobalBearer, loadJson, clearLocalStorage, getVal } from './config.js';
 import { updateAuthUI, clearAuthUI } from './auth.js';
 import { renderTree, updateEnvDropdown, setPinnedIds } from './sidebar.js';
 import { openRequest } from './feature.js';
 import { highlightJSON, saveSelection, restoreSelection } from './ui.js';
+import {clearFullScript, clearTimePickerState} from "./timePicker.js";
 
 // vriables and helpers
 export function buildVarMap() {
@@ -404,6 +405,9 @@ export function initResetModal() {
 
         resetFull.addEventListener('click', () => {
             clearLocalStorage(['pm_env_', 'pm_req_'], ['selected_env', 'global_bearer']);
+            clearTimePickerState();
+            clearFullScript('pre');
+            clearFullScript('post');
             localStorage.removeItem('req_history');
             setGlobalBearer('');
             setPinnedIds([]);
