@@ -1,0 +1,180 @@
+.timeWrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.timeToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #6366f1;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0;
+    width: 42px;
+    height: 42px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.timeToggle:hover {
+    background: #5355e0;
+}
+
+.timeToggle svg {
+    width: 20px;
+    height: 20px;
+    stroke: #fff;
+    display: block;
+}
+
+/* --- ВИПРАВЛЕННЯ ПОЗИЦІОНУВАННЯ ВИПАДАЮЧОГО СПИСКУ --- */
+.timeDropdown {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+    width: 200px;
+    z-index: 1000;
+    box-sizing: border-box;
+}
+/* --------------------------------------------------- */
+
+
+.timeDropdown li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #eee;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.timeDropdown li:hover {
+    background: #2d2d2d;
+}
+
+.timeDropdown li svg {
+    width: 16px;
+    height: 16px;
+    stroke: #a6b0ff;
+    visibility: hidden;
+}
+
+.timeDropdown li.active svg {
+    visibility: visible;
+}
+
+.timeDropdown li.active {
+    background: #34358a;
+    color: #fff;
+}
+
+.customDateOption {
+    color: #999;
+    font-style: italic;
+    border-top: 1px solid #333;
+    margin-top: 4px;
+    padding-top: 8px !important;
+}
+
+.customDateOption:hover {
+    background: #2d2d2d;
+    color: #eee;
+}
+
+
+/* --- ВИПРАВЛЕННЯ ПОЗИЦІОНУВАННЯ МОДАЛЬНОГО ВІКНА --- */
+.calendarPopup {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    background: #2a2b4e;
+    border: 1px solid #4446c7;
+    border-radius: 10px;
+    padding: 12px;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1001;
+    margin: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    animation: fadeIn 0.15s ease-out;
+}
+/* --------------------------------------------------- */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.calendarHeader {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.calendarHeader input {
+    flex: 1;
+    border: 1px solid #5558f5;
+    border-radius: 6px;
+    background: #3f41a6;
+    color: #fff;
+    padding: 6px 8px;
+    font-family: ui-monospace, monospace;
+}
+
+.calendarActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.calendarActions button {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#cancelBtn {
+    background: #444;
+    color: #fff;
+}
+
+#cancelBtn:hover {
+    background: #555;
+}
+
+#saveBtn {
+    background: #6366f1;
+    color: #fff;
+}
+
+#saveBtn:hover {
+    background: #5355e0;
+}
+
+.hidden {
+    display: none !important;
+}
+.timeDropdown,
+.calendarPopup {
+    position: fixed;
+    top: auto;
+    left: auto;
+    right: auto;
+}

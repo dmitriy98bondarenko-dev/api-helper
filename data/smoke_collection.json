@@ -1012,6 +1012,11 @@
                     "key": "client_id",
                     "value": "{{clientId}}",
                     "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1105,6 +1110,11 @@
                     "key": "client_id",
                     "value": "{{clientId}}",
                     "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1154,14 +1164,19 @@
                       "fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
-                    "packages": {}
+                    "packages": {},
+                    "requests": {}
                   }
                 },
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [],
-                    "type": "text/javascript"
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
@@ -1186,6 +1201,11 @@
                   {
                     "key": "client_id",
                     "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
                     "type": "text"
                   }
                 ],
@@ -1228,7 +1248,8 @@
                       ""
                     ],
                     "type": "text/javascript",
-                    "packages": {}
+                    "packages": {},
+                    "requests": {}
                   }
                 },
                 {
@@ -1246,7 +1267,8 @@
                       "fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
-                    "packages": {}
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
@@ -1271,6 +1293,11 @@
                   {
                     "key": "client_id",
                     "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
                     "type": "text"
                   }
                 ],
@@ -1321,14 +1348,19 @@
                       "fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
-                    "packages": {}
+                    "packages": {},
+                    "requests": {}
                   }
                 },
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [],
-                    "type": "text/javascript"
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
@@ -1353,6 +1385,11 @@
                   {
                     "key": "client_id",
                     "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
                     "type": "text"
                   }
                 ],
@@ -2415,14 +2452,19 @@
                       ""
                     ],
                     "type": "text/javascript",
-                    "packages": {}
+                    "packages": {},
+                    "requests": {}
                   }
                 },
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [],
-                    "type": "text/javascript"
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
@@ -2447,6 +2489,11 @@
                   {
                     "key": "client_id",
                     "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json; charset=UTF-8",
                     "type": "text"
                   }
                 ],
@@ -2485,7 +2532,8 @@
                       ""
                     ],
                     "type": "text/javascript",
-                    "packages": {}
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
@@ -2510,6 +2558,11 @@
                   {
                     "key": "client_id",
                     "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json; charset=UTF-8",
                     "type": "text"
                   }
                 ],
@@ -3383,7 +3436,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{adminAuthToken}}",
+                      "value": "{{driverAuthToken}}",
                       "type": "string"
                     }
                   ]
