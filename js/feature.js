@@ -21,7 +21,7 @@ import {
     initResetModal, updateVarsBtnCounter, initVarEditModal,
     toggleVarsModal, getEnvVarsOnly
 } from './vars.js';
-import { loadJson } from './state.js';
+import {clearScript, loadJson, loadScript, saveScript} from './state.js';
 import { state, resolveVars } from './state.js';
 import { initSidebarNav, addHistoryEntry, renderHistory } from './history.js';
 import { copyCurl, safeBuildUrl, openCurlImportModal } from './curl.js';
@@ -36,7 +36,15 @@ import {
     makePostCtx
 } from './scriptEngine.js';
 import {initSettingsSidebar} from "./settings.js";
+import {clearTimePickerState, initTimePicker, initCalendarVisibility} from "./timePicker.js";
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, getEnvVarsOnly());
+// dataPicker element
+const timeGroupEl = document.querySelector('#timeContainer .timeGroup');
+const dropdownEl = document.getElementById('timeDropdown');
+const calendarEl = document.getElementById('calendarPopup');
+if (dropdownEl) dropdownEl.classList.add('hidden');
+if (calendarEl) calendarEl.classList.add('hidden');
+
 
 // helpers needAuth
 function getNeedAuthFromEnvOrCollection() {
@@ -199,9 +207,20 @@ export function openRequest(item, forceDefaults = false) {
     const { method, url, paramsInit, headersInit, bodyText, scripts, auth, response, extraScripts } =
         getInitialStateForItem(item, forceDefaults);
 
+    // load pre/post scripts from localStorage if exists
+    scripts.pre = loadScript('pre', item.id, scripts.pre);
+    scripts.post = loadScript('post', item.id, scripts.post);
 
     const pane = $('#reqPane');
+    const dropdown = document.getElementById('timeDropdown');
+    const calendar = document.getElementById('calendarModal');
+    const timeToggle = document.getElementById("timeToggle");
+    const oldSendGroup = pane.querySelector('.sendGroup');
+    if (oldSendGroup && timeToggle && oldSendGroup.contains(timeToggle)) {
+        oldSendGroup.removeChild(timeToggle);
+    }
     pane.innerHTML = '';
+    if (dropdown && !document.body.contains(dropdown)) document.body.appendChild(dropdown);
     const card = el('div', { class:'card' });
 // autosave
     const debSave = debounce(()=> {
@@ -288,8 +307,24 @@ export function openRequest(item, forceDefaults = false) {
                     hideSendMenu();
                 }
             }, 'Import cURL')*/
-        )
+        ),
+
     );
+    // time picker
+    if (timeToggle && sendGroup) {
+        import('./timePicker.js').then(({ initCalendarVisibility, initTimePicker }) => {
+            // get pre-script from active request
+            const activeReq = state.ITEMS_FLAT?.find(r => r.id === state.CURRENT_REQ_ID);
+            const preScript =
+                activeReq?.event?.find(e => e.listen === 'prerequest')?.script?.exec?.join('\n') || '';
+
+            // init visibility of calendar
+            initCalendarVisibility(timeToggle, sendGroup);
+
+            // init time picker
+            initTimePicker(state.CURRENT_REQ_ID, preScript);
+        });
+    }
 
     const sendBtn = sendGroup.querySelector('#sendBtn');
 
@@ -380,7 +415,6 @@ export function openRequest(item, forceDefaults = false) {
 
 );
 
-
 // tabs + panes
     const tabs = el('div', {class:'tabsBar'},
         el('div', {class:'tabs'},
@@ -389,9 +423,7 @@ export function openRequest(item, forceDefaults = false) {
             el('div', {class:'tab', id:'tabAuth', dataset:{method}}, 'Authorization'),
             el('div', {class:'tab', id:'tabScripts', dataset:{method}}, 'Scripts')
         ),
-        el('div', {class:'tabsTools'},
-
-        )
+        el('div', {class:'tabsTools'})
     );
 
 
@@ -427,7 +459,6 @@ export function openRequest(item, forceDefaults = false) {
     });
 
 
-
 // auth tab
     const authTypeSel = el('select', {id:'authType'},
         el('option', {value:'bearer', selected: (auth?.type||'bearer')==='bearer'}, 'Bearer Token')
@@ -456,6 +487,13 @@ export function openRequest(item, forceDefaults = false) {
     );
     const preTA  = el('textarea', {id:'preScript'},  scripts?.pre || '');
     const postTA = el('textarea', {id:'postScript', style:'display:none'}, scripts?.post || '');
+    // save script
+    preTA.addEventListener('input', () => {
+        saveScript('pre', preTA.value, state.CURRENT_REQ_ID);
+    });
+    postTA.addEventListener('input', () => {
+        saveScript('post', postTA.value, state.CURRENT_REQ_ID);
+    });
     const scriptsArea = el('div', {class:'scriptsArea'}, preTA, postTA);
     const scriptsPaneInfo = el('div', {class:'small muted', style:'padding:0 12px 12px'}, 'Available: ctx.request (method,url,params,headers,body), ctx.response (status, headers, bodyText)');
     scriptsPane.append(sw, scriptsArea, scriptsPaneInfo);
@@ -627,6 +665,9 @@ export function openRequest(item, forceDefaults = false) {
 // reset only current request
     $('#resetBtn').onclick = ()=>{
         clearReqState(state.CURRENT_REQ_ID);
+        clearTimePickerState(state.CURRENT_REQ_ID);
+        clearScript('pre', state.CURRENT_REQ_ID);
+        clearScript('post', state.CURRENT_REQ_ID);
         openRequest(item);
     };
 
@@ -839,7 +880,7 @@ export function openRequest(item, forceDefaults = false) {
                 buildVarMap();
                 updateVarsBtnCounter();
 
-                showAlert('Authorization expired — re-run auth and resend request', 'error');
+                showAlert('Authorization expired — resend request', 'error');
                 handledAlert = true;
             }
 
@@ -1051,6 +1092,24 @@ export function openRequest(item, forceDefaults = false) {
         validateUrlInput();
         urlDisp.addEventListener('input', validateUrlInput);
     });
+    // initialization timePicker
+    requestAnimationFrame(() => {
+        try {
+            const reqId = state.CURRENT_REQ_ID;
+            // if there is a saved time picker state
+            const saved = localStorage.getItem(`timePicker_${reqId}`);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                state.TIME_PICKER_STATE[reqId] = parsed;
+                console.debug('[TimePicker] Restored from localStorage:', parsed);
+            }
+            // init time picker whe request is loaded
+            initTimePicker(reqId);
+        } catch (e) {
+            console.warn('[TimePicker] Restore error:', e);
+            initTimePicker(state.CURRENT_REQ_ID);
+        }
+    });
 }
 function toggleWelcomeCard(show) {
     const card = document.getElementById('welcomeCard');
@@ -1079,8 +1138,6 @@ async function runCollectionAuth() {
     } catch (err) {
     }
 }
-
-
 
 export async function bootApp({ collectionPath, autoOpenFirst }) {
     let collection = null;
@@ -1282,6 +1339,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         togglePinCurrent,
         toggleVarsModal
     });
+    import('./timePicker.js');
     // override console methods to tab logs
     ["log", "warn", "error"].forEach(level => {
         const orig = console[level];
@@ -1295,4 +1353,90 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
             renderLogs();
         };
     });
+}
+export function updatePreScriptDate(dateConstString) {
+    const preTA = $('#preScript');
+    if (!preTA || !state.CURRENT_REQ_ID) {
+        showAlert('Request pane not open or ID missing.', 'error');
+        return;
+    }
+
+    let scriptContent = preTA.value;
+
+    // Regex definitions (using 'g' flag for robust global replacement where needed)
+    const DATE_CONST_REGEX = /^\s*const\s+futureDate\s*=\s*new\s+Date\s*\(.*?\);?\s*$/gm;
+    const PAYLOAD_LINE_REGEX = /^\s*payload\.pickup_time\s*=\s*Math\.floor\s*\(futureDate\.getTime\(\)\s*\/\s*1000\);\s*$/gm;
+    const ANCHOR_LINE_REGEX = /^(\s*payload\.fare_id\s*=\s*pm\.collectionVariables\.get\s*\("fareId"\);\s*)/m;
+
+    // Regex for the safety block we inject
+    const SAFETY_BLOCK_REGEX = /if\s*\(\s*typeof\s+payload\s*!==\s*['"]undefined['"]\s*&&\s*payload[\s\S]+?payload\.pickup_time\s*=\s*null\s*;?\s*\}\s*/m;
+
+    const NEW_PAYLOAD_LINE = 'payload.pickup_time = Math.floor(futureDate.getTime() / 1000);';
+
+    // Helper to remove excess newlines after cleanup
+    const cleanScript = (content) => content.replace(/\n\s*\n/g, '\n\n').trim();
+
+    if (!dateConstString.trim()) {
+        // Mode "Now": Remove date/payload injections and insert safety block.
+
+        // Remove old date and payload lines (global flag is key here)
+        scriptContent = scriptContent
+            .replace(PAYLOAD_LINE_REGEX, '')
+            .replace(DATE_CONST_REGEX, '');
+
+        const PAYLOAD_DECL_REGEX = /(\bpayload\s*=\s*[^;]+;)/m;
+        const safetyLine = `if (typeof payload !== 'undefined' && payload && payload.pickup_time === undefined) { payload.pickup_time = null; }`;
+
+        // Only inject safety block if not already present
+        if (!SAFETY_BLOCK_REGEX.test(scriptContent)) {
+            if (PAYLOAD_DECL_REGEX.test(scriptContent)) {
+                // Insert after payload declaration
+                scriptContent = scriptContent.replace(PAYLOAD_DECL_REGEX, `$1\n${safetyLine}`);
+            } else {
+                // Prepend safety block
+                scriptContent = `${safetyLine}\n${scriptContent}`;
+            }
+        }
+
+        scriptContent = cleanScript(scriptContent);
+
+    } else {
+        // Mode "Future Date": Remove safety block and inject/update date and pickup_time.
+
+        // Remove any previously injected safety block first
+        if (SAFETY_BLOCK_REGEX.test(scriptContent)) {
+            scriptContent = scriptContent.replace(SAFETY_BLOCK_REGEX, '');
+        }
+
+        const newDateConst = dateConstString.trim();
+        const fullNewBlock = `\n${newDateConst}\n${NEW_PAYLOAD_LINE}\n`;
+
+        const isExisting = DATE_CONST_REGEX.test(scriptContent) || PAYLOAD_LINE_REGEX.test(scriptContent);
+
+        if (isExisting) {
+            // Update existing lines: update const and ensure only one payload line exists.
+            scriptContent = scriptContent
+                .replace(DATE_CONST_REGEX, newDateConst)
+                // Ensure single payload line (using global flag)
+                .replace(PAYLOAD_LINE_REGEX, NEW_PAYLOAD_LINE);
+
+            // If the date const was present but payload line was not, insert it using the anchor
+            if (!PAYLOAD_LINE_REGEX.test(scriptContent)) {
+                scriptContent = scriptContent.replace(ANCHOR_LINE_REGEX, `$1\n${NEW_PAYLOAD_LINE}\n`);
+            }
+
+        } else if (ANCHOR_LINE_REGEX.test(scriptContent)) {
+            // Insert full block after anchor if neither existed
+            scriptContent = scriptContent.replace(ANCHOR_LINE_REGEX, `$1${fullNewBlock}`);
+        } else {
+            // Prepend new block to the script
+            scriptContent = `${newDateConst}\n${NEW_PAYLOAD_LINE}\n\n${scriptContent.trim()}`;
+        }
+
+        scriptContent = cleanScript(scriptContent);
+    }
+
+    // Apply and trigger save event
+    preTA.value = scriptContent;
+    preTA.dispatchEvent(new Event('input'));
 }

@@ -1012,6 +1012,11 @@
                     "key": "client_id",
                     "value": "{{clientId}}",
                     "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1105,6 +1110,11 @@
                     "key": "client_id",
                     "value": "{{clientId}}",
                     "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1186,6 +1196,11 @@
                   {
                     "key": "client_id",
                     "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
                     "type": "text"
                   }
                 ],
@@ -1272,6 +1287,11 @@
                     "key": "client_id",
                     "value": "{{clientId}}",
                     "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -1353,6 +1373,11 @@
                   {
                     "key": "client_id",
                     "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json; charset=UTF-8",
                     "type": "text"
                   }
                 ],
@@ -2448,6 +2473,11 @@
                     "key": "client_id",
                     "value": "{{clientId}}",
                     "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json; charset=UTF-8",
+                    "type": "text"
                   }
                 ],
                 "body": {
@@ -2510,6 +2540,11 @@
                   {
                     "key": "client_id",
                     "value": "{{clientId}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json; charset=UTF-8",
                     "type": "text"
                   }
                 ],
@@ -3383,7 +3418,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{adminAuthToken}}",
+                      "value": "{{driverAuthToken}}",
                       "type": "string"
                     }
                   ]
