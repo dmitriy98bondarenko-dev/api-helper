@@ -1164,19 +1164,14 @@
                       "fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 },
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "exec": [],
+                    "type": "text/javascript"
                   }
                 }
               ],
@@ -1248,8 +1243,7 @@
                       ""
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 },
                 {
@@ -1267,8 +1261,7 @@
                       "fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 }
               ],
@@ -1348,19 +1341,14 @@
                       "fareEstimate(payload);"
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 },
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "exec": [],
+                    "type": "text/javascript"
                   }
                 }
               ],
@@ -2452,19 +2440,14 @@
                       ""
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 },
                 {
                   "listen": "test",
                   "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "exec": [],
+                    "type": "text/javascript"
                   }
                 }
               ],
@@ -2532,8 +2515,7 @@
                       ""
                     ],
                     "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
+                    "packages": {}
                   }
                 }
               ],
