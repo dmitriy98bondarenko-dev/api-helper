@@ -349,31 +349,6 @@ export function openRequest(item, forceDefaults = false) {
         }, 3000);
     }
 
-
-    const sendBtn = sendGroup.querySelector('#sendBtn');
-
-    function validateUrlInput() {
-        const urlVal = ($('#urlInp').value || '').trim();
-
-    }
-
-// listening changes in URL
-    urlDisp.addEventListener('input', validateUrlInput);
-    function showUrlError() {
-        const disp = $('#urlInpDisplay');
-        if (!disp) return;
-
-        disp.classList.add('url-error');
-        disp.setAttribute('title', 'URL cannot be empty');
-
-        // delay to show error
-        setTimeout(() => {
-            disp.classList.remove('url-error');
-            disp.removeAttribute('title');
-        }, 3000);
-    }
-
-
 // header method + URL +button send
 
     const header = el('div', { class: 'reqHeader' },
