@@ -100,7 +100,6 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     return fetch(finalUrl, options)
         .finally(() => clearTimeout(timer));
 }
-*/
 
 const RESPONSE_BODY_MAX = 512 * 1024; // 512 KB
 
