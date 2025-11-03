@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="./css/header.css">
     <link rel="stylesheet" href="./css/vars.css">
     <link rel="stylesheet" href="./css/theme.css">
+    <link rel="stylesheet" href="./css/timePicker.css">
     <title>API Helper</title>
 </head>
 <body>
@@ -44,7 +45,7 @@
                 <div class="envOption prod" data-value="prod">PROD</div>
             </div>
         </div>
-      <span id="loadedInfo" class="rightInfo"></span>
+        <span id="loadedInfo" class="rightInfo"></span>
     </div>
   </header>
 
@@ -110,14 +111,14 @@
     <div class="pane">
       <div class="card" id="welcomeCard">
         <h3>Welcome</h3>
-        <div class="section">
-          If <code>postman_collection.json</code> and <code>postman_environment.json</code> exist in root, they will auto-load.
-          Or load manually. You can override paths: <code>?collection=./api/col.json&amp;env=./envs/dev.json</code>.
-        </div>
+          <div class="section error-message">
+             <span> Failed to load data. Please try refreshing the page.</span>
+          </div>
       </div>
 
       <div id="reqPane"></div>
-      <div id="resPane"></div>
+
+        <div id="resPane"></div>
     </div>
   </main>
 
@@ -323,5 +324,39 @@
   </svg>
 
   <script type="module" src="./js/app.js"></script>
+  <div id="timeContainer">
+      <div class="timeWrapper">
+          <div class="timeGroup">
+              <button id="timeToggle" class="timeToggle" title="Обрати час">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25M3 18.75A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                  </svg>
+              </button>
+          </div>
+
+          <ul id="timeDropdown" class="timeDropdown hidden">
+              <li data-value="now">На зараз</li>
+              <li data-value="+1h">Через годину</li>
+              <li data-value="+3h">Через 3 години</li>
+              <li data-value="tomorrow">Завтра</li>
+              <li data-value="later">Пізніше</li>
+              <li id="customDateOption" class="customDateOption">
+                  Обрати дату та час
+              </li>
+          </ul>
+
+          <div id="calendarModal" class="calendarPopup hidden">
+              <div class="calendarHeader">
+                  <input type="date" id="datePicker">
+                  <input type="time" id="timePicker" step="300">
+              </div>
+              <div class="calendarActions">
+                  <button id="cancelBtn">Скасувати</button>
+                  <button id="saveBtn">Зберегти</button>
+              </div>
+          </div>
+      </div>
+  </div>
 </body>
 </html>

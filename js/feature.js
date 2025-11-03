@@ -21,7 +21,7 @@ import {
     initResetModal, updateVarsBtnCounter, initVarEditModal,
     toggleVarsModal, getEnvVarsOnly
 } from './vars.js';
-import { loadJson } from './state.js';
+import {clearScript, loadJson, loadScript, saveScript} from './state.js';
 import { state, resolveVars } from './state.js';
 import { initSidebarNav, addHistoryEntry, renderHistory } from './history.js';
 import { copyCurl, safeBuildUrl, openCurlImportModal } from './curl.js';
@@ -36,7 +36,15 @@ import {
     makePostCtx
 } from './scriptEngine.js';
 import {initSettingsSidebar} from "./settings.js";
+import {clearTimePickerState, initTimePicker, initCalendarVisibility} from "./timePicker.js";
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, getEnvVarsOnly());
+// dataPicker element
+const timeGroupEl = document.querySelector('#timeContainer .timeGroup');
+const dropdownEl = document.getElementById('timeDropdown');
+const calendarEl = document.getElementById('calendarPopup');
+if (dropdownEl) dropdownEl.classList.add('hidden');
+if (calendarEl) calendarEl.classList.add('hidden');
+
 
 // helpers needAuth
 function getNeedAuthFromEnvOrCollection() {
@@ -118,10 +126,9 @@ function getInitialStateForItem(item, forceDefaults = false) {
             : '';
     }
 // build scripts only for request level
-    let preArr = [];
-    let postArr = [];
+    let preArr = [], postArr = [];
 
-// request only
+// default collection scripts
     if (Array.isArray(item.event)) {
         item.event.forEach(ev => {
             const code = (ev.script?.exec || []).join('\n');
@@ -129,12 +136,19 @@ function getInitialStateForItem(item, forceDefaults = false) {
             if (ev.listen === 'test'       && code) postArr.push(code);
         });
     }
-// + legacy
-    const savedScripts = saved?.scripts ?? loadScriptsLegacy(id);
-    if (savedScripts?.pre) preArr.push(savedScripts.pre);
-    if (savedScripts?.post) postArr.push(savedScripts.post);
 
-    let scripts = { pre: preArr.join('\n'), post: postArr.join('\n') };
+    const requestDefaults = {
+        pre:  preArr.join('\n'),
+        post: postArr.join('\n')
+    };
+
+// if has saved або legacy use saved if exists, else use defaults
+    const savedScripts = saved?.scripts ?? loadScriptsLegacy(id);
+    const scripts = {
+        pre:  (savedScripts && typeof savedScripts.pre  === 'string') ? savedScripts.pre  : requestDefaults.pre,
+        post: (savedScripts && typeof savedScripts.post === 'string') ? savedScripts.post : requestDefaults.post
+    };
+
 
 
     const extraScripts = { pre: '', post: '' };
@@ -193,9 +207,20 @@ export function openRequest(item, forceDefaults = false) {
     const { method, url, paramsInit, headersInit, bodyText, scripts, auth, response, extraScripts } =
         getInitialStateForItem(item, forceDefaults);
 
+    // load pre/post scripts from localStorage if exists
+    scripts.pre = loadScript('pre', item.id, scripts.pre);
+    scripts.post = loadScript('post', item.id, scripts.post);
 
     const pane = $('#reqPane');
+    const dropdown = document.getElementById('timeDropdown');
+    const calendar = document.getElementById('calendarModal');
+    const timeToggle = document.getElementById("timeToggle");
+    const oldSendGroup = pane.querySelector('.sendGroup');
+    if (oldSendGroup && timeToggle && oldSendGroup.contains(timeToggle)) {
+        oldSendGroup.removeChild(timeToggle);
+    }
     pane.innerHTML = '';
+    if (dropdown && !document.body.contains(dropdown)) document.body.appendChild(dropdown);
     const card = el('div', { class:'card' });
 // autosave
     const debSave = debounce(()=> {
@@ -203,19 +228,26 @@ export function openRequest(item, forceDefaults = false) {
         const headers= tableToSimpleArray(headersTable.tBodies[0]);
         const scriptsNew = { pre: preTA.value, post: postTA.value };
         const authNew = {
-               type: $('#authType').value,
-               token: ($('#authTokenInp')?.textContent || '').trim()
-         };
+            type: $('#authType').value,
+            token: ($('#authTokenInp')?.textContent || '').trim()
+        };
+
+        // do not save if scripts are default
+        const isScriptsDefault =
+            (scriptsNew.pre  || '').trim() === (scripts.pre  || '').trim() &&
+            (scriptsNew.post || '').trim() === (scripts.post || '').trim();
+
         const patch = {
             method: getSelectedMethod(),
             url: $('#urlInp').value,
             params, headers,
             body: $('#bodyRawArea').textContent,
-            scripts: scriptsNew,
+            scripts: isScriptsDefault ? undefined : scriptsNew,
             auth: authNew
         };
         saveReqState(state.CURRENT_REQ_ID, patch);
     }, 180);
+
 // URL editable input
     const urlHidden = el('input', {
         id: 'urlInp',
@@ -275,8 +307,48 @@ export function openRequest(item, forceDefaults = false) {
                     hideSendMenu();
                 }
             }, 'Import cURL')*/
-        )
+        ),
+
     );
+    // time picker
+    if (timeToggle && sendGroup) {
+        import('./timePicker.js').then(({ initCalendarVisibility, initTimePicker }) => {
+            // get pre-script from active request
+            const activeReq = state.ITEMS_FLAT?.find(r => r.id === state.CURRENT_REQ_ID);
+            const preScript =
+                activeReq?.event?.find(e => e.listen === 'prerequest')?.script?.exec?.join('\n') || '';
+
+            // init visibility of calendar
+            initCalendarVisibility(timeToggle, sendGroup);
+
+            // init time picker
+            initTimePicker(state.CURRENT_REQ_ID, preScript);
+        });
+    }
+
+    const sendBtn = sendGroup.querySelector('#sendBtn');
+
+    function validateUrlInput() {
+        const urlVal = ($('#urlInp').value || '').trim();
+
+    }
+
+// listening changes in URL
+    urlDisp.addEventListener('input', validateUrlInput);
+    function showUrlError() {
+        const disp = $('#urlInpDisplay');
+        if (!disp) return;
+
+        disp.classList.add('url-error');
+        disp.setAttribute('title', 'URL cannot be empty');
+
+        // delay to show error
+        setTimeout(() => {
+            disp.classList.remove('url-error');
+            disp.removeAttribute('title');
+        }, 3000);
+    }
+
 
     const sendBtn = sendGroup.querySelector('#sendBtn');
 
@@ -367,7 +439,6 @@ export function openRequest(item, forceDefaults = false) {
 
 );
 
-
 // tabs + panes
     const tabs = el('div', {class:'tabsBar'},
         el('div', {class:'tabs'},
@@ -376,9 +447,7 @@ export function openRequest(item, forceDefaults = false) {
             el('div', {class:'tab', id:'tabAuth', dataset:{method}}, 'Authorization'),
             el('div', {class:'tab', id:'tabScripts', dataset:{method}}, 'Scripts')
         ),
-        el('div', {class:'tabsTools'},
-
-        )
+        el('div', {class:'tabsTools'})
     );
 
 
@@ -414,7 +483,6 @@ export function openRequest(item, forceDefaults = false) {
     });
 
 
-
 // auth tab
     const authTypeSel = el('select', {id:'authType'},
         el('option', {value:'bearer', selected: (auth?.type||'bearer')==='bearer'}, 'Bearer Token')
@@ -443,6 +511,13 @@ export function openRequest(item, forceDefaults = false) {
     );
     const preTA  = el('textarea', {id:'preScript'},  scripts?.pre || '');
     const postTA = el('textarea', {id:'postScript', style:'display:none'}, scripts?.post || '');
+    // save script
+    preTA.addEventListener('input', () => {
+        saveScript('pre', preTA.value, state.CURRENT_REQ_ID);
+    });
+    postTA.addEventListener('input', () => {
+        saveScript('post', postTA.value, state.CURRENT_REQ_ID);
+    });
     const scriptsArea = el('div', {class:'scriptsArea'}, preTA, postTA);
     const scriptsPaneInfo = el('div', {class:'small muted', style:'padding:0 12px 12px'}, 'Available: ctx.request (method,url,params,headers,body), ctx.response (status, headers, bodyText)');
     scriptsPane.append(sw, scriptsArea, scriptsPaneInfo);
@@ -614,6 +689,9 @@ export function openRequest(item, forceDefaults = false) {
 // reset only current request
     $('#resetBtn').onclick = ()=>{
         clearReqState(state.CURRENT_REQ_ID);
+        clearTimePickerState(state.CURRENT_REQ_ID);
+        clearScript('pre', state.CURRENT_REQ_ID);
+        clearScript('post', state.CURRENT_REQ_ID);
         openRequest(item);
     };
 
@@ -678,7 +756,7 @@ export function openRequest(item, forceDefaults = false) {
             await runCollectionAuth();
             showScriptLoader(false);
 
-            // погасить флаг только через helper
+            // turn off the flag if auth is valid
             setNeedAuthInEnv('false');
             buildVarMap();
             updateVarsBtnCounter();
@@ -691,24 +769,39 @@ export function openRequest(item, forceDefaults = false) {
             (preTA.value.trim() || scripts.pre || '') // request-level
         ].filter(Boolean).join('\n');
 
+// if to run the collection level pre script
+        let skipCollectionPre = false;
 
-        if (preCodeAll.trim()) {
+// check the needAuth variable
+        const needAuthValue = String(getNeedAuthFromEnvOrCollection()).toLowerCase();
+
+// if needAuth false authorization is  valid
+        if (needAuthValue === 'false') {
+            skipCollectionPre = true;
+        }
+
+// if a request has its own pre script
+        const hasRequestPre = Boolean(preTA.value.trim() || scripts.pre.trim());
+
+// skip the collection pre
+        if (skipCollectionPre && !hasRequestPre) {
+            //console.log('Skipping collection pre-script (auth not required)');
+        } else if (preCodeAll.trim()) {
             try {
                 const ctx = makePreCtx({ method, url: finalUrl, params, headers, body });
 
                 showScriptLoader(true, 'Running pre-request script...');
                 await runUserScript(preCodeAll, ctx);
-                // wait for all promises to resolve variables
-                await Promise.all(ctx._promises || []);
+                // all promises waiting from runUserScript
                 showScriptLoader(false);
-
                 // update vars
                 buildVarMap();
                 updateVarsBtnCounter();
-                // highligh vars on the auth tab
                 highlightMissingVars(document, getEnvVarsOnly());
-
-                // rebuilding the body editor ui
+                while (!ctx._allDone) {
+                    await new Promise(r => setTimeout(r, 10));
+                }
+                // rebuilding body UI
                 const bodyEditor = document.getElementById('bodyRawArea');
                 if (bodyEditor) {
                     const offset = saveSelection(bodyEditor);
@@ -718,8 +811,6 @@ export function openRequest(item, forceDefaults = false) {
                     restoreSelection(bodyEditor, offset);
                 }
 
-
-
                 await new Promise(r => setTimeout(r, 50));
                 buildVarMap();
                 ({ method } = ctx.request);
@@ -728,7 +819,6 @@ export function openRequest(item, forceDefaults = false) {
                 body     = ctx.request.body;
 
                 let hdrsAfterArr = tableToSimpleArray(headersTable.tBodies[0]);
-
                 const fromCtx = Array.isArray(ctx.request.headers)
                     ? ctx.request.headers
                     : Object.entries(ctx.request.headers || {}).map(([k, v]) => ({
@@ -748,17 +838,14 @@ export function openRequest(item, forceDefaults = false) {
                     }
                 });
 
-                // rebuilding the table ui
                 headersTable = buildKVTable(hdrsAfterArr, { onChange: debSave });
                 headersBox.replaceChildren(headersTable);
 
-                // rebuilding headers
                 headers = Object.fromEntries(
                     hdrsAfterArr.filter(h => h.enabled !== false && h.key)
                         .map(h => [h.key, resolveVars(h.value)])
                 );
 
-                // rebuilding url and body
                 const paramsAfter = tableToSimpleArray(paramsTable.tBodies[0]);
                 finalUrl = resolveVars(safeBuildUrl($('#urlInp').value.trim(), paramsAfter));
                 body = resolveVars($('#bodyRawArea').textContent || '');
@@ -768,17 +855,16 @@ export function openRequest(item, forceDefaults = false) {
                     if (ct) headers['Content-Type'] = ct;
                 }
 
-                if (ctx._logs.length) {
-                }
             }
             catch (e) {
                 renderResponse(null, 'PRE error: ' + e.message, 0, finalUrl);
                 return;
             }
-             finally {
-                             showScriptLoader(false);
-                         }
+            finally {
+                showScriptLoader(false);
+            }
         }
+
         // final auth enforce
         (() => {
             const { type: aType, token: rawTok } = getAuthData();
@@ -803,13 +889,6 @@ export function openRequest(item, forceDefaults = false) {
         showLoader(true); $('#sendBtn').disabled = true;
         const started = performance.now();
 
-        /*console.log('FINAL REQUEST →', JSON.stringify({
-            method,
-            url: finalUrl,
-            headers,
-            hasAuth: !!Object.keys(headers).find(h=>h.toLowerCase()==='authorization')
-        }, null, 2)); */
-
         try {
             let res = await fetchWithTimeout(finalUrl, {
                 method,
@@ -817,6 +896,7 @@ export function openRequest(item, forceDefaults = false) {
                 body: (method==='GET'||method==='HEAD') ? undefined : body
             });
             let text = await res.text();
+            let handledAlert = false;
             if (res.status === 401) {
                 console.warn("Got 401 on main request, resetting needAuth");
                 setNeedAuthInEnv('true');
@@ -824,10 +904,9 @@ export function openRequest(item, forceDefaults = false) {
                 buildVarMap();
                 updateVarsBtnCounter();
 
-                showAlert('Authorization expired — re-run auth and resend request', 'error');
+                showAlert('Authorization expired — resend request', 'error');
+                handledAlert = true;
             }
-
-
 
 
             // POST scripts
@@ -836,28 +915,47 @@ export function openRequest(item, forceDefaults = false) {
                 (postTA.value.trim() || scripts.post || '') // request-level
             ].filter(Boolean).join('\n');
 
-            if (postCodeAll.trim()) {
+// check if there are scripts
+            const hasAnyPostScript =
+                (Array.isArray(item.event) && item.event.some(ev => ev.listen === 'test')) ||
+                (Array.isArray(item.folderEvents) && item.folderEvents.some(ev => ev.listen === 'test')) ||
+                (Array.isArray(state.COLLECTION?.event) && state.COLLECTION.event.some(ev => ev.listen === 'test'));
+
+// skip if there are no scripts
+            if (hasAnyPostScript && postCodeAll.trim()) {
                 try {
                     const ctxPost = makePostCtx({
                         request: { method, url: finalUrl, headers, body },
-                        response: { status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), bodyText: text }
+                        response: {
+                            status: res.status,
+                            statusText: res.statusText,
+                            headers: Object.fromEntries(res.headers.entries()),
+                            bodyText: text
+                        }
                     });
+
+                    showScriptLoader(true, 'Running test script...');
                     await runUserScript(postCodeAll, ctxPost);
-                    await Promise.all(ctxPost._promises || []);
+                    showScriptLoader(false);
+
                     buildVarMap();
                     updateVarsBtnCounter();
+
                     if (ctxPost.response && typeof ctxPost.response.bodyText === 'string') {
                         text = ctxPost.response.bodyText;
                     }
                     if (ctxPost._logs.length) {
-                        console.log("POST script logs:", ctxPost._logs);
                     }
-                } catch(_) {}
+                } catch (e) {
+                    console.error("POST script error:", e);
+                } finally {
+                    showScriptLoader(false);
+                }
             }
 
             const ms = performance.now() - started;
             // if response code is 503
-            if (!res.ok) {
+            if (!res.ok && !handledAlert) {
                 showAlert('Request failed', 'error');
 
                 if (!text.trim()) {
@@ -1018,6 +1116,24 @@ export function openRequest(item, forceDefaults = false) {
         validateUrlInput();
         urlDisp.addEventListener('input', validateUrlInput);
     });
+    // initialization timePicker
+    requestAnimationFrame(() => {
+        try {
+            const reqId = state.CURRENT_REQ_ID;
+            // if there is a saved time picker state
+            const saved = localStorage.getItem(`timePicker_${reqId}`);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                state.TIME_PICKER_STATE[reqId] = parsed;
+                console.debug('[TimePicker] Restored from localStorage:', parsed);
+            }
+            // init time picker whe request is loaded
+            initTimePicker(reqId);
+        } catch (e) {
+            console.warn('[TimePicker] Restore error:', e);
+            initTimePicker(state.CURRENT_REQ_ID);
+        }
+    });
 }
 function toggleWelcomeCard(show) {
     const card = document.getElementById('welcomeCard');
@@ -1046,8 +1162,6 @@ async function runCollectionAuth() {
     } catch (err) {
     }
 }
-
-
 
 export async function bootApp({ collectionPath, autoOpenFirst }) {
     let collection = null;
@@ -1172,7 +1286,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
     buildVarMap();
     updateVarsBtnCounter();
     renderTree('', { onRequestClick: openRequest });
-    import('./sidebar.js').then(({ initCollectionDropdown }) => {
+    import('./settings.js').then(({ initCollectionDropdown }) => {
         initCollectionDropdown();
     });
     initEnvDropdown();
@@ -1209,9 +1323,6 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
             if (filterInp.value) applyFilter();
         }
     }
-
-
-
     //  env dropdown
     initEnvDropdown();
 
@@ -1252,6 +1363,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
         togglePinCurrent,
         toggleVarsModal
     });
+    import('./timePicker.js');
     // override console methods to tab logs
     ["log", "warn", "error"].forEach(level => {
         const orig = console[level];
@@ -1265,5 +1377,90 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
             renderLogs();
         };
     });
+}
+export function updatePreScriptDate(dateConstString) {
+    const preTA = $('#preScript');
+    if (!preTA || !state.CURRENT_REQ_ID) {
+        showAlert('Request pane not open or ID missing.', 'error');
+        return;
+    }
 
+    let scriptContent = preTA.value;
+
+    // Regex definitions (using 'g' flag for robust global replacement where needed)
+    const DATE_CONST_REGEX = /^\s*const\s+futureDate\s*=\s*new\s+Date\s*\(.*?\);?\s*$/gm;
+    const PAYLOAD_LINE_REGEX = /^\s*payload\.pickup_time\s*=\s*Math\.floor\s*\(futureDate\.getTime\(\)\s*\/\s*1000\);\s*$/gm;
+    const ANCHOR_LINE_REGEX = /^(\s*payload\.fare_id\s*=\s*pm\.collectionVariables\.get\s*\("fareId"\);\s*)/m;
+
+    // Regex for the safety block we inject
+    const SAFETY_BLOCK_REGEX = /if\s*\(\s*typeof\s+payload\s*!==\s*['"]undefined['"]\s*&&\s*payload[\s\S]+?payload\.pickup_time\s*=\s*null\s*;?\s*\}\s*/m;
+
+    const NEW_PAYLOAD_LINE = 'payload.pickup_time = Math.floor(futureDate.getTime() / 1000);';
+
+    // Helper to remove excess newlines after cleanup
+    const cleanScript = (content) => content.replace(/\n\s*\n/g, '\n\n').trim();
+
+    if (!dateConstString.trim()) {
+        // Mode "Now": Remove date/payload injections and insert safety block.
+
+        // Remove old date and payload lines (global flag is key here)
+        scriptContent = scriptContent
+            .replace(PAYLOAD_LINE_REGEX, '')
+            .replace(DATE_CONST_REGEX, '');
+
+        const PAYLOAD_DECL_REGEX = /(\bpayload\s*=\s*[^;]+;)/m;
+        const safetyLine = `if (typeof payload !== 'undefined' && payload && payload.pickup_time === undefined) { payload.pickup_time = null; }`;
+
+        // Only inject safety block if not already present
+        if (!SAFETY_BLOCK_REGEX.test(scriptContent)) {
+            if (PAYLOAD_DECL_REGEX.test(scriptContent)) {
+                // Insert after payload declaration
+                scriptContent = scriptContent.replace(PAYLOAD_DECL_REGEX, `$1\n${safetyLine}`);
+            } else {
+                // Prepend safety block
+                scriptContent = `${safetyLine}\n${scriptContent}`;
+            }
+        }
+
+        scriptContent = cleanScript(scriptContent);
+
+    } else {
+        // Mode "Future Date": Remove safety block and inject/update date and pickup_time.
+
+        // Remove any previously injected safety block first
+        if (SAFETY_BLOCK_REGEX.test(scriptContent)) {
+            scriptContent = scriptContent.replace(SAFETY_BLOCK_REGEX, '');
+        }
+
+        const newDateConst = dateConstString.trim();
+        const fullNewBlock = `\n${newDateConst}\n${NEW_PAYLOAD_LINE}\n`;
+
+        const isExisting = DATE_CONST_REGEX.test(scriptContent) || PAYLOAD_LINE_REGEX.test(scriptContent);
+
+        if (isExisting) {
+            // Update existing lines: update const and ensure only one payload line exists.
+            scriptContent = scriptContent
+                .replace(DATE_CONST_REGEX, newDateConst)
+                // Ensure single payload line (using global flag)
+                .replace(PAYLOAD_LINE_REGEX, NEW_PAYLOAD_LINE);
+
+            // If the date const was present but payload line was not, insert it using the anchor
+            if (!PAYLOAD_LINE_REGEX.test(scriptContent)) {
+                scriptContent = scriptContent.replace(ANCHOR_LINE_REGEX, `$1\n${NEW_PAYLOAD_LINE}\n`);
+            }
+
+        } else if (ANCHOR_LINE_REGEX.test(scriptContent)) {
+            // Insert full block after anchor if neither existed
+            scriptContent = scriptContent.replace(ANCHOR_LINE_REGEX, `$1${fullNewBlock}`);
+        } else {
+            // Prepend new block to the script
+            scriptContent = `${newDateConst}\n${NEW_PAYLOAD_LINE}\n\n${scriptContent.trim()}`;
+        }
+
+        scriptContent = cleanScript(scriptContent);
+    }
+
+    // Apply and trigger save event
+    preTA.value = scriptContent;
+    preTA.dispatchEvent(new Event('input'));
 }
