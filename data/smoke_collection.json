@@ -9,6 +9,68 @@
   },
   "item": [
     {
+      "name": "Test API",
+      "item": [
+        {
+          "name": "TEST",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"macOS\""
+              },
+              {
+                "key": "Referer",
+                "value": "https://api-helper-cee777.pages.uklon.net/"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\""
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contact\":\"test_5@tst.com\",\"password\":\"Qwerty41\",\"grant_type\":\"password\",\"device_id\":\"8a51ef4027d444f7bee746e1e4fb6f51\",\"client_id\":\"6289de851fc726f887af8d5d7a56c635\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://identity2.dev.uklon.net/api/v1/auth",
+              "protocol": "https",
+              "host": [
+                "identity2",
+                "dev",
+                "uklon",
+                "net"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Dependencies",
       "item": [
         {
@@ -3899,10 +3961,6 @@
     {
       "key": "fareEstimatePayloadOptional",
       "value": "{\n  \"fare_id\": \"c62b3b19-5461-4032-b3a3-2bc0b08927ff\",\n  \"include_route_info\": true,\n  \"route\": {\n    \"points\": [\n      {\n       \"lat\": 50.47197,\n\t\t\"lng\": 30.51984,\n\t\t\"name\": \"Низький уклін тим хто робить деферед\"\n      },\n      {\n       \"lat\": 50.40691,\n\t\t\t\"lng\": 30.62797,\n\t\t\t\"name\": \"Вулиця кочегарів 24п7\"\n      }\n    ]\n  },\n  \"low_quality_network\": false,\n  \"pedestrian_path_enabled\": false,\n  \"ride_conditions\": [\n    { \"name\": \"silence\" }\n  ],\n  \"payment_method\": {\n    \"id\": \"6a81c070bcdc4aa6814317a50b022e97\",\n    \"type\": \"cash\"\n  }\n}"
-    },
-    {
-      "key": "fareEstimatePayloadDude",
-      "value": "{\n  \"fare_id\": \"c62b3b19-5461-4032-b3a3-2bc0b08927ff\",\n  \"include_route_info\": true,\n  \"route\": {\n    \"points\": [\n      {\n        \"lat\": 50.44351,\n        \"lng\": 30.52088,\n        \"name\": \"hi, dude\"\n      },\n      {\n        \"lat\": 50.47233,\n        \"lng\": 30.51883,\n        \"name\": \"Bye Bye\"\n      }\n    ]\n  },\n  \"low_quality_network\": false,\n  \"pedestrian_path_enabled\": false,\n  \"ride_conditions\": [\n    { \"name\": \"silence\" }\n  ],\n  \"payment_method\": {\n    \"id\": \"6a81c070bcdc4aa6814317a50b022e97\",\n    \"type\": \"cash\"\n  }\n}"
     }
   ]
 }
