@@ -43,7 +43,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"contact\":\"test_5@tst.com\",\"password\":\"Qwerty41\",\"grant_type\":\"password\",\"device_id\":\"8a51ef4027d444f7bee746e1e4fb6f51\",\"client_id\":\"6289de851fc726f887af8d5d7a56c635\"}",
+              "raw": "{\"contact\":\"380956666666\",\"password\":\"Qwerty11\",\"grant_type\":\"password\",\"device_id\":\"8a51ef4027d444f7bee746e1e4fb6f51\",\"client_id\":\"6289de851fc726f887af8d5d7a56c635\"}",
               "options": {
                 "raw": {
                   "language": "json"
