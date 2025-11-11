@@ -67,7 +67,65 @@
             }
           },
           "response": []
-        }
+        },
+				{
+					"name": "TEST DG",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "content-type",
+								"value": "application/json"
+							},
+							{
+								"key": "accept",
+								"value": "application/json"
+							},
+							{
+								"key": "app_uid",
+								"value": "a5514b3487aa4789ac2894758c281157"
+							},
+							{
+								"key": "locale",
+								"value": "uk"
+							},
+							{
+								"key": "user-agent",
+								"value": "UklonDriverIOS/7376.5342244"
+							},
+							{
+								"key": "client_id",
+								"value": "B0704E064A364C0C9DD40085380B7DD8"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"client_id\": \"B0704E064A364C0C9DD40085380B7DD8\",\n\t\"username\": \"+380989089898\",\n\t\"password\": \"76-94-F4-A6-63-16-E5-3C-8C-DD-9D-99-54-BD-61-1D\",\n\t\"client_secret\": \"C8-49-72-77-3D-FF-51-35-B5-4C-4C-77-FE-4D-DD-B5\",\n\t\"grant_type\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://driver.dev.uklon.com.ua/api/v1/auth-tokens",
+							"protocol": "https",
+							"host": [
+								"driver",
+								"dev",
+								"uklon",
+								"com",
+								"ua"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth-tokens"
+							]
+						}
+					},
+					"response": []
+				}
       ]
     },
     {
