@@ -81,6 +81,7 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
 */
 /* delete proxy if run on uklon domain */
 // Detect if the app is running on localhost (any port)
+/** without proxy
 const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
 // Proxy URL for local development
@@ -96,6 +97,26 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     // If running locally → prepend proxy
     // If not → keep the original URL untouched
     const finalUrl = isLocalhost ? LOCAL_PROXY_URL + url : url;
+
+    return fetch(finalUrl, options)
+        .finally(() => clearTimeout(timer));
+}
+*/
+
+/**
+ *  dg proxy config
+ * */
+const PROXY_URL = 'http://localhost:9001/api/v1/api-helper/proxy?target=';
+const PROXY_DOMAINS = ['localhost', 'api-helper-cee777.pages.uklon.net'];
+const REQUEST_TIMEOUT_MS = 15000;
+
+export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    const options = { ...opts, signal: controller.signal };
+
+    const useProxy = PROXY_DOMAINS.includes(window.location.hostname);
+    const finalUrl = useProxy ? PROXY_URL + url : url;
 
     return fetch(finalUrl, options)
         .finally(() => clearTimeout(timer));
