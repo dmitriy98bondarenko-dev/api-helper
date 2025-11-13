@@ -278,7 +278,7 @@ search:focus ~ .searchIcon,
 #navSearch,
 #navSettings {
     position: relative;
-    z-index: 1000;
+    z-index: 5;
 }
 
 .historyGroup {

@@ -12,6 +12,10 @@ export function detectContentType(body){
     if (/^--?[-\w]+/i.test(s) && /content-disposition/i.test(s)) return 'multipart/form-data';
     return null;
 }
+function safeParse(s) {
+    try { return s ? JSON.parse(s) : null; }
+    catch { return null; }
+}
 
 // postman scripts
 export async function runUserScript(code, ctx) {
@@ -301,7 +305,71 @@ export function makePmAdapter(ctx) {
             unset: (key) => { delete state.GLOBALS[key]; }
         },
         collectionVariables: {
-            get: (key) => state.COLLECTION_VARS[key],
+            get: (key) => {
+                if (key === "fareEstimatePayloadAdditional") {
+                    const safeParse = (s) => { try { return s ? JSON.parse(s) : null; } catch { return null; } };
+                    const norm = (n) => Number(Number(n).toFixed(5));
+                    const ensureString = (v) => (typeof v === "string") ? v : JSON.stringify(v ?? {});
+                    const ensureParsed = (s) => { try { return JSON.parse(ensureString(s)); } catch { return {}; } };
+
+                    // get points from localStorage
+                    const pickup  = safeParse(localStorage.getItem("pickup_point"));
+                    const dropoff = safeParse(localStorage.getItem("dropoff_point"));
+
+                    // read original payload in collection
+                    const base = ensureParsed(state.COLLECTION_VARS[key]);
+                    const origPoints = Array.isArray(base?.route?.points) ? base.route.points : [];
+
+                    // geb base route points and copy to new array
+                    const points = [...origPoints];
+
+                    // check if has custom pickup point, set it to first point
+                    if (pickup?.lat != null && pickup?.lng != null) {
+                        if (points.length > 0) points[0] = {
+                            lat: norm(pickup.lat),
+                            lng: norm(pickup.lng),
+                            name: pickup.name || points[0]?.name || "Pickup Point"
+                        };
+                        else points.push({
+                            lat: norm(pickup.lat),
+                            lng: norm(pickup.lng),
+                            name: pickup.name || "Pickup Point"
+                        });
+                    }
+
+                    // check if has custom dropoff point, set it to second point
+                    if (dropoff?.lat != null && dropoff?.lng != null) {
+                        if (points.length > 1) points[1] = {
+                            lat: norm(dropoff.lat),
+                            lng: norm(dropoff.lng),
+                            name: dropoff.name || points[1]?.name || "Dropoff Point"
+                        };
+                        else points.push({
+                            lat: norm(dropoff.lat),
+                            lng: norm(dropoff.lng),
+                            name: dropoff.name || "Dropoff Point"
+                        });
+                    }
+
+                    // if no points left, return original payload
+                    if (points.length === 0) {
+                        const orig = state.COLLECTION_VARS[key];
+                        return ensureString(orig);
+                    }
+
+                    // set new route points in base payload
+                    base.route = { ...(base.route || {}), points };
+                    base.fare_id = base.fare_id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+                    base.include_route_info = (base.include_route_info !== false);
+
+                    console.log("[OVERRIDE] fareEstimatePayloadAdditional points:", points);
+                    return JSON.stringify(base);
+                }
+
+                // fallback to other vars
+                const val = state.COLLECTION_VARS[key];
+                return (typeof val === "string") ? val : JSON.stringify(val ?? "");
+            },
 
             // sync wrapper, returning/registering promise
             set: (key, value) => {
@@ -352,7 +420,6 @@ export function makePmAdapter(ctx) {
                 }
             }
         },
-
 
         request: {
             get method(){ return ctx.request.method; },

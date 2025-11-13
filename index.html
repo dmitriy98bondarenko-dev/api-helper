@@ -22,6 +22,9 @@
     <link rel="stylesheet" href="./css/vars.css">
     <link rel="stylesheet" href="./css/theme.css">
     <link rel="stylesheet" href="./css/timePicker.css">
+    <link rel="stylesheet" href="css/location/_modals.css">
+    <link rel="stylesheet" href="css/location/_suggestions.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <title>API Helper</title>
 </head>
 <body>
@@ -76,6 +79,12 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.964m11.49-9.642 1.149-.964M7.501 19.795l.75-1.3m7.5-12.99.75-1.3m-6.063 16.658.26-1.477m2.605-14.772.26-1.477m0 17.726-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205 12 12m6.894 5.785-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495" />
               </svg>
           </button>
+          <button id="locationBtn" class="navBtn" title="Set location">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+              </svg>
+          </button>
           <button id="navDocs" class="navBtn" title="Open External Docs">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                    viewBox="0 0 24 24" stroke-width="1.5"
@@ -84,7 +93,6 @@
                         d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
               </svg>
           </button>
-
       </div>
     <div class="section">
         <div class="searchWrap" hidden>
@@ -307,6 +315,169 @@
 
   <div id="loader" class="loaderOverlay" hidden><div class="spinner"></div></div>
   <div id="alertsContainer"></div>
+  <!-- location modal -->
+  <div id="mapContainer">
+      <div class="overlay" id="locationModal">
+          <div class="location-modal-content">
+              <div class="modal-header">
+                  <h2>Select route</h2>
+                  <button id="closeModalBtn" class="close-icon" aria-label="Close">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                           stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                  </button>
+              </div>
+              <div class="city-row">
+
+                  <div class="custom-select" id="citySelectWrapper">
+                      <div id="cityLoader" class="city-loader hidden"></div>
+                      <div id="citySelected" class="select-selected">
+                          <span class="label">Loading...</span>
+                          <span class="arrow">▼</span>
+                      </div>
+                      <div id="cityOptions" class="select-items select-hidden"></div>
+                  </div>
+
+                  <button id="resetLocationsBtn" class="reset-btn">Reset</button>
+              </div>
+              <div class="input-group labeled">
+                  <label for="pickupInput">Pick-up location</label>
+                  <div class="input-row">
+                      <div class="input-wrapper">
+                          <div class="input-icon map-open-trigger" id="pickupIcon">
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M11.9998 15.7C14.0433 15.7 15.6998 14.0434 15.6998 12C15.6998 9.95653 14.0433 8.29999 11.9998 8.29999C9.95635 8.29999 8.29979 9.95653 8.29979 12C8.29979 14.0434 9.95635 15.7 11.9998 15.7Z" fill="#454754"/>
+                                  <path d="M22 11H20.3C19.8 7.2 16.8 4.2 13 3.7V2C13 1.4 12.6 1 12 1C11.4 1 11 1.4 11 2V3.7C7.2 4.2 4.20001 7.2 3.70001 11H2C1.4 11 1 11.4 1 12C1 12.6 1.4 13 2 13H3.70001C4.20001 16.8 7.2 19.8 11 20.3V22C11 22.6 11.4 23 12 23C12.6 23 13 22.6 13 22V20.3C16.8 19.8 19.8 16.8 20.3 13H22C22.6 13 23 12.6 23 12C23 11.4 22.6 11 22 11ZM12 18.4C8.5 18.4 5.60001 15.5 5.60001 12C5.60001 8.5 8.5 5.6 12 5.6C15.5 5.6 18.4 8.5 18.4 12C18.4 15.5 15.5 18.4 12 18.4Z" fill="#454754"/>
+                              </svg>
+                          </div>
+                          <input id="pickupInput" type="text" placeholder="Pick-up location" autocomplete="off" />
+                          <div class="shortcuts">
+                              <button class="shortcut-btn clear-input-btn hidden" title="Clear input">
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                  </svg>
+                              </button>
+                          </div>
+                      </div>
+
+                      <button id="favoritePickup" class="favorite-standalone-btn" title="Add to Favorites">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" >
+                              <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                          </svg>
+                      </button>
+                  </div>
+
+                  <div class="suggestions-dropdown" id="pickupSuggestions"></div>
+              </div>
+
+              <div class="input-group labeled">
+                  <label for="dropInput">Drop-off location</label>
+                  <div class="input-row">
+                      <div class="input-wrapper">
+                          <div class="input-icon map-open-trigger" id="dropIcon">
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M14 20.5H9.5C7.3 20.5 5.5 18.7 5.5 16.5C5.5 14.3 7.3 12.5 9.5 12.5H15.7C17.2 12.5 18.5 11.3 18.5 9.7C18.5 8.1 17.3 7 15.8 7H9.5C8.9 7 8.5 6.6 8.5 6C8.5 5.4 8.9 5 9.5 5H15.7C18.3 5 20.5 7.1 20.5 9.8C20.5 12.5 18.4 14.6 15.7 14.6H9.5C8.4 14.6 7.5 15.5 7.5 16.6C7.5 17.7 8.4 18.6 9.5 18.6H14C14.6 18.6 15 19 15 19.6C15 20.2 14.6 20.5 14 20.5Z" fill="#454754"/>
+                                  <path d="M6 10.5C3.5 10.5 1.5 8.5 1.5 6C1.5 3.5 3.5 1.5 6 1.5C8.5 1.5 10.5 3.5 10.5 6C10.5 8.5 8.5 10.5 6 10.5ZM6 3.5C4.6 3.5 3.5 4.6 3.5 6C3.5 7.4 4.6 8.5 6 8.5C7.4 8.5 8.5 7.4 8.5 6C8.5 4.6 7.4 3.5 6 3.5Z" fill="#454754"/>
+                                  <path d="M19 22.5C17.3 22.5 16 21.2 16 19.5C16 17.8 17.3 16.5 19 16.5C20.7 16.5 22 17.8 22 19.5C22 21.2 20.7 22.5 19 22.5ZM19 18.5C18.4 18.5 18 18.9 18 19.5C18 20.1 18.4 20.5 19 20.5C19.6 20.5 20 20.1 20 19.5C20 18.9 19.6 18.5 19 18.5Z" fill="#454754"/>
+                                  <path d="M6 7C6.55228 7 7 6.55228 7 6C7 5.44772 6.55228 5 6 5C5.44772 5 5 5.44772 5 6C5 6.55228 5.44772 7 6 7Z" fill="#454754"/>
+                              </svg>
+                          </div>
+                          <input id="dropInput" type="text" placeholder="Where to go?" autocomplete="off" />
+                          <div class="shortcuts">
+                              <button class="shortcut-btn clear-input-btn hidden" title="Clear input">
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                  </svg>
+                              </button>
+                          </div>
+                      </div>
+
+                      <button id="favoriteDropoff" class="favorite-standalone-btn" title="Add to Favorites">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" >
+                              <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                          </svg>
+                      </button>
+                  </div>
+
+                  <div class="suggestions-dropdown" id="dropSuggestions"></div>
+              </div>
+
+              <div class="address-slider" id="addressSlider">
+              </div>
+          </div>
+          <div id="cityDropdownPortal"
+               style="position:absolute; inset:0; pointer-events:none; z-index:999999;"></div>
+
+          <div id="suggestionsPortal"
+               style="position:absolute; inset:0; pointer-events:none; z-index:9999999;"></div>
+
+      </div>
+
+  </div>
+  <div class="overlay" id="mapModal">
+      <div class="map-modal">
+          <div id="map"></div>
+          <div class="map-footer">
+              <p id="coordsText">Move the pin to set location</p>
+              <button id="confirmMapBtn" class="confirm-btn">Confirm</button>
+              <button id="cancelMapBtn" class="cancel-btn">Cancel</button>
+          </div>
+      </div>
+  </div>
+  <template id="template-pick-on-map">
+      <div class="suggestion-item pick-map-suggestion">
+          <div class="suggestion-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M14.8077 2.12057C15.1948 2.01191 15.6056 2.02244 15.9866 2.15078L20.6384 3.71771C21.4521 3.99177 22 4.75453 22 5.61307V19.6079C22 20.9757 20.6578 21.9399 19.3616 21.5033L15.3482 20.1514L9.19233 21.8794C8.80524 21.988 8.39439 21.9775 8.01337 21.8492L3.36156 20.2822C2.54794 20.0082 2 19.2454 2 18.3869V4.39202C2 3.02425 3.34223 2.06004 4.63844 2.49665L8.65181 3.84853L14.8077 2.12057ZM15 4.14388L9.5 5.68774V19.7157L14.8077 18.2258C14.8712 18.208 14.9354 18.1934 15 18.1819V4.14388ZM17 4.60254V18.5974L20 19.6079V5.61307L17 4.60254ZM4 4.39202L7.5 5.57096V19.5658L4 18.3869V4.39202Z" fill="#454754"/>
+              </svg>
+
+
+          </div>
+          <div class="pick-on-map">
+              <div class="suggestion-content">
+                  <span class="main-text">Pick on the map</span>
+              </div>
+          </div>
+      </div>
+  </template>
+  <template id="template-favorite-item">
+      <div class="suggestion-item favorite-item">
+          <div class="suggestion-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11.4 10.6001C11.2 10.6001 10.9 10.5001 10.8 10.4001C10.4 10.0001 10.3 9.4001 10.7 9.0001L13.2 6.0001L10.7 3.0001C10.3 2.6001 10.4 1.9001 10.8 1.6001C11.2 1.2001 11.9 1.3001 12.2 1.7001L15.2 5.3001C15.5 5.7001 15.5 6.2001 15.2 6.6001L12.2 10.2001C12 10.5001 11.7 10.6001 11.4 10.6001Z" fill="#454754"/>
+                  <path d="M13.7999 22.4C13.2999 22.4 12.8999 22.1 12.7999 21.6C12.6999 21.1 12.9999 20.5 13.4999 20.4C14.1999 20.2 14.8999 19.9 15.5999 19.5C16.0999 19.2 16.6999 19.3 16.9999 19.8C17.2999 20.3 17.1999 20.9 16.6999 21.2C15.8999 21.7 14.9999 22.1 13.9999 22.3C13.9999 22.4 13.8999 22.4 13.7999 22.4Z" fill="#454754"/>
+                  <path d="M18.6001 19C18.4001 19 18.2001 18.9 18.1001 18.8C17.6001 18.5 17.5001 17.9 17.8001 17.4C18.2001 16.8 18.5001 16.1 18.7001 15.3C18.8001 14.8 19.4001 14.4 19.9001 14.5C20.4001 14.6 20.8001 15.1 20.7001 15.7C20.5001 16.7 20.1001 17.6 19.5001 18.4C19.2001 18.8 18.9001 19 18.6001 19Z" fill="#454754"/>
+                  <path d="M19.6 13C19.1 13 18.7 12.7 18.6 12.2C18.4 11.5 18.1 10.8 17.7 10.1C17.4 9.6 17.5 9 18 8.7C18.5 8.4 19.1 8.5 19.4 9C19.9 9.8 20.3 10.7 20.5 11.7C20.6 12.2 20.3 12.8 19.8 12.9C19.7 13 19.7 13 19.6 13Z" fill="#454754"/>
+                  <path d="M10.2002 22.4C10.1002 22.4 10.0002 22.4 10.0002 22.4C6.0002 21.5 3.2002 17.9 3.2002 13.8C3.2002 8.9 7.1002 5 12.0002 5C12.7002 5 13.4002 5.1 14.0002 5.2C14.5002 5.3 14.9002 5.9 14.7002 6.4C14.6002 6.9 14.0002 7.3 13.5002 7.1C13.1002 7.1 12.5002 7 12.0002 7C8.3002 7 5.2002 10.1 5.2002 13.8C5.2002 17 7.4002 19.7 10.4002 20.4C10.9002 20.5 11.3002 21.1 11.1002 21.6C11.1002 22.1 10.7002 22.4 10.2002 22.4Z" fill="#454754"/>
+              </svg>
+          </div>
+          <div class="suggestion-content">
+              <span class="main-text data-favorite-name"></span>
+              <span class="sub-text data-address-text"></span>
+          </div>
+          <button class="delete-favorite-btn" title="Delete favorite">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                   stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+          </button>
+      </div>
+  </template>
+  <template id="template-search-result">
+      <div class="suggestion-item search-result">
+          <div class="suggestion-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12h20" />
+              </svg>
+          </div>
+          <div class="suggestion-content">
+              <span class="main-text data-main-text"></span>
+          </div>
+      </div>
+  </template>
   <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
       <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -323,6 +494,8 @@
   </svg>
 
   <script type="module" src="./js/app.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <div id="timeContainer">
       <div class="timeWrapper">
           <div class="timeGroup">

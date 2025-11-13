@@ -37,6 +37,7 @@ import {
 } from './scriptEngine.js';
 import {initSettingsSidebar} from "./settings.js";
 import {clearTimePickerState, initTimePicker, initCalendarVisibility} from "./timePicker.js";
+import "./location/location-picker.js";
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, getEnvVarsOnly());
 // dataPicker element
 const timeGroupEl = document.querySelector('#timeContainer .timeGroup');
