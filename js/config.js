@@ -106,7 +106,7 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
 /**
  *  dg proxy config
  * */
-const PROXY_URL = 'http://localhost:9001/api/v1/api-helper/proxy?target=';
+const PROXY_URL = 'https://driver.dev.uklon.com.ua';
 const PROXY_DOMAINS = ['localhost', 'api-helper-cee777.pages.uklon.net'];
 const REQUEST_TIMEOUT_MS = 15000;
 
