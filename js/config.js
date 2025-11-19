@@ -66,48 +66,12 @@ export function clearLocalStorage(prefixes = [], exactKeys = []) {
 export function getVal(v) {
     return v?.currentValue ?? v?.value ?? v?.initialValue ?? '';
 }
-/* proxy config
-export const PROXY_URL = "http://localhost:8080/";
-const REQUEST_TIMEOUT_MS = 15000;
-export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), ms);
-    const options = { ...opts, signal: controller.signal };
-    const finalUrl = PROXY_URL? PROXY_URL + url: url;
-
-    return fetch(finalUrl, options)
-        .finally(() => clearTimeout(timer));
-}
-*/
-/* delete proxy if run on uklon domain */
-// Detect if the app is running on localhost (any port)
-/** without proxy
-const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-
-// Proxy URL for local development
-const LOCAL_PROXY_URL = 'http://localhost:8080/';
-
-const REQUEST_TIMEOUT_MS = 15000;
-
-export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), ms);
-    const options = { ...opts, signal: controller.signal };
-
-    // If running locally → prepend proxy
-    // If not → keep the original URL untouched
-    const finalUrl = isLocalhost ? LOCAL_PROXY_URL + url : url;
-
-    return fetch(finalUrl, options)
-        .finally(() => clearTimeout(timer));
-}
-*/
 
 /**
  *  dg proxy config
  * */
 const PROXY_URL = 'https://driver.dev.uklon.com.ua/api/v1/api-helper/proxy?target=';
-const PROXY_DOMAINS = ['localhost', 'api-helper-cee777.pages.uklon.net'];
+const LOCAL_PROXY_URL = 'http://localhost:8080/';
 const REQUEST_TIMEOUT_MS = 15000;
 
 export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
@@ -115,8 +79,16 @@ export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     const timer = setTimeout(() => controller.abort(), ms);
     const options = { ...opts, signal: controller.signal };
 
-    const useProxy = PROXY_DOMAINS.includes(window.location.hostname);
-    const finalUrl = useProxy ? PROXY_URL + url : url;
+    const hostname = window.location.hostname;
+    let finalUrl = url;
+
+    if (hostname === 'api-helper-cee777.pages.uklon.net') {
+        finalUrl = PROXY_URL + url;
+    }
+    else if (hostname === 'localhost') {
+        finalUrl = LOCAL_PROXY_URL + url;
+    }
+    // if url is not localhost or api helper keep the original URL
 
     return fetch(finalUrl, options)
         .finally(() => clearTimeout(timer));
