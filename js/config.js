@@ -74,25 +74,30 @@ const PROXY_URL = 'https://driver.dev.uklon.com.ua/api/v1/api-helper/proxy?targe
 const LOCAL_PROXY_URL = 'http://localhost:8080/';
 const REQUEST_TIMEOUT_MS = 15000;
 
+export function buildApiUrl(url) {
+    const hostname = window.location.hostname;
+
+    if (hostname === 'api-helper-cee777.pages.uklon.net') {
+        return PROXY_URL + url;
+    }
+    if (hostname === 'localhost') {
+        return LOCAL_PROXY_URL + url;
+    }
+
+    return url;
+}
+
 export function fetchWithTimeout(url, opts = {}, ms = REQUEST_TIMEOUT_MS) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), ms);
     const options = { ...opts, signal: controller.signal };
 
-    const hostname = window.location.hostname;
-    let finalUrl = url;
-
-    if (hostname === 'api-helper-cee777.pages.uklon.net') {
-        finalUrl = PROXY_URL + url;
-    }
-    else if (hostname === 'localhost') {
-        finalUrl = LOCAL_PROXY_URL + url;
-    }
-    // if url is not localhost or api helper keep the original URL
+    const finalUrl = buildApiUrl(url);
 
     return fetch(finalUrl, options)
         .finally(() => clearTimeout(timer));
 }
+
 
 const RESPONSE_BODY_MAX = 512 * 1024; // 512 KB
 

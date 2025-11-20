@@ -1101,12 +1101,10 @@ export function openRequest(item, forceDefaults = false) {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 state.TIME_PICKER_STATE[reqId] = parsed;
-                console.debug('[TimePicker] Restored from localStorage:', parsed);
             }
             // init time picker whe request is loaded
             initTimePicker(reqId);
         } catch (e) {
-            console.warn('[TimePicker] Restore error:', e);
             initTimePicker(state.CURRENT_REQ_ID);
         }
     });

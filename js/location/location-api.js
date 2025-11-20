@@ -1,5 +1,5 @@
 // location-api.js
-import { fetchWithTimeout } from "../config.js";
+import { fetchWithTimeout, buildApiUrl } from "../config.js";
 
 
 // api setup
@@ -23,7 +23,9 @@ function getLocaleFromQuery(query) {
  */
 export async function loadCitiesApi() {
     try {
-        const res = await fetch("https://driver.dev.uklon.com.ua/api/v1/countries", {
+        const url = buildApiUrl("https://driver.dev.uklon.com.ua/api/v1/countries");
+
+        const res = await fetch(url, {
             method: "GET",
             headers: { "locale": "UA" }
         });

@@ -362,7 +362,6 @@ export function makePmAdapter(ctx) {
                     base.fare_id = base.fare_id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
                     base.include_route_info = (base.include_route_info !== false);
 
-                    console.log("[OVERRIDE] fareEstimatePayloadAdditional points:", points);
                     return JSON.stringify(base);
                 }
 
