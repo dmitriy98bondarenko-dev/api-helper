@@ -138,11 +138,10 @@ export function initEnvDropdown() {
     // new env options
     envList.querySelectorAll('.envOption').forEach(opt => {
         opt.addEventListener('click', async () => {
-            const envKey = opt.dataset.value; // dev / staging / prod
+            const envKey = opt.dataset.value; // dev / staging
             let newPath;
             if (envKey === 'dev') newPath = './data/dev_environment.json';
             if (envKey === 'staging') newPath = './data/staging_enviroment.json';
-            if (envKey === 'prod') newPath = './data/prod_environment.json';
 
             // try load from LocalStorage
             let savedEnv = null;

@@ -249,7 +249,7 @@ export function renderHotkeysList(containerId = "hotkeysList") {
 
 
 async function cycleEnvironment() {
-    const order = ["dev", "staging", "prod"];
+    const order = ["dev", "staging"];
     let current = localStorage.getItem('selected_env') || 'dev';
     let idx = order.indexOf(current);
     let next = order[(idx + 1) % order.length];
@@ -257,7 +257,6 @@ async function cycleEnvironment() {
     let newPath;
     if (next === 'dev') newPath = './data/dev_environment.json';
     if (next === 'staging') newPath = './data/staging_enviroment.json';
-    if (next === 'prod') newPath = './data/prod_environment.json';
 
     let savedEnv = null;
     try {

@@ -1181,7 +1181,7 @@ export async function bootApp({ collectionPath, autoOpenFirst }) {
                 // for dev always download
                 env = await loadJson('./data/dev_environment.json');
             } else {
-                // for stage/prod if file doesnt exs → create empty
+                // for stage if file doesnt exs → create empty
                 env = { values: [] };
                 localStorage.setItem(`pm_env_${currentEnv}`, JSON.stringify(env));
             }
