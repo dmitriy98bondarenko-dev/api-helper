@@ -1,0 +1,600 @@
+/* inputs */
+.input-group.labeled {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 5;
+    overflow: visible;
+}
+.input-group.labeled.focused {
+    z-index: 15;
+}
+.input-group.labeled label {
+    font-size: 0.85rem;
+    color: var(--fg-muted);
+    padding-left: 4px;
+}
+
+.input-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    flex-grow: 1;
+    gap: 0;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--bg-input);
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--accent);
+    background: var(--bg);
+}
+
+.input-wrapper input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    color: var(--fg);
+    font-size: 0.95rem;
+    padding: 11px 50px 11px 12px;
+    outline: none;
+    box-sizing: border-box;
+    flex-grow: 1;
+    transition: none;
+}
+
+.input-wrapper input:focus {
+    border-color: transparent;
+    background: transparent;
+}
+
+.input-wrapper input::placeholder {
+    color: var(--fg-muted);
+}
+
+/*  input icon */
+.input-icon {
+    position: relative;
+    transform: none;
+    cursor: pointer;
+    width: 36px;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    background-color: var(--color-unfilled);
+    border-radius: 9px 0 0 9px;
+    padding: 0 4px;
+    transition: background-color 0.3s ease;
+    overflow: hidden;
+}
+
+.input-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.input-icon svg path {
+    fill: var(--icon-svg-color);
+}
+
+.input-icon::after {
+    content: 'Open on map';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    margin-bottom: 8px;
+    z-index: 20;
+}
+
+.input-icon:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+.input-icon.is-onboarded {
+    background-color: var(--color-unfilled);
+}
+
+@keyframes blink-fill {
+    0%, 100% {
+        background-color: var(--color-unfilled);
+    }
+    50% {
+        background-color: #f7b731;
+    }
+}
+
+.input-group.labeled.first-open-blink .input-icon {
+    animation: blink-fill 2s ease-in-out 3;
+}
+
+@keyframes map-icon-pulse {
+    0% {
+        background-color: var(--color-unfilled);
+        box-shadow: 0 0 0 0 transparent;
+    }
+    50% {
+        background-color: #5355e0;
+        box-shadow: 0 0 0 4px color-mix(in srgb, #5355e0 50%, transparent);
+    }
+    100% {
+        background-color: #5355e0;
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+.input-icon.onboarding-active {
+    animation: map-icon-pulse 2s ease-in-out infinite;
+    transition: none !important;
+}
+
+.input-icon.onboarding-active:hover {
+    animation: none;
+    background-color: #5355e0;
+}
+
+/* shortcut  */
+.shortcuts {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 0;
+    z-index: 2;
+}
+
+.shortcut-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--fg-muted);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+    padding: 0;
+}
+
+.shortcut-btn:hover {
+    color: var(--accent);
+}
+
+.shortcut-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+}
+
+.clear-input-btn svg {
+    stroke-width: 1.5;
+}
+
+/* favorite button */
+.favorite-standalone-btn {
+    height: auto;
+    width: 44px;
+    flex-shrink: 0;
+    background: var(--favorite-btn-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--favorite-icon-color);
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.favorite-standalone-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+    stroke: none;
+}
+
+.favorite-standalone-btn:hover,
+.favorite-standalone-btn:focus-visible {
+    border-color: var(--favorite-active-color);
+    color: var(--favorite-active-color);
+    background: color-mix(in srgb, var(--favorite-active-color) 5%, transparent);
+}
+
+.favorite-standalone-btn:active {
+    border-color: var(--favorite-active-color);
+    color: var(--favorite-active-color);
+    transform: scale(0.95);
+    background: color-mix(in srgb, var(--favorite-active-color) 10%, transparent);
+}
+
+.favorite-standalone-btn.is-favorited {
+    color: var(--favorite-active-color);
+    border-color: var(--favorite-active-color);
+    background: color-mix(in srgb, var(--favorite-active-color) 10%, transparent);
+}
+
+.favorite-standalone-btn.is-favorited:hover,
+.favorite-standalone-btn.is-favorited:focus-visible {
+    background: color-mix(in srgb, var(--favorite-active-color) 15%, transparent);
+}
+
+.favorite-standalone-btn.is-favorited:active {
+    transform: scale(0.95);
+    background: color-mix(in srgb, var(--favorite-active-color) 20%, transparent);
+}
+
+.favorite-standalone-btn:disabled,
+.favorite-standalone-btn.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    border-color: var(--input-border) !important;
+    color: var(--fg-muted) !important;
+    background: var(--bg-input) !important;
+    transform: none !important;
+}
+
+@keyframes non-intrusive-blink-group {
+    0%, 100% {
+        box-shadow: 0 0 0 0 transparent;
+    }
+    50% {
+        box-shadow: 0 0 0 3px rgba(83, 85, 224, 0.4);
+    }
+}
+
+.input-group.labeled.first-open-blink .input-wrapper {
+    animation: non-intrusive-blink-group 2s ease-in-out 3;
+}
+
+/* suggestion dropdown */
+#pickupSuggestions,
+#dropSuggestions {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    width: 100%;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 99999 !important;
+    background: var(--bg-panel);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.12);
+    isolation: isolate;
+    transform: translateZ(0);
+}
+
+.suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    margin-top: 4px;
+    z-index: 10;
+    max-height: 240px;
+    overflow-y: auto;
+    background: var(--bg-panel);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    display: none;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 10px 12px 10px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    color: var(--fg);
+    font-size: 0.95rem;
+    position: relative;
+    z-index: 1;
+}
+
+.suggestion-item:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+}
+
+.suggestion-item:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* suggestion item */
+.suggestion-content {
+    flex-grow: 1;
+    min-width: 0;
+}
+.suggestion-content .main-text {
+    font-weight: 500;
+    color: var(--fg);
+    white-space: normal;
+    word-break: break-word;
+    overflow: visible;
+    text-overflow: clip;
+}
+.suggestion-content .sub-text {
+    font-size: 0.8rem;
+    color: var(--fg-muted);
+    white-space: normal;
+    word-break: break-word;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+.suggestion-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 4px;
+    white-space: nowrap;
+}
+
+.suggestion-text {
+    font-size: 15px;
+    color: var(--fg-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.addr-title {
+    font-size: 15px;
+    color: var(--fg-primary);
+}
+
+.addr-city {
+    font-size: 13px;
+    color: #8b8b8b;
+}
+
+.suggestion-icon {
+    display: flex;
+    align-items: center;
+    color: var(--fg-muted);
+    flex-shrink: 0;
+}
+.suggestion-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+/* pick map suggestion */
+.suggestion-item.pick-map-suggestion {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--bg-panel);
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
+    transition: filter 0.15s ease;
+    font-size: 16px;
+    font-weight: 500;
+    color: #6366f1;
+}
+
+.suggestion-item.pick-map-suggestion:hover {
+    background: var(--bg-panel);
+    filter: brightness(0.95);
+}
+
+.suggestion-item.pick-map-suggestion .suggestion-icon {
+    color: #6366f1;
+}
+.suggestion-item.pick-map-suggestion svg path {
+    fill: #6366f1;
+}
+[data-theme="dark"] .suggestion-item.pick-map-suggestion .suggestion-icon {
+    color: #6366f1;
+}
+[data-theme="dark"] .suggestion-item.pick-map-suggestion svg path {
+    fill: #6366f1;
+}
+
+/* delete favorite button */
+.delete-favorite-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--fg-muted);
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin-left: 10px;
+}
+.delete-favorite-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+}
+.delete-favorite-btn:hover {
+    color: var(--fg);
+}
+
+/* city dropdown */
+.city-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.custom-select {
+    position: relative;
+    min-width: 100px;
+    width: auto;
+    max-width: 70%;
+    flex: 0 0 auto;
+    user-select: none;
+    cursor: pointer;
+}
+
+.select-selected {
+    background: #6467F2;
+    white-space: nowrap;
+    color: white;
+    font-size: 16px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    border: none;
+    align-items: center;
+    display: inline-flex;
+    gap: 12px;
+}
+.select-selected .arrow {
+    display: inline-block;
+    font-size: 10px;
+    line-height: 1;
+    color: white;
+    transition: transform 0.2s ease;
+    margin-top: 1px;
+    pointer-events: none;
+}
+.custom-select.open .arrow {
+    transform: rotate(180deg);
+}
+.select-selected:hover {
+    background: #595be3;
+}
+.select-selected:active {
+    background: #4244c8;
+}
+
+#cityDropdownPortal {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999999;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.city-dropdown {
+    position: absolute;
+    width: calc(var(--city-select-width, 220px));
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    max-height: 240px;
+    overflow-y: auto;
+    pointer-events: all;
+    border: 1px solid #e6e6e6;
+    margin-top: 6px;
+}
+
+.city-dropdown div {
+    padding: 12px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.city-dropdown div:hover {
+    background: #f5f5ff;
+}
+
+/* dark theme*/
+
+[data-theme="dark"] .city-dropdown {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .city-dropdown div {
+    color: var(--fg);
+}
+
+[data-theme="dark"] .city-dropdown div:hover {
+    background: color-mix(in srgb, var(--bg-panel) 90%, #ffffff);
+}
+
+[data-theme="dark"] .suggestion-item:not(.favorite-item) .suggestion-icon {
+    color: var(--fg);
+}
+
+[data-theme="dark"] .suggestion-item:not(.pick-map-suggestion) .suggestion-icon {
+    color: var(--fg);
+}
+
+[data-theme="dark"] .suggestion-icon svg path {
+    fill: currentColor;
+}
+
+[data-theme="dark"] .suggestion-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+
+[data-theme="dark"] .suggestion-row {
+    padding: 6px 4px;
+}
+
+[data-theme="dark"] .suggestion-item {
+    background: #1b1c1f;
+    color: var(--fg);
+    border-color: rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .pick-map-suggestion {
+    background: #202124;
+}
+
+[data-theme="dark"] .suggestion-text {
+    color: var(--fg);
+}
+
+[data-theme="dark"] .suggestion-text .addr-city {
+    color: var(--fg-muted);
+}
+
+[data-theme="dark"] .suggestion-icon {
+    color: var(--fg-muted);
+}
+
+[data-theme="dark"] .suggestion-icon svg {
+    fill: currentColor;
+}

@@ -397,14 +397,17 @@ export function initResetModal() {
         });
     }
 
-    // full reset
+    // full reset localstorage
     if (resetFull) {
         const newResetFull = resetFull.cloneNode(true);
         resetFull.parentNode.replaceChild(newResetFull, resetFull);
         resetFull = newResetFull;
 
         resetFull.addEventListener('click', () => {
-            clearLocalStorage(['pm_env_', 'pm_req_'], ['selected_env', 'global_bearer']);
+            clearLocalStorage(
+                ['pm_env_', 'pm_req_'],
+                ['selected_env', 'global_bearer', 'pickup_point', 'dropoff_point', 'map_icon_onboarded']
+            );
             clearTimePickerState();
             clearFullScript('pre');
             clearFullScript('post');
