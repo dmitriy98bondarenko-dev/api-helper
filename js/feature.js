@@ -38,6 +38,7 @@ import {
 import {initSettingsSidebar} from "./settings.js";
 import {clearTimePickerState, initTimePicker, initCalendarVisibility} from "./timePicker.js";
 import "./location/location-picker.js";
+import {saveCaretPosition, restoreCaretPosition} from "./helpers/helpers.js"
 const renderUrlWithVarsLocal = (u) => renderUrlWithVars(u, getEnvVarsOnly());
 // dataPicker element
 const timeGroupEl = document.querySelector('#timeContainer .timeGroup');
@@ -53,6 +54,8 @@ function getNeedAuthFromEnvOrCollection() {
     if (row) return String(row.value);
     return String(state.COLLECTION_VARS?.needAuth ?? '');
 }
+
+
 
 function setNeedAuthInEnv(value) {
     if (!state.ENV) state.ENV = { values: [] };
@@ -220,6 +223,15 @@ export function openRequest(item, forceDefaults = false) {
     if (oldSendGroup && timeToggle && oldSendGroup.contains(timeToggle)) {
         oldSendGroup.removeChild(timeToggle);
     }
+    // save cursor position in url ynp before render
+    let savedPos = null;
+    let savedText = null;
+    const oldInp = document.querySelector('#urlInp');
+    if (oldInp && document.activeElement === oldInp) {
+        savedPos = oldInp.selectionStart;
+        savedText = oldInp.value;
+    }
+
     pane.innerHTML = '';
     if (dropdown && !document.body.contains(dropdown)) document.body.appendChild(dropdown);
     const card = el('div', { class:'card' });
@@ -266,23 +278,18 @@ export function openRequest(item, forceDefaults = false) {
 
 
     urlDisp.addEventListener('input', () => {
+        const caret = saveCaretPosition(urlDisp);
+
         urlHidden.value = urlDisp.textContent;
 
         const params = tableToSimpleArray(paramsTable.tBodies[0]);
-
-        // render URL
-        urlDisp.innerHTML = renderUrlWithVarsLocal(
+        const newHtml = renderUrlWithVarsLocal(
             safeBuildUrl($('#urlInp').value.trim(), params)
         );
 
-        // highlightMissingVars(urlDisp, state.VARS);
+        urlDisp.innerHTML = newHtml;
 
-        const range = document.createRange();
-        range.selectNodeContents(urlDisp);
-        range.collapse(false);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
+        restoreCaretPosition(urlDisp, caret);
 
         debSave();
     });
@@ -452,8 +459,12 @@ export function openRequest(item, forceDefaults = false) {
         paramsPane.addEventListener(ev, () => {
             const params = tableToSimpleArray(paramsTable.tBodies[0]);
             const builtUrl = safeBuildUrl($('#urlInp').value.trim(), params);
+            const disp = $('#urlInpDisplay');
+            const caret = saveCaretPosition(disp);
+
             urlHidden.value = builtUrl;
-            $('#urlInpDisplay').innerHTML = renderUrlWithVarsLocal(builtUrl);
+            disp.innerHTML = renderUrlWithVarsLocal(builtUrl);
+            restoreCaretPosition(disp, caret);
             debSave();
         });
     });
@@ -602,6 +613,19 @@ export function openRequest(item, forceDefaults = false) {
 // mount card
     card.append(header, tabs, paramsPane, headersPane, authPane, scriptsPane, bodyWrap, actions);
     pane.append(card);
+
+    //restore cursor position
+    const newInp = document.querySelector('#urlInp');
+    if (newInp && savedText !== null) {
+        newInp.value = savedText;
+
+        if (savedPos !== null) {
+            requestAnimationFrame(() => {
+                newInp.focus();
+                newInp.setSelectionRange(savedPos, savedPos);
+            });
+        }
+    }
 
 // highlight vars
     highlightMissingVars(card, state.VARS);
